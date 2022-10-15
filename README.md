@@ -1,5 +1,8 @@
 ## Overview
-Simple draw a subtitle file.
+Draw a subtitle text lines from a `.srt` file.
+
+##### WIP
+- Pass time to link with external player.
 
 ## Screenshot
 ![Screenshot](example-Subtitle/Capture.PNG)
@@ -21,10 +24,11 @@ ofxSurfingTextSubtitle sub;
 ```.cpp
 void ofApp::setup() 
 {
-	sub.setup("Alphaville.ENG.srt");
+	sub.setup("Alphaville.srt");
 }
 
-void ofApp::draw() {
+void ofApp::draw() 
+{
 	sub.draw();
 }
 ```
