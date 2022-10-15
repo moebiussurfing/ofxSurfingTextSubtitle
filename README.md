@@ -27,10 +27,14 @@ void ofApp::setup()
 {
 	sub.setup("Alphaville.srt");
 }
-
+void ofApp::update() 
+{
+	sub.update();
+}
 void ofApp::draw() 
 {
 	sub.draw();
+	sub.drawGui();
 }
 ```
 

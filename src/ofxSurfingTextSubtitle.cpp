@@ -8,11 +8,12 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	setupParams();
 	setupSubs();
 
+	ofxSurfingHelpers::setThemeDarkMini_ofxGui();
 	gui.setup(params);
 
 	boxInfo.setup();
 
-	box.setBorderColor(ofColor::yellow);
+	box.setBorderColor(colorDebug);
 	box.setup();
 
 	startup();
@@ -26,10 +27,20 @@ void ofxSurfingTextSubtitle::setupParams() {
 	int _textDimension = 2048;
 
 	fName = "ExtendedBold";
+
+	// search some fonts alternatives
 	fPath = "fonts/GTAmerica-ExtendedBold.ttf";
+	if (!ofFile::doesFileExist(fPath.get())) {
+		fPath = "assets/fonts/JetBrainsMono-ExtraBold.ttf";
+		if (!ofFile::doesFileExist(fPath.get())) {
+			fPath = OF_TTF_SANS;
+		}
+	}
+
 	bool b = font.setup(fPath, 1.0, _textDimension, _mipmaps, 8, _dpiScale);
 	if (!b) ofLogError("ofxSurfingTextSubtitle") << "Font file not found: " << fPath;
 
+	bDraw.set("Draw", true);
 	bPlay.set("Play", false);
 	bDebug.set("Debug", false);
 	bAuto.set("Auto", false);
@@ -46,6 +57,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bResetFont.set("Reset", false);
 
 	params.setName("Text Subtitle");
+	params.add(bGui);
+	params.add(bDraw);
 	params.add(bPlay);
 	params.add(bAuto);
 	params.add(speedAuto);
@@ -120,10 +133,53 @@ void ofxSurfingTextSubtitle::exit() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::draw() {
-	string ss = "";
+void ofxSurfingTextSubtitle::drawGui() {
+	if (!bGui_Internal) return;
 
-	static int i = 0;
+	// info
+	boxInfo.draw();
+
+	gui.draw();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::draw(ofRectangle view) {
+	if (!bDraw) return;
+
+	float x = view.getX();
+	float y = view.getY();
+	float w = view.getWidth();//TODO: not handled
+	float h = view.getHeight();
+
+	ofPushMatrix();
+	ofTranslate(x, y);
+	draw();
+	ofPopMatrix();
+}
+
+/*
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::drawRaw(ofRectangle view) {
+	if (!bDraw) return;
+
+	// text
+	ofRectangle r = drawTextBox(textCurrent, box.getRectangle());
+	//boxhMax = r.getHeight();
+}
+*/
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::drawRaw() {
+	if (!bDraw) return;
+
+	// text
+	ofRectangle r = drawTextBox(textCurrent, box.getRectangle());
+	boxhMax = r.getHeight();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::update() {
+	if (!bDraw) return;
 
 	if (bPlay && !bAuto)
 	{
@@ -136,8 +192,8 @@ void ofxSurfingTextSubtitle::draw() {
 		{
 			if (t > element->getStartTime() && t <= element->getEndTime())
 			{
-				ss = element->getDialogue();
-				i = k;
+				textCurrent = element->getDialogue();
+				currentSub = k;
 				break;
 			}
 			k++;
@@ -147,60 +203,53 @@ void ofxSurfingTextSubtitle::draw() {
 	if (bAuto && !bPlay)
 	{
 		int n = ofMap(speedAuto, 0, 1, 100, 5);
-		if (ofGetFrameNum() % n == 0) i++;
-		if (i >= sub.size() - 1) i = 0;
-		ss = sub[i]->getDialogue();
+		if (ofGetFrameNum() % n == 0) currentSub++;
+		if (currentSub >= sub.size() - 1) currentSub = 0;
+		textCurrent = sub[currentSub]->getDialogue();
 	}
 
-	/*
-	for (SubtitleItem* element : sub)
+	// info
+	string s = "";
+	s += pathSrt;
+	s += "\n";
+	s += ofToString(currentSub) + "/" + ofToString(sub.size() - 1);
+	s += "\n";
+	s += sub[currentSub]->getStartTimeString();
+	s += "\n";
+	if (bPlay)
 	{
-		if (element->getStartTime() <= (ofGetElapsedTimeMillis() + 35000) && element->getEndTime() >= (ofGetElapsedTimeMillis() + 35000)) {
-			ofDrawBitmapString(element->getDialogue(), 50, 50);
-		}
+		uint64_t t = ofGetElapsedTimeMillis() - tPlay;
+		s += ofToString(t / 1000);
+		s += "\n";
 	}
-	*/
-	//if (element->getStartTime() && element->getEndTime() ) {
-	//	ofDrawBitmapString(element->getDialogue(), 50, 50);
-	//}
+	boxInfo.setText(s);
+}
 
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::draw() {
+	if (!bDraw) return;
 
-	{
-		// info
-		string s = "";
-		s += pathSrt;
-		s += "\n";
-		s += ofToString(i) + "/" + ofToString(sub.size() - 1);
-		s += "\n";
-		s += sub[i]->getStartTimeString();
-		s += "\n";
-		//s += ss;
-		//s += "\n";
-		if (bPlay) 
-		{
-			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
-			s += ofToString(t / 1000);
-			s += "\n";
-		}
-
-		// info
-		boxInfo.draw(s);
-
-		// container
-		box.draw();
-
-		if (bDebug) box.drawBorderBlinking();
+	// container
+	///*
+	if (box.getHeight() < boxhMax) {
+		box.setHeight(boxhMax);
 	}
+	//*/
 
-	// text
-	drawTextBox(ss, box.getRectangle());
+	box.draw();
 
-	gui.draw();
+	// debug
+	if (bDebug) box.drawBorderBlinking();
+
+	drawRaw();
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 {
+	static bool bAttending = false;
+	if (bAttending) return;
+
 	string name = e.getName();
 	ofLogNotice("ofxSurfingTextSubtitle") << name << " : " << e;
 
@@ -217,6 +266,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlay) {
 			bAuto = false;
+			currentSub = 0;
 			tPlay = ofGetElapsedTimeMillis();
 		}
 	}
@@ -225,7 +275,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == fSizePrc.getName())
 	{
 		fSize = fSizePrc * fSize.getMax();
-		refreshFontStyles();
+		//refreshFontStyles();
 	}
 
 	// font size, spacing, line height
@@ -242,12 +292,15 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == bResetFont.getName() && bResetFont.get())
 	{
-		bResetFont = false;
+		bAttending = true;
 
+		bResetFont = false;
 		fSizePrc = 0.5;
 		fSpacing = 0;
 		fLineHeight = 0.75;
 		fColor = ofColor(255, 255);
+		bAttending = false;
+
 		refreshFontStyles();
 	}
 }
@@ -304,14 +357,14 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r)
 
 		// 1. prepare
 		ofColor c;
-		c = ofColor::yellow;
+		c = colorDebug;
 		int _period = 60; // one second
 		bool b = ofGetFrameNum() % _period > _period / 2;
 		ofSetColor(ofColor(c, (b ? 64 : 32)));
 		ofNoFill();
 		ofSetLineWidth(1.0f);
 
-		// 2. yellow blink box
+		// 2. blink box
 		ofDrawRectangle(_bbox);
 
 		// 3. anchor
@@ -479,9 +532,10 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w) {
 	ofPushStyle();
-	ofSetColor((ofGetFrameNum() * 20) % 255, 200);
+	ofFill();
+	ofSetColor(colorDebug, (ofGetFrameNum() % 60) / 60. * 255);
 	ofDrawCircle(_x, _y, 2);
-	ofSetColor(255, 64);
+	ofSetColor(colorDebug, 64);
 	ofDrawLine(_x - 10, _y, _x + _w, _y);
 	ofPopStyle();
 }

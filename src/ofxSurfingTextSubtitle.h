@@ -6,9 +6,12 @@
 
 /*
 
-TODO:
+	TODO:
 
-fix right align
+	fix right align
+	force box height to fit paragraph
+	add next sub by tick
+	set custom font
 
 */
 
@@ -20,7 +23,7 @@ fix right align
 #include "ofxGui.h"
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfingBoxHelpText.h"
-#include "ofxSurfingHelpers.h"
+#include "ofxSurfing_ofxGui.h"
 
 #define MAX_FONT_SIZE 200
 
@@ -29,6 +32,7 @@ class ofxSurfingTextSubtitle {
 public:
 
 	ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
+		bGui.set("SUBTITLES", true);
 	};
 
 	ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
@@ -36,9 +40,24 @@ public:
 	};
 	
 	void setup(string pathSrt);
+	void update();
 	void draw();
+	void draw(ofRectangle view);
+	void drawGui();
+	void setDisableGuiInternal(bool b){ bGui_Internal = !b; }
 
 private:
+
+	//TODO:
+	//letters only. without boxes nor gui
+	void drawRaw();
+	//void drawRaw(ofRectangle view);
+	
+	ofColor colorDebug = ofColor::black;
+
+	string textCurrent;
+	int currentSub;
+	float boxhMax;
 
 	ofxPanel gui;
 
@@ -47,6 +66,8 @@ private:
 	void startup();
 	void exit();
 
+	bool bGui_Internal = true;
+
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
 	std::vector<SubtitleItem*> sub;
@@ -54,7 +75,11 @@ private:
 	ofxSurfingBoxInteractive box;
 	ofxSurfingBoxHelpText boxInfo;
 
+public:
+
 	ofParameterGroup params;
+	ofParameter<bool> bGui;
+	ofParameter<bool> bDraw;
 	ofParameter<bool> bDebug;
 	ofParameter<bool> bAuto;
 	ofParameter<float> speedAuto;
@@ -72,6 +97,9 @@ private:
 	ofParameter<bool> bResetFont;
 
 	ofParameter<bool> bPlay;
+
+private:
+
 	uint64_t tPlay;
 
 	void refreshFontStyles();
