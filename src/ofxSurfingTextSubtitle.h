@@ -41,25 +41,18 @@ public:
 	
 	void setup(string pathSrt);
 	void update();
+
 	void draw();
 	void draw(ofRectangle view);
-	void drawGui();
-	void setDisableGuiInternal(bool b){ bGui_Internal = !b; }
-
-private:
-
 	//TODO:
 	//letters only. without boxes nor gui
 	void drawRaw();
 	//void drawRaw(ofRectangle view);
-	
-	ofColor colorDebug = ofColor::black;
 
-	string textCurrent;
-	int currentSub;
-	float boxhMax;
+	void drawGui();
+	void setDisableGuiInternal(bool b){ bGui_Internal = !b; }
 
-	ofxPanel gui;
+private:
 
 	void setupParams();
 	void setupSubs();
@@ -99,6 +92,14 @@ public:
 	ofParameter<bool> bPlay;
 
 private:
+
+	ofColor colorDebug = ofColor::black;
+
+	string textCurrent;
+	int currentSub;
+	float boxhMax;
+
+	ofxPanel gui;
 
 	uint64_t tPlay;
 

@@ -64,7 +64,9 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params.add(speedAuto);
 	params.add(bDebug);
 	//params.add(box.bGui);
+
 	box.bGui.makeReferenceTo(bDebug);
+	boxInfo.bGui.makeReferenceTo(bDebug);
 
 	params_Style.setName("Style");
 	params_Style.add(fName);
@@ -230,11 +232,9 @@ void ofxSurfingTextSubtitle::draw() {
 	if (!bDraw) return;
 
 	// container
-	///*
 	if (box.getHeight() < boxhMax) {
 		box.setHeight(boxhMax);
 	}
-	//*/
 
 	box.draw();
 
