@@ -1,8 +1,9 @@
 ## Overview
-Draw a subtitle text lines from a `.srt` file.
+Draws text lines from a `.srt` subtitle file.
 
 ##### WIP
-- Pass time to link with external player.
+- Pass time to link with an external player.
+- Add basic animation/fade.
 
 ## Screenshot
 ![Screenshot](example-Subtitle/Capture.PNG)
@@ -10,7 +11,7 @@ Draw a subtitle text lines from a `.srt` file.
 ## Features
 - Fast FontStash render.
 - Custom Styles.
-- Scalable draw rectangle container.
+- Scalable draw rectangle width container.
 - Persistent settings.
 
 ## Example
@@ -41,6 +42,9 @@ void ofApp::draw()
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
+
+## Thanks
+`srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks @Jonathhhan.
 
 ## License
 **MIT License**
