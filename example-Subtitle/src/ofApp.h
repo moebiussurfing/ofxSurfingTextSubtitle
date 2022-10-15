@@ -1,14 +1,16 @@
 #pragma once
 
 #include "ofMain.h"
+
 #include "ofxSurfingTextSubtitle.h"
 
-class ofApp : public ofBaseApp{
-	
-	public:
-		
-		void setup();
-		void draw();
+class ofApp : public ofBaseApp {
 
-		ofxSurfingTextSubtitle sub;
+public:
+
+	void setup();
+	void draw();
+
+	ofxSurfingTextSubtitle sub;
+	string path;
 };

@@ -1,1 +1,5 @@
+ofxFontStash
+ofxGui
+ofxSurfingBox
+ofxSurfingHelpers
 ofxSurfingTextSubtitle

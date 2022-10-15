@@ -1,8 +1,13 @@
 #include "ofApp.h"
 
 //--------------------------------------------------------------
-void ofApp::setup() {
-	sub.setup();
+void ofApp::setup() 
+{
+	path = "subs/Huxley.srt";
+	//path = "subs/Alphaville.srt";
+	//path = "subs/spanish.srt";
+
+	sub.setup(path);
 }
 
 //--------------------------------------------------------------
