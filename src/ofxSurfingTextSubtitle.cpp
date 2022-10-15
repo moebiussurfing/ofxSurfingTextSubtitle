@@ -29,7 +29,10 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fName = "ExtendedBold";
 
 	// search some fonts alternatives
-	fPath = "fonts/GTAmerica-ExtendedBold.ttf";
+	
+	fPath = "fonts/GTAmerica-ExtendedBlack.ttf";
+	//fPath = "fonts/GTAmerica-ExtendedBold.ttf";
+
 	if (!ofFile::doesFileExist(fPath.get())) {
 		fPath = "assets/fonts/JetBrainsMono-ExtraBold.ttf";
 		if (!ofFile::doesFileExist(fPath.get())) {
@@ -175,7 +178,7 @@ void ofxSurfingTextSubtitle::drawRaw() {
 	if (!bDraw) return;
 
 	// text
-	ofRectangle r = drawTextBox(textCurrent, box.getRectangle());
+	ofRectangle r = drawTextBox(textCurrent, box.getRectangle(), true);
 	boxhMax = r.getHeight();
 }
 
@@ -232,10 +235,12 @@ void ofxSurfingTextSubtitle::draw() {
 	if (!bDraw) return;
 
 	// container
+	//workflow auto scale
+	/*
 	if (box.getHeight() < boxhMax) {
 		box.setHeight(boxhMax);
 	}
-
+	*/
 	box.draw();
 
 	// debug
@@ -306,7 +311,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 }
 
 //--------------------------------------------------------------
-ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r) {
+ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bRaw) {
 	float _x = box.getX();
 	float _y = box.getY();
 	float _w = box.getWidth();
@@ -351,7 +356,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r)
 	//------
 
 	// draw debug
-	if (bDebug)
+	if (bDebug&& !bRaw)
 	{
 		ofPushStyle();
 

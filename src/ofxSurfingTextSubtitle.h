@@ -8,10 +8,17 @@
 
 	TODO:
 
+	block modifyng box when drawing raw.
+		add edit/lock toggle.
+	add auto set layout. ex: 
+		re center box to a center point 
+		when different box sizes happens,
+		when different amount of lines.
+	add load another srt file on runtime
 	fix right align
-	force box height to fit paragraph
-	add next sub by tick
-	set custom font
+	add API next sub by tick
+	add API set sub by index
+	add API set custom fonts on runtime
 
 */
 
@@ -38,19 +45,17 @@ public:
 	ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 		exit();
 	};
-	
-	void setup(string pathSrt);
+
+	void setup(string pathSrt);//pass the .srt file path to load
 	void update();
 
 	void draw();
 	void draw(ofRectangle view);
-	//TODO:
-	//letters only. without boxes nor gui
-	void drawRaw();
+	void drawRaw();//letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
 	void drawGui();
-	void setDisableGuiInternal(bool b){ bGui_Internal = !b; }
+	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }//disables ofxGui. useful when using ImGui or to disable gui.
 
 private:
 
@@ -108,7 +113,7 @@ private:
 
 	ofxFontStash font;
 
-	ofRectangle drawTextBox(std::string _t, ofRectangle r);
+	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bRaw = false);
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
 	void drawInsertionPoint(float _x, float _y, float _w);
 	//--------------------------------------------------------------
