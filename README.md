@@ -1,7 +1,3 @@
-### WIP
-- Pass time to link with an external player.
-- Add basic animation/fade.
-
 ## Screenshot
 #### ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
@@ -15,6 +11,7 @@
 - Transport player and browser.
 - Persistent settings.
 - Presets Engine.
+- Animated Fade In.
 
 ## Example
 #### ofApp.h
@@ -47,6 +44,9 @@ void ofApp::draw()
 - ofxGui
 #### OPTIONAL
 - ofxSufingImGui
+
+### TODO
+- Pass time to link with an external video player.
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
