@@ -14,6 +14,7 @@
 - Scalable and draggable container.
 - Transport player and browser.
 - Persistent settings.
+- Presets Engine.
 
 ## Example
 #### ofApp.h
