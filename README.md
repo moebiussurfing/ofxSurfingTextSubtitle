@@ -12,6 +12,7 @@
 - Fast FontStash render.
 - Custom Styles.
 - Scalable and draggable container.
+- Transport player and browser.
 - Persistent settings.
 
 ## Example
@@ -45,7 +46,6 @@ void ofApp::draw()
 - ofxGui
 #### OPTIONAL
 - ofxSufingImGui
-- ofxImGui
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**

@@ -73,6 +73,11 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bAuto.set("Auto", false);
 	speedAuto.set("Speed", 0, 0, 1);
 
+	bAnimated.set("FadeIn", false);
+	speedFade.set("SpeedIn", 0, 0, 1);
+	bAnimatedOut.set("FadeOut", false);
+	speedFadeOut.set("SpeedOut", 0, 0, 1);
+
 	// Style
 	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
 	fSizePrc.set("Size", 0.5, 0.1, 1.0);
@@ -91,19 +96,17 @@ void ofxSurfingTextSubtitle::setupParams() {
 	boxInfo.bGui.makeReferenceTo(bDebug);
 #endif
 
-	//bPlay.setSerializable(false);
-	//bAuto.setSerializable(false);
 	fName.setSerializable(false);
 	fPath.setSerializable(false);
 	fAlign_str.setSerializable(false);
 	bResetFont.setSerializable(false);
 	bNext.setSerializable(false);
 	bPrev.setSerializable(false);
+	currentLine.setSerializable(false);
+	//bPlay.setSerializable(false);
+	//bAuto.setSerializable(false);
 
 	//--
-
-	params.setName(bGui.getName());
-	//params.setName("Text Subtitle");
 
 	params_Control.setName("Control");
 	//params_Control.add(bGui);
@@ -111,17 +114,22 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.add(bDebug);
 	//params_Control.add(box.bEdit);
 	params_Control.add(bGui_ViewFull);
-	params.add(params_Control);
 
 	params_Transport.setName("Transport");
 	params_Transport.add(currentLine);
-	//params_Transport.add(bExternal);
 	params_Transport.add(bPrev);
 	params_Transport.add(bNext);
 	params_Transport.add(bPlay);
 	params_Transport.add(bAuto);
 	params_Transport.add(speedAuto);
-	params.add(params_Transport);
+	//params_Transport.add(bExternal);
+
+	params_Fade.setName("Fade");
+	params_Fade.add(bAnimated);
+	params_Fade.add(speedFade);
+	//params_Fade.add(bAnimatedOut);
+	//params_Fade.add(speedFadeOut);
+	params_Transport.add(params_Fade);
 
 	params_Style.setName("Style");
 	params_Style.add(fName);
@@ -134,11 +142,21 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Style.add(fAlign_str);
 	params_Style.add(bCentered);
 	params_Style.add(bResetFont);
+
+	//params.setName("Text Subtitle");
+	params.setName(bGui.getName());
+	params.add(params_Control);
+	params.add(params_Transport);
 	params.add(params_Style);
 
 	ofAddListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
 	refreshFontStyles();
+
+	// Preset
+	params_Preset.setName("Subtitler");
+	params_Preset.add(params_Style);
+	params_Preset.add(params_Fade);
 }
 
 //--------------------------------------------------------------
@@ -276,6 +294,28 @@ void ofxSurfingTextSubtitle::drawRaw() {
 void ofxSurfingTextSubtitle::update() {
 	if (!bDraw) return;
 
+	if (bAnimated && isAnim)
+	{
+		if (alpha < 1.f) {
+			static float dt = 1 / 60.f;
+			dtAnim = ofMap(speedFade, 0, 1, dt * 0.4f, dt * 7, true);
+
+			alpha += dtAnim;
+		}
+		if (alpha >= 1.f) {
+			alpha = 1;
+			isAnim = false;
+		}
+	}
+	/*
+	else
+	{
+		alpha = 1.f;
+	}
+	*/
+
+	//--
+
 	if (bPlay && !bAuto)
 	{
 		if (bAuto) bAuto = false;
@@ -328,7 +368,7 @@ void ofxSurfingTextSubtitle::update() {
 		uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 		s += timecode.timecodeForMillis(t);
 		//s += "\n";
-}
+	}
 	boxInfo.setText(s);
 #endif
 }
@@ -370,26 +410,39 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	// set sub index
 	else if (name == currentLine.getName())
 	{
-		if (sub.size() == 0) {
-			currentLine = 0;
+		//return;
+
+		if (sub.size() == 0)
+		{
+			currentLine.setWithoutEventNotifications(0);
 			textCurrent = "NO_TEXT";
 			ofLogError("ofxSurfingTextSubtitle") << "Not loaded subs file or it's empty or wrong format.";
 			return;
 		}
 
-		if (currentLine < 0) {
-			//currentLine = 0;
-			currentLine = sub.size() - 1;
-		}
-		else if (currentLine > sub.size() - 1) currentLine = 0;
-		if (currentLine <= sub.size() - 1)
+
+		if (currentLine < 0)
 		{
-			textCurrent = sub[currentLine]->getDialogue();
+			currentLine.setWithoutEventNotifications(sub.size() - 1);//last
+			//currentLine.setWithoutEventNotifications(0);//first
+		}
+		else if (currentLine > sub.size() - 1) currentLine.setWithoutEventNotifications(0);//first
+
+		// get dialog
+		if (currentLine < sub.size())
+		{
+				textCurrent = sub[currentLine]->getDialogue();
 		}
 		else
 		{
 			ofLogError("ofxSurfingTextSubtitle") << "Current sub index out of range!";
 			textCurrent = "NO_TEXT";
+		}
+
+		if (bAnimated) 
+		{
+			isAnim = true;
+			alpha = 0.f;
 		}
 	}
 
@@ -487,6 +540,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	_size = fSize.get();
 	_align = fAlign.get();
 	_color = fColor.get();
+
+	if (bAnimated && isAnim)
+	{
+		_color = ofColor(_color, alpha * _color.a);
+	}
 
 	_y += getOneLineHeight(); // here upper border is aligned to the center horizontal
 
@@ -803,11 +861,11 @@ void ofxSurfingTextSubtitle::drawImGui()
 				ImGui::SetColumnWidth(0, w1);
 				ImGui::SetColumnWidth(1, w2);
 				ui->AddLabel(ofToString(n));
-				
+
 				ImGui::NextColumn();
 				ui->AddLabel(subsText[n]);
 				//ui->AddLabelBig(subsText[n]);
-				
+
 				ImGui::Columns(1);
 			}
 			ImGui::EndChild();
@@ -850,7 +908,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Add(bGui_ViewFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			//if(bDebug) ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_MINI);
-			if(bDebug) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+			if (bDebug) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 		}
 
 		ui->AddSpacingSeparated();
@@ -881,6 +939,14 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->AddSpacing();
 	}
 
+	//if (!ui->bMinimize) 
+	{
+		if (!ui->bMinimize) ui->AddLabelBig("FADE");
+		ui->Add(bAnimated, OFX_IM_TOGGLE_SMALL, 2, true);
+		/*if(bAnimated)*/ ui->Add(speedFade, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
+		ui->AddSpacingSeparated();
+	}
+
 	//ui->AddGroup(params_Style);
 	if (!ui->bMinimize) {
 		ui->AddLabelBig("STYLE");
@@ -889,14 +955,19 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	}
 	ui->Add(fColor, OFX_IM_COLOR);
 	ui->AddSpacing();
-	ui->Add(fSizePrc, OFX_IM_STEPPER);
-	ui->Add(fSpacing, OFX_IM_STEPPER);
-	ui->Add(fLineHeight, OFX_IM_STEPPER);
+	static ofParameter<bool> bFine{ "Fine", false };
+	ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
+	SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
+	ui->Add(fSizePrc, st);
+	ui->Add(fSpacing, st);
+	ui->Add(fLineHeight, st);
 	ui->AddSpacing();
 	if (!ui->bMinimize) {
+		static vector<string>names{ "IGNORE","LEFT","RIGHT","CENTER" };
+		ui->AddCombo(fAlign, names);
+		//ui->Add(fAlign, OFX_IM_DEFAULT);
+		//ui->Add(fAlign_str);
 		ui->Add(bCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
-		ui->Add(fAlign, OFX_IM_DEFAULT);
-		ui->Add(fAlign_str);
 		ui->AddSpacing();
 	}
 	ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);

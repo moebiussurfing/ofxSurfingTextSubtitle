@@ -61,7 +61,8 @@
 
 //----
 
-class ofxSurfingTextSubtitle {
+class ofxSurfingTextSubtitle 
+{
 
 #ifdef USE_IM_GUI__SUBTTITTLES
 private:
@@ -71,6 +72,8 @@ public:
 	void drawImGui();
 	void drawImGuiWidgets();
 #endif
+
+	//--
 
 public:
 	
@@ -145,12 +148,23 @@ public:
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bDebug;
 
-	ofParameter<bool> bPlay;
 	//ofParameter<bool> bExternal;
+	ofParameter<bool> bPlay;
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
 	ofParameter<bool> bAuto;
 	ofParameter<float> speedAuto;
+
+	ofParameterGroup params_Preset;
+
+	ofParameterGroup params_Fade;
+	ofParameter<bool> bAnimated;
+	ofParameter<float> speedFade;
+	ofParameter<bool> bAnimatedOut;
+	ofParameter<float> speedFadeOut;
+	float dtAnim;
+	float alpha;
+	bool isAnim;
 
 	ofParameterGroup params_Style;
 	ofParameter<std::string> fName;
@@ -167,6 +181,7 @@ public:
 	ofParameter<bool> bResetFont;
 
 private:
+
 	glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebug = ofColor::black;
 

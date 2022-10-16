@@ -6,11 +6,16 @@ void ofApp::setup()
 	subs.setUiPtr(&ui);
 	subs.setDisableGuiInternal(true);
 
-	//path = "subs/Huxley.srt";
-	path = "subs/Alphaville.srt";
+	path = "subs/Huxley.srt";
+	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
 
 	subs.setup(path);
+
+#ifdef USE_PRESETS
+	presets.setUiPtr(&ui);
+	presets.AddGroup(subs.params_Preset);
+#endif
 }
 
 //--------------------------------------------------------------
@@ -23,16 +28,24 @@ void ofApp::draw() {
 	ofClear(subs.getColorBg());
 
 	subs.draw();
-	subs.drawGui();
 
+	subs.drawGui();
 	ui.Begin();
 	{
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+
+#ifdef USE_PRESETS
+			ui.Add(presets.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+#endif
 			ui.EndWindow();
 		}
 
 		subs.drawImGui();
+
+#ifdef USE_PRESETS
+		presets.drawImGui(true);
+#endif
 	}
 	ui.End();
 }
