@@ -6,8 +6,8 @@ void ofApp::setup()
 	subs.setUiPtr(&ui);
 	subs.setDisableGuiInternal(true);
 
-	path = "subs/Huxley.srt";
-	//path = "subs/Alphaville.srt";
+	//path = "subs/Huxley.srt";
+	path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
 
 	subs.setup(path);

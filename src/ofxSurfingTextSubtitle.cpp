@@ -13,8 +13,10 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	ofxSurfingHelpers::setThemeDarkMini_ofxGui();
 	gui.setup(params);
 
+#ifdef USE_WIDGET__SUBTTITTLES
 	boxInfo.setMode(ofxSurfingBoxHelpText::TOP_RIGHT);
 	boxInfo.setup();
+#endif
 
 	box.setBorderColor(colorDebug);
 	box.setup();
@@ -60,17 +62,18 @@ void ofxSurfingTextSubtitle::setupParams() {
 		if (ss.size() >= 2) fName = ss[1];
 	}
 
+	// Control
 	bDraw.set("Draw", true);
 	bDebug.set("Debug", true);
-	currentSub.set("Line", 0, 0, 0);
+	currentLine.set("Line", 0, 0, 0);
 	//bExternal.set("External", false);
-	bPrev.set("Previous", false);
-	bNext.set("Next", false);
+	bPrev.set("<", false);
+	bNext.set(">", false);
 	bPlay.set("Play", false);
 	bAuto.set("Auto", false);
 	speedAuto.set("Speed", 0, 0, 1);
 
-	// style
+	// Style
 	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
 	fSizePrc.set("Size", 0.5, 0.1, 1.0);
 	fSpacing.set("Spacing", 0, -20, 50);
@@ -79,11 +82,14 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fColor.set("Color", ofColor::white, ofColor(0, 0), ofColor(255, 255));
 	fAlign.set("Align", 1, 1, 3);
 	fAlign_str.set("Align ", "-1");
-	bCentered.set("Centered", true);
+	bCentered.set("Centered", false);//TODO:
 	bResetFont.set("Reset", false);
 
 	box.bGui.makeReferenceTo(bDebug);
+	//box.bEdit.makeReferenceTo(bDebug);
+#ifdef USE_WIDGET__SUBTTITTLES
 	boxInfo.bGui.makeReferenceTo(bDebug);
+#endif
 
 	//bPlay.setSerializable(false);
 	//bAuto.setSerializable(false);
@@ -103,11 +109,12 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//params_Control.add(bGui);
 	params_Control.add(bDraw);
 	params_Control.add(bDebug);
-	params_Control.add(box.bEdit);
+	//params_Control.add(box.bEdit);
+	params_Control.add(bGui_ViewFull);
 	params.add(params_Control);
 
 	params_Transport.setName("Transport");
-	params_Transport.add(currentSub);
+	params_Transport.add(currentLine);
 	//params_Transport.add(bExternal);
 	params_Transport.add(bPrev);
 	params_Transport.add(bNext);
@@ -141,11 +148,13 @@ void ofxSurfingTextSubtitle::setupSubs() {
 
 	if (!subParserFactory) ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << pathSrt;
 
+	//bGui_ViewFull.setName(pathSrt);
+
 	parser = subParserFactory->getParser();
 	sub = parser->getSubtitles();
 	if (sub.size() == 0) ofLogError("ofxSurfingTextSubtitle") << "SUB object empty!";
 
-	currentSub.setMax(sub.size() - 1);
+	currentLine.setMax(sub.size() - 1);
 
 	// pre read all subs on a vector
 	//not used yet
@@ -186,7 +195,9 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (!bGui) return;
 
 	// info
+#ifdef USE_WIDGET__SUBTTITTLES
 	boxInfo.draw();
+#endif
 
 	if (!bGui_Internal) return;
 	gui.draw();
@@ -276,7 +287,7 @@ void ofxSurfingTextSubtitle::update() {
 		{
 			if (t > element->getStartTime() && t <= element->getEndTime())
 			{
-				currentSub = k;
+				currentLine = k;
 				break;
 			}
 			k++;
@@ -286,7 +297,7 @@ void ofxSurfingTextSubtitle::update() {
 	if (bAuto && !bPlay)
 	{
 		int n = ofMap(speedAuto, 0, 1, 100, 5);
-		if (ofGetFrameNum() % n == 0) currentSub++;
+		if (ofGetFrameNum() % n == 0) currentLine++;
 	}
 
 	//if (bExternal) {
@@ -295,12 +306,13 @@ void ofxSurfingTextSubtitle::update() {
 	//--
 
 	// Debug info
+#ifdef USE_WIDGET__SUBTTITTLES
 	string s = "";
 	s += pathSrt;
 	s += "\n\n";
-	s += ofToString(currentSub) + "/" + ofToString(sub.size() - 1);
+	s += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
 	s += "\n";
-	s += sub[currentSub]->getStartTimeString();
+	s += sub[currentLine]->getStartTimeString();
 	s += "\n";
 	if (bPlay)
 	{
@@ -316,8 +328,9 @@ void ofxSurfingTextSubtitle::update() {
 		uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 		s += timecode.timecodeForMillis(t);
 		//s += "\n";
-	}
+}
 	boxInfo.setText(s);
+#endif
 }
 
 //--------------------------------------------------------------
@@ -350,24 +363,28 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	if (false) {}
 
+	else if (name == bDebug.getName()) {
+		box.bEdit = bDebug;
+	}
+
 	// set sub index
-	else if (name == currentSub.getName())
+	else if (name == currentLine.getName())
 	{
 		if (sub.size() == 0) {
-			currentSub = 0;
+			currentLine = 0;
 			textCurrent = "NO_TEXT";
 			ofLogError("ofxSurfingTextSubtitle") << "Not loaded subs file or it's empty or wrong format.";
 			return;
 		}
 
-		if (currentSub < 0) {
-			//currentSub = 0;
-			currentSub = sub.size() - 1;
+		if (currentLine < 0) {
+			//currentLine = 0;
+			currentLine = sub.size() - 1;
 		}
-		else if (currentSub > sub.size() - 1) currentSub = 0;
-		if (currentSub <= sub.size() - 1)
+		else if (currentLine > sub.size() - 1) currentLine = 0;
+		if (currentLine <= sub.size() - 1)
 		{
-			textCurrent = sub[currentSub]->getDialogue();
+			textCurrent = sub[currentLine]->getDialogue();
 		}
 		else
 		{
@@ -380,13 +397,13 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == bNext.getName() && bNext)
 	{
 		bNext.setWithoutEventNotifications(false);
-		currentSub++;
+		currentLine++;
 	}
 	// prev
 	else if (name == bPrev.getName() && bPrev)
 	{
 		bPrev.setWithoutEventNotifications(false);
-		currentSub--;
+		currentLine--;
 	}
 
 	//else if (name == bExternal.getName())
@@ -409,11 +426,11 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		if (bPlay) {
 			//bExternal.setWithoutEventNotifications(false);
 			bAuto.setWithoutEventNotifications(false);
-			currentSub = 0;
+			currentLine = 0;
 			tPlay = ofGetElapsedTimeMillis();
 		}
 		else {
-			currentSub = 0;
+			currentLine = 0;
 		}
 	}
 
@@ -759,6 +776,44 @@ void ofxSurfingTextSubtitle::drawImGui()
 		drawImGuiWidgets();
 		ui->EndWindow();
 	}
+
+	if (bGui_ViewFull)
+	{
+		//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW_MEDIUM;
+		/*
+		float w = 200;
+		ImVec2 size_max = ImVec2(-1, -1);
+		ImVec2 size_min = ImVec2(w, -1);
+		ImGui::SetNextWindowSizeConstraints(size_min, size_max);
+		*/
+
+		if (ui->BeginWindow(bGui_ViewFull, ImGuiWindowFlags_None))
+		{
+			ui->AddLabelBig(pathSrt);
+			ui->AddSpacingBigSeparated();
+
+			ImGui::BeginChild("_");
+			for (int n = 0; n < subsText.size(); n++)
+			{
+				float w = ImGui::GetContentRegionAvail().x;
+				float w1 = 40;
+				float w2 = w - w1;
+				ImGui::Columns(2, "t");
+				//ImGui::SetCursorPosX(w100 * 0.3f);
+				ImGui::SetColumnWidth(0, w1);
+				ImGui::SetColumnWidth(1, w2);
+				ui->AddLabel(ofToString(n));
+				
+				ImGui::NextColumn();
+				ui->AddLabel(subsText[n]);
+				//ui->AddLabelBig(subsText[n]);
+				
+				ImGui::Columns(1);
+			}
+			ImGui::EndChild();
+			ui->EndWindow();
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -770,39 +825,65 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	ui->AddSpacingSeparated();
 
 	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
+
+	// time label
+	string s = "";
+	string s2 = "";
+	{
+		if (!ui->bMinimize) {
+			s += pathSrt;
+			s += "\n";
+		}
+		if (bPlay) {
+			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
+			s2 += timecode.timecodeForMillis(t);
+		}
+		else {
+			s2 += sub[currentLine]->getStartTimeString();
+		}
+		s2 += "\n";
+		s += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
+	}
+
 	if (!ui->bMinimize) {
 		if (bDraw) {
+			ui->Add(bGui_ViewFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_SMALL);
-			ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+			//if(bDebug) ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if(bDebug) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 		}
-		ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 
 		ui->AddSpacingSeparated();
 		ui->AddLabelBig("TRANSPORT");
-		ui->Add(currentSub);
+		ui->AddSpacing();
+		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 2, true);
+		ui->Add(bAuto, OFX_IM_TOGGLE_SMALL, 2);
+		if (bAuto) { ui->Add(speedAuto); }
+		ui->AddLabelBig(s2);
+		ui->AddLabel(s);
+		ui->Add(currentLine, OFX_IM_HSLIDER_MINI_NO_NAME);
+		ui->PushButtonRepeat();
+		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
+		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
+		ui->PopButtonRepeat();
+		ui->AddSpacingSeparated();
+	}
+	else {//minimized
+		ui->AddSpacingSeparated();
+		//ui->AddLabelBig("TRANSPORT");
+		ui->AddLabelBig(s2);
+		ui->AddLabel(s);
+		ui->Add(currentLine, OFX_IM_HSLIDER_MINI_NO_NAME);
 		ui->PushButtonRepeat();
 		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
 		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
 		ui->PopButtonRepeat();
 		ui->AddSpacing();
-		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bAuto, OFX_IM_TOGGLE_SMALL, 2);
-		if (bAuto) { ui->Add(speedAuto); }
-		ui->AddSpacingSeparated();
-	}
-	else {
-		ui->AddSpacingSeparated();
-		ui->AddLabelBig("TRANSPORT");
-		ui->Add(currentSub, OFX_IM_HSLIDER_MINI);
-		ui->PushButtonRepeat();
-		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
-		ui->PopButtonRepeat();
 	}
 
 	//ui->AddGroup(params_Style);
-	ui->AddLabelBig("STYLE");
 	if (!ui->bMinimize) {
+		ui->AddLabelBig("STYLE");
 		ui->Add(fName);
 		ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
 	}

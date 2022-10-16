@@ -8,6 +8,7 @@
 
 	TODO:
 
+	add imgui big text with scroll to look full subs.
 	fix center mode
 	block modifyng box when drawing raw.
 		add edit/lock toggle.
@@ -23,8 +24,17 @@
 
 */
 
+//----
+
+// OPTIONAL
+
 #define USE_IM_GUI__SUBTTITTLES
 // Requires ofxSurfingImGui and an ofxImGui fork
+
+#define USE_WIDGET__SUBTTITTLES
+// A floating widget to display some info
+ 
+//----
 
 #include "ofMain.h"
 
@@ -36,11 +46,20 @@
 #include "ofxFontStash.h"
 #include "ofxGui.h"
 #include "ofxSurfingBoxInteractive.h"
-#include "ofxSurfingBoxHelpText.h"
 #include "ofxSurfing_ofxGui.h"
 #include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 
+// disable widget when using ImGui bc could be redundant.
+#ifdef USE_IM_GUI__SUBTTITTLES
+#undef USE_WIDGET__SUBTTITTLES
+#endif
+#ifdef USE_WIDGET__SUBTTITTLES
+#include "ofxSurfingBoxHelpText.h"
+#endif
+
 #define MAX_FONT_SIZE 400
+
+//----
 
 class ofxSurfingTextSubtitle {
 
@@ -57,6 +76,7 @@ public:
 	
 	ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 		bGui.set("SUBTITLES", true);
+		bGui_ViewFull.set("SRT", false);
 		bGui_Internal.set("Gui Internal", true);
 	};
 
@@ -64,7 +84,7 @@ public:
 		exit();
 	};
 
-	void setup(string pathSrt);//pass the .srt file path to load
+	void setup(string _pathSrt);//pass the .srt file path to load
 	void update();
 
 	void draw();
@@ -83,10 +103,10 @@ public:
 	void setDebug(bool b) { bDebug = b; }
 	void setEdit(bool b) { box.bEdit = b; }
 
-	void setSubtitleIndex(int i) { currentSub = i; }
-	void setSubtitlePrevious() { currentSub--; }
-	void setSubtitleNext() { currentSub++; }
-	int getNumSubtitles() const { return (currentSub.getMax() + 1); }
+	void setSubtitleIndex(int i) { currentLine = i; }
+	void setSubtitlePrevious() { currentLine--; }
+	void setSubtitleNext() { currentLine++; }
+	int getNumSubtitles() const { return (currentLine.getMax() + 1); }
 	ofColor getColorBg() const { return fColorBg.get(); }
 
 	ofParameter<bool> bGui_Internal;
@@ -105,7 +125,10 @@ private:
 	std::vector<SubtitleItem*> sub;
 
 	ofxSurfingBoxInteractive box;
+
+#ifdef USE_WIDGET__SUBTTITTLES
 	ofxSurfingBoxHelpText boxInfo;
+#endif
 
 	ofxTimecode timecode;
 	float fps = 30;
@@ -118,6 +141,7 @@ public:
 	ofParameterGroup params_Transport;
 	ofParameterGroup params_Control;
 	ofParameter<bool> bGui;
+	ofParameter<bool> bGui_ViewFull;
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bDebug;
 
@@ -148,8 +172,8 @@ private:
 
 	string textCurrent = "";
 
-	ofParameter<int> currentSub;
-	//int currentSub;
+	ofParameter<int> currentLine;
+	//int currentLine;
 
 	float boxhMax;
 

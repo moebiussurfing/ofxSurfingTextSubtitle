@@ -1,12 +1,15 @@
 ## Overview
 Draws text lines from a `.srt` subtitle file.
 
-##### WIP
+#### WIP
 - Pass time to link with an external player.
 - Add basic animation/fade.
 
 ## Screenshot
+#### ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
+#### ImGui 
+![Screenshot](example-Subtitle2/Capture.PNG)
 
 ## Features
 - Fast FontStash render.
@@ -43,6 +46,9 @@ void ofApp::draw()
 - ofxGui
 - ofxSurfingBox
 - ofxSurfingHelpers
+#### OPTIONAL
+- ofxSufingImGui
+- ofxImGui
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
