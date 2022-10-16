@@ -29,8 +29,6 @@ void ofApp::draw() {
 	{
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-			if (subs.bGui) ui.Add(subs.bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-
 			ui.EndWindow();
 		}
 

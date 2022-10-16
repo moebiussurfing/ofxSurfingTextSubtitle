@@ -35,10 +35,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//fName = "ExtendedBold";
 
 	// search some fonts alternatives
-
 	fPath = "fonts/GTAmerica-ExtendedBlack.ttf";
-	//fPath = "fonts/GTAmerica-ExtendedBold.ttf";
-
 	if (!ofFile::doesFileExist(fPath.get())) {
 		fPath = FONT_FILES_PATH + ofToString(FONT_FILE_BIG);
 		if (!ofFile::doesFileExist(fPath.get())) {
@@ -65,17 +62,17 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	bDraw.set("Draw", true);
 	bDebug.set("Debug", true);
-	currentSub.set("Sub Index", 0, 0, 0);
+	currentSub.set("Line", 0, 0, 0);
 	//bExternal.set("External", false);
 	bPrev.set("Previous", false);
 	bNext.set("Next", false);
 	bPlay.set("Play", false);
 	bAuto.set("Auto", false);
-	speedAuto.set("Speed Auto", 0, 0, 1);
+	speedAuto.set("Speed", 0, 0, 1);
 
 	// style
-	fSize.set("Size", 50, 5, (float)MAX_FONT_SIZE);
-	fSizePrc.set("Size Prc", 0.5, 0.1, 1.0);
+	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
+	fSizePrc.set("Size", 0.5, 0.1, 1.0);
 	fSpacing.set("Spacing", 0, -20, 50);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
 	fColorBg.set("ColorBg", ofColor::gray, ofColor(0, 0), ofColor(255, 255));
@@ -752,6 +749,10 @@ void ofxSurfingTextSubtitle::drawImGui()
 	if (!bGui) return;
 
 	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
+	float w = 290;
+	ImVec2 size_max = ImVec2(w, -1);
+	ImVec2 size_min = ImVec2(w, -1);
+	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
 
 	if (ui->BeginWindow(bGui))
 	{
@@ -768,12 +769,14 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	ui->Add(ui->bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	ui->AddSpacingSeparated();
 
+	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
 	if (!ui->bMinimize) {
-		ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
 		if (bDraw) {
 			ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 		}
+		ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+
 		ui->AddSpacingSeparated();
 		ui->AddLabelBig("TRANSPORT");
 		ui->Add(currentSub);
@@ -786,6 +789,15 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->Add(bAuto, OFX_IM_TOGGLE_SMALL, 2);
 		if (bAuto) { ui->Add(speedAuto); }
 		ui->AddSpacingSeparated();
+	}
+	else {
+		ui->AddSpacingSeparated();
+		ui->AddLabelBig("TRANSPORT");
+		ui->Add(currentSub, OFX_IM_HSLIDER_MINI);
+		ui->PushButtonRepeat();
+		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
+		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
+		ui->PopButtonRepeat();
 	}
 
 	//ui->AddGroup(params_Style);
