@@ -1,7 +1,7 @@
 #pragma once
 
 // Optional
-//#define USE_PRESETS
+#define USE_PRESETS // Uses ofxSurfingHelpers
 
 //-
 

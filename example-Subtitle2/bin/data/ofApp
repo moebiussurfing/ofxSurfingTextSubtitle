@@ -1,0 +1,25 @@
+{
+    "Text_Subtitle": {
+        "Control": {
+            "Debug": "0",
+            "Draw": "1",
+            "SRT": "0"
+        },
+        "Style": {
+            "Align": "1",
+            "Centered": "0",
+            "Color": "255, 0, 19, 255",
+            "ColorBg": "255, 255, 255, 255",
+            "Height": "0.5",
+            "Size": "0.349",
+            "Spacing": "-20"
+        },
+        "Transport": {
+            "Fade": {
+                "FadeIn": "1",
+                "SpeedIn": "0.830357"
+            },
+            "Speed": "0.787"
+        }
+    }
+}

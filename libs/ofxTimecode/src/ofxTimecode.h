@@ -12,6 +12,8 @@
 #include <cstdint>//"ofMain.h"
 #include <string>
 
+#define USING_OFX_TIME_CODE
+
 class ofxTimecode {
   public:
 //    ofxTimecode();

@@ -8,19 +8,14 @@
 
 	TODO:
 
-	add imgui big text with scroll to look full subs.
 	fix center mode
-	block modifyng box when drawing raw.
-		add edit/lock toggle.
+	fix right align
+	add API set custom fonts on runtime
+	add load another srt file on runtime
 	add auto set layout. ex:
 		re center box to a center point
 		when different box sizes happens,
 		when different amount of lines.
-	add load another srt file on runtime
-	fix right align
-	add API next sub by tick
-	add API set sub by index
-	add API set custom fonts on runtime
 
 */
 
@@ -34,6 +29,8 @@
 #define USE_WIDGET__SUBTTITTLES
 // A floating widget to display some info
  
+#define USE_TIME_CODE__SUBTTITTLES
+
 //----
 
 #include "ofMain.h"
@@ -47,7 +44,10 @@
 #include "ofxGui.h"
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfing_ofxGui.h"
+
+#ifdef USE_TIME_CODE__SUBTTITTLES
 #include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
+#endif
 
 // disable widget when using ImGui bc could be redundant.
 #ifdef USE_IM_GUI__SUBTTITTLES
@@ -100,7 +100,7 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }//disables ofxGui. useful when using ImGui or to disable gui.
 
 	void setTogglePlay() { bPlay = !bPlay; }
-	void setToggleAuto() { bAuto = !bAuto; }
+	void setToggleAuto() { bPlayForce = !bPlayForce; }
 	void setToggleDebug() { bDebug = !bDebug; }
 	void setToggleEdit() { box.bEdit = !box.bEdit; }
 	void setDebug(bool b) { bDebug = b; }
@@ -133,7 +133,10 @@ private:
 	ofxSurfingBoxHelpText boxInfo;
 #endif
 
+#ifdef USING_OFX_TIME_CODE
 	ofxTimecode timecode;
+#endif
+
 	float fps = 30;
 
 public:
@@ -152,8 +155,8 @@ public:
 	ofParameter<bool> bPlay;
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
-	ofParameter<bool> bAuto;
-	ofParameter<float> speedAuto;
+	ofParameter<bool> bPlayForce;
+	ofParameter<float> speedForce;
 
 	ofParameterGroup params_Preset;
 
@@ -196,7 +199,7 @@ private:
 
 	uint64_t tPlay;
 
-	void refreshFontStyles();
+	//void refreshFontStyles();
 	void Changed(ofAbstractParameter& e);
 
 	ofxFontStash font;
