@@ -8,10 +8,11 @@
 
 	TODO:
 
+	fix center mode
 	block modifyng box when drawing raw.
 		add edit/lock toggle.
-	add auto set layout. ex: 
-		re center box to a center point 
+	add auto set layout. ex:
+		re center box to a center point
 		when different box sizes happens,
 		when different amount of lines.
 	add load another srt file on runtime
@@ -22,8 +23,14 @@
 
 */
 
+#define USE_IM_GUI__SUBTTITTLES
+// Requires ofxSurfingImGui and an ofxImGui fork
 
 #include "ofMain.h"
+
+#ifdef USE_IM_GUI__SUBTTITTLES
+#include "ofxSurfingImGui.h"
+#endif
 
 #include "srtparser.h"
 #include "ofxFontStash.h"
@@ -31,15 +38,26 @@
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfingBoxHelpText.h"
 #include "ofxSurfing_ofxGui.h"
+#include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 
-#define MAX_FONT_SIZE 200
+#define MAX_FONT_SIZE 400
 
 class ofxSurfingTextSubtitle {
 
+#ifdef USE_IM_GUI__SUBTTITTLES
+private:
+	ofxSurfingGui* ui;
 public:
+	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
+	void drawImGui();
+	void drawImGuiWidgets();
+#endif
 
+public:
+	
 	ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 		bGui.set("SUBTITLES", true);
+		bGui_Internal.set("Gui Internal", true);
 	};
 
 	ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
@@ -55,7 +73,23 @@ public:
 	//void drawRaw(ofRectangle view);
 
 	void drawGui();
+	
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }//disables ofxGui. useful when using ImGui or to disable gui.
+
+	void setTogglePlay() { bPlay = !bPlay; }
+	void setToggleAuto() { bAuto = !bAuto; }
+	void setToggleDebug() { bDebug = !bDebug; }
+	void setToggleEdit() { box.bEdit = !box.bEdit; }
+	void setDebug(bool b) { bDebug = b; }
+	void setEdit(bool b) { box.bEdit = b; }
+
+	void setSubtitleIndex(int i) { currentSub = i; }
+	void setSubtitlePrevious() { currentSub--; }
+	void setSubtitleNext() { currentSub++; }
+	int getNumSubtitles() const { return (currentSub.getMax() + 1); }
+	ofColor getColorBg() const { return fColorBg.get(); }
+
+	ofParameter<bool> bGui_Internal;
 
 private:
 
@@ -64,7 +98,7 @@ private:
 	void startup();
 	void exit();
 
-	bool bGui_Internal = true;
+	//bool bGui_Internal = true;
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
@@ -73,12 +107,24 @@ private:
 	ofxSurfingBoxInteractive box;
 	ofxSurfingBoxHelpText boxInfo;
 
+	ofxTimecode timecode;
+	float fps = 30;
+
 public:
 
+	void setFps(float _fps) { fps = _fps; }
+
 	ofParameterGroup params;
+	ofParameterGroup params_Transport;
+	ofParameterGroup params_Control;
 	ofParameter<bool> bGui;
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bDebug;
+
+	ofParameter<bool> bPlay;
+	//ofParameter<bool> bExternal;
+	ofParameter<bool> bNext;
+	ofParameter<bool> bPrev;
 	ofParameter<bool> bAuto;
 	ofParameter<float> speedAuto;
 
@@ -90,18 +136,21 @@ public:
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
 	ofParameter<ofColor> fColor;
+	ofParameter<ofColor> fColorBg;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
+	ofParameter<bool> bCentered;//move up block to center not depending of amount of lines.
 	ofParameter<bool> bResetFont;
 
-	ofParameter<bool> bPlay;
-
 private:
-
+	glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebug = ofColor::black;
 
-	string textCurrent;
-	int currentSub;
+	string textCurrent = "";
+
+	ofParameter<int> currentSub;
+	//int currentSub;
+
 	float boxhMax;
 
 	ofxPanel gui;
@@ -114,8 +163,10 @@ private:
 	ofxFontStash font;
 
 	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bRaw = false);
+	ofRectangle getTextBox(std::string _t, ofRectangle r);
+
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
-	void drawInsertionPoint(float _x, float _y, float _w);
+	void drawInsertionPoint(float _x, float _y, float _w = 0);
 	//--------------------------------------------------------------
 	std::string getAlignNameFromIndex(int index) const {
 		std::string n = "UNKNOWN";
@@ -139,5 +190,11 @@ private:
 
 	vector<string> subsText;
 	string pathSrt;
-
+	void doResetFont() {
+		bResetFont = false;
+		fSizePrc = 0.05;
+		fSpacing = 0;
+		fLineHeight = 0.75;
+		//fColor = ofColor(255, 255);
+	}
 };

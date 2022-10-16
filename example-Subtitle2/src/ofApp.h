@@ -3,9 +3,10 @@
 #include "ofMain.h"
 
 #include "ofxSurfingTextSubtitle.h"
+#include "ofxSurfingImGui.h"
 
-class ofApp : public ofBaseApp {
-
+class ofApp : public ofBaseApp 
+{
 public:
 
 	void setup();
@@ -13,6 +14,8 @@ public:
 	void draw();
 	void keyPressed(int key);
 
-	ofxSurfingTextSubtitle sub;
+	ofxSurfingTextSubtitle subs;
 	string path;
+
+	ofxSurfingGui ui;
 };
