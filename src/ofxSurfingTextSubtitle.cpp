@@ -1,15 +1,24 @@
 #include "ofxSurfingTextSubtitle.h"
 
 //--------------------------------------------------------------
+ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
+	bGui.set("SUBTITLES", true);
+	bGui_SrtFull.set("SRT", false);
+	bGui_Internal.set("Gui Internal", true);
+};
+
+//--------------------------------------------------------------
+ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
+	exit();
+};
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 	pathSrt = _pathSrt;
 
 	setupParams();
 	setupSubs();
-
-	ofxSurfingHelpers::setThemeDarkMini_ofxGui();
-	gui.setup(params);
 
 #ifdef USE_WIDGET__SUBTTITTLES
 	boxInfo.setMode(ofxSurfingBoxHelpText::TOP_RIGHT);
@@ -22,6 +31,10 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 #ifdef USING_OFX_TIME_CODE
 	timecode.setFPS(fps);
 #endif
+
+	ofxSurfingHelpers::setThemeDarkMini_ofxGui();
+	gui.setup(params.getName());
+	gui.add(params);
 
 	startup();
 }
@@ -76,7 +89,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	speedForce.set("Speed", 0, 0, 1);
 
 	progressPrc.set("%", 0, 0, 1);//full length progress
-	progressForce.set("%", 0, 0, 1);
+	progressForce.set("% ", 0, 0, 1);//slide progress
 
 	AutoScroll.set("AutoScroll", true);
 	bAnimated.set("In", false);
@@ -123,7 +136,10 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.setName("Control");
 	params_Control.add(bDraw);
 	params_Control.add(bEdit);
+
+#ifdef USE_IM_GUI__SUBTTITTLES
 	params_Control.add(bGui_SrtFull);
+#endif
 	//params_Control.add(bGui);
 	//params_Control.add(box.bEdit);
 
@@ -157,8 +173,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Style.add(bCentered);
 	params_Style.add(bResetFont);
 
-	//params.setName(bGui.getName());
-	params.setName("Text Subtitle");
+	//params.setName(bGui.getName());//TODO: BUG: crashes
+	params.setName("TEXT SUBTITLE");
 	params.add(params_Control);
 	params.add(params_Transport);
 	params.add(params_Style);
@@ -621,15 +637,26 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
+	// vcenter
 	else if (name == bCentered.getName())
 	{
 		if (bCentered) {
 			boxhMax = 0;
 		}
 	}
+	// reset style
 	else if (name == bResetFont.getName() && bResetFont.get())
 	{
+		bResetFont = false;
 		doResetFont();
+
+		/*
+		//TODO: crashes..
+		bAttending = true;
+		bResetFont.setWithoutEventNotifications(false);
+		doResetFont();
+		bAttending = false;
+		*/
 	}
 }
 
@@ -1294,8 +1321,41 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 			ImGui::EndChild();
 
 			ui->EndWindow();
-		}
 	}
+}
 }
 
 #endif
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doResetFont() {
+
+	//TODO BUG: crash
+	//return;
+
+	fSpacing = 0;
+	fLineHeight = 0.75;
+	//fSizePrc = 0.25;
+	//fColor = ofColor(255, 255);
+}
+
+//--------------------------------------------------------------
+std::string ofxSurfingTextSubtitle::getAlignNameFromIndex(int index) const {
+	std::string n = "UNKNOWN";
+	switch (index)
+	{
+	case 0:
+		n = "IGNORE";
+		break;
+	case 1:
+		n = "LEFT";
+		break;
+	case 2:
+		n = "RIGHT";
+		break;
+	case 3:
+		n = "CENTER";
+		break;
+	}
+	return n;
+}

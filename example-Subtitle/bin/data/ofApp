@@ -1,0 +1,24 @@
+{
+    "TEXT_SUBTITLE": {
+        "Control": {
+            "Draw": "1",
+            "Edit": "0"
+        },
+        "Style": {
+            "Align": "1",
+            "Centered": "0",
+            "Color": "0, 0, 0, 255",
+            "ColorBg": "28, 205, 82, 255",
+            "Height": "0.75",
+            "Size": "0.207812",
+            "Spacing": "0"
+        },
+        "Transport": {
+            "Fade": {
+                "In": "1",
+                "SpeedIn": "0"
+            },
+            "Speed": "0"
+        }
+    }
+}

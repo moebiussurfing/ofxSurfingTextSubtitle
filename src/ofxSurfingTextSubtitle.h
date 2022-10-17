@@ -80,15 +80,8 @@ public:
 
 public:
 
-	ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
-		bGui.set("SUBTITLES", true);
-		bGui_SrtFull.set("SRT", false);
-		bGui_Internal.set("Gui Internal", true);
-	};
-
-	ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
-		exit();
-	};
+	ofxSurfingTextSubtitle();
+	~ofxSurfingTextSubtitle();
 
 	void setup(string _pathSrt);//pass the .srt file path to load
 	void update();
@@ -220,34 +213,11 @@ private:
 
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
 	void drawInsertionPoint(float _x, float _y, float _w = 0);
-	//--------------------------------------------------------------
-	std::string getAlignNameFromIndex(int index) const {
-		std::string n = "UNKNOWN";
-		switch (index)
-		{
-		case 0:
-			n = "IGNORE";
-			break;
-		case 1:
-			n = "LEFT";
-			break;
-		case 2:
-			n = "RIGHT";
-			break;
-		case 3:
-			n = "CENTER";
-			break;
-		}
-		return n;
-	}
 
 	vector<string> subsText;
 	string pathSrt;
-	void doResetFont() {
-		bResetFont = false;
-		fSizePrc = 0.05;
-		fSpacing = 0;
-		fLineHeight = 0.75;
-		//fColor = ofColor(255, 255);
-	}
+
+	void doResetFont();
+	std::string getAlignNameFromIndex(int index) const;
+
 };

@@ -17,6 +17,7 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+	ofBackground(subs.getColorBg());
 	subs.draw();
 	subs.drawGui();
 }
