@@ -28,7 +28,7 @@
 
 #define USE_WIDGET__SUBTTITTLES
 // A floating widget to display some info
- 
+
 #define USE_TIME_CODE__SUBTTITTLES
 
 //----
@@ -61,7 +61,7 @@
 
 //----
 
-class ofxSurfingTextSubtitle 
+class ofxSurfingTextSubtitle
 {
 
 #ifdef USE_IM_GUI__SUBTTITTLES
@@ -71,15 +71,16 @@ public:
 	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
 	void drawImGui();
 	void drawImGuiWidgets();
+	void drawImGuiSrtFull();
 #endif
 
 	//--
 
 public:
-	
+
 	ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 		bGui.set("SUBTITLES", true);
-		bGui_ViewFull.set("SRT", false);
+		bGui_SrtFull.set("SRT", false);
 		bGui_Internal.set("Gui Internal", true);
 	};
 
@@ -96,15 +97,17 @@ public:
 	//void drawRaw(ofRectangle view);
 
 	void drawGui();
-	
+
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }//disables ofxGui. useful when using ImGui or to disable gui.
 
 	void setTogglePlay() { bPlay = !bPlay; }
 	void setToggleAuto() { bPlayForce = !bPlayForce; }
-	void setToggleDebug() { bDebug = !bDebug; }
-	void setToggleEdit() { box.bEdit = !box.bEdit; }
-	void setDebug(bool b) { bDebug = b; }
-	void setEdit(bool b) { box.bEdit = b; }
+	void setToggleEdit() { bEdit = !bEdit; }
+	void setEdit(bool b) { bEdit = b; }
+	//void setToggleDebug() { bEdit = !bEdit; }
+	//void setToggleEdit() { box.bEdit = !box.bEdit; }
+	//void setDebug(bool b) { bEdit = b; }
+	//void setEdit(bool b) { box.bEdit = b; }
 
 	void setSubtitleIndex(int i) { currentLine = i; }
 	void setSubtitlePrevious() { currentLine--; }
@@ -147,9 +150,9 @@ public:
 	ofParameterGroup params_Transport;
 	ofParameterGroup params_Control;
 	ofParameter<bool> bGui;
-	ofParameter<bool> bGui_ViewFull;
+	ofParameter<bool> bGui_SrtFull;
 	ofParameter<bool> bDraw;
-	ofParameter<bool> bDebug;
+	ofParameter<bool> bEdit;
 
 	//ofParameter<bool> bExternal;
 	ofParameter<bool> bPlay;
@@ -163,11 +166,9 @@ public:
 	ofParameterGroup params_Fade;
 	ofParameter<bool> bAnimated;
 	ofParameter<float> speedFade;
-	ofParameter<bool> bAnimatedOut;
-	ofParameter<float> speedFadeOut;
-	float dtAnim;
-	float alpha;
-	bool isAnim;
+	//ofParameter<bool> bAnimatedOut;
+	//ofParameter<float> speedFadeOut;
+	ofParameter<bool> AutoScroll;
 
 	ofParameterGroup params_Style;
 	ofParameter<std::string> fName;
@@ -180,18 +181,26 @@ public:
 	ofParameter<ofColor> fColorBg;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
-	ofParameter<bool> bCentered;//move up block to center not depending of amount of lines.
+	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
 	ofParameter<bool> bResetFont;
 
 private:
+
+	float dtAnim;
+	float alpha;
+	bool isAnim;
+	
+	ofParameter<float> progressForce;
+	uint64_t tPlaySlideStart = 0;
+	uint64_t tPlaySlideDuration = 0;
+	ofParameter<float>progressPrc;
 
 	glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebug = ofColor::black;
 
 	string textCurrent = "";
 
-	ofParameter<int> currentLine;
-	//int currentLine;
+	ofParameter<int> currentLine;//current loaded subtitle slide 
 
 	float boxhMax;
 

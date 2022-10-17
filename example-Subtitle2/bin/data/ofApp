@@ -1,25 +1,25 @@
 {
     "Text_Subtitle": {
         "Control": {
-            "Debug": "0",
             "Draw": "1",
-            "SRT": "0"
+            "Edit": "1",
+            "SRT": "1"
         },
         "Style": {
-            "Align": "1",
+            "Align": "3",
             "Centered": "0",
             "Color": "255, 0, 19, 255",
             "ColorBg": "255, 255, 255, 255",
-            "Height": "0.5",
+            "Height": "0.723",
             "Size": "0.349",
-            "Spacing": "-20"
+            "Spacing": "1.139"
         },
         "Transport": {
             "Fade": {
-                "FadeIn": "1",
-                "SpeedIn": "0.830357"
+                "In": "1",
+                "SpeedIn": "0.357143"
             },
-            "Speed": "0.787"
+            "Speed": "0.411"
         }
     }
 }

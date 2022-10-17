@@ -3,6 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
+	ofSetWindowTitle("ofxSurfingTextSubtitle");
 	ofSetWindowPosition(-1920, 25);
 
 	subs.setUiPtr(&ui);
@@ -55,7 +56,6 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	if (key == 'd') { subs.setToggleDebug(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	if (key == ' ') { subs.setTogglePlay(); }
 	if (key == OF_KEY_RETURN) { subs.setToggleAuto(); }
