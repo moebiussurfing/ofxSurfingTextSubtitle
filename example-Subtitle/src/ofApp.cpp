@@ -7,24 +7,23 @@ void ofApp::setup()
 	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
 
-	sub.setup(path);
+	subs.setup(path);
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	sub.update();
+	subs.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-	sub.draw();
-	sub.drawGui();
+	subs.draw();
+	subs.drawGui();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	if (key == 'd') { subs.setToggleDebug(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	if (key == ' ') { subs.setTogglePlay(); }
 	if (key == OF_KEY_RETURN) { subs.setToggleAuto(); }

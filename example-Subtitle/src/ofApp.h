@@ -1,3 +1,13 @@
+/*
+
+	NOTE:
+	You must disable ImGui mode commenting the below line: 
+	// #define USE_IM_GUI__SUBTTITTLES
+
+*/
+
+
+
 #pragma once
 
 #include "ofMain.h"
@@ -13,6 +23,6 @@ public:
 	void draw();
 	void keyPressed(int key);
 
-	ofxSurfingTextSubtitle sub;
+	ofxSurfingTextSubtitle subs;
 	string path;
 };
