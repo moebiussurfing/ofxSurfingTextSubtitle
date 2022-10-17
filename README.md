@@ -16,7 +16,7 @@
 ## Example example-Subtitle / ofxGui
 #### ofApp.h
 ```.cpp
-// Remember to commentent to use ofxGui only!
+// Remember to comment to use ofxGui only and to disable ImGui!
 // #define USE_IM_GUI__SUBTTITTLES
 #include "ofxSurfingTextSubtitle.h"
 ofxSurfingTextSubtitle sub;
