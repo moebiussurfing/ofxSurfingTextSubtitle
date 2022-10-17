@@ -1113,6 +1113,13 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 		ImVec2 size_min = ImVec2(w, -1);
 		ImGui::SetNextWindowSizeConstraints(size_min, size_max);
 		*/
+		/*
+		ImVec2 width(300, 900);
+		ImVec2 height(300, 900);
+		ofxImGuiSurfing::SetWindowContraints(ImVec2(width.x, height.x), ImVec2(width.y, height.y));
+		*/
+
+		//--
 
 		if (ui->BeginWindow(bGui_SrtFull, ImGuiWindowFlags_None))
 		{

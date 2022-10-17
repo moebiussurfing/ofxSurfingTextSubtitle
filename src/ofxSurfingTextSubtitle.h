@@ -25,11 +25,13 @@
 
 #define USE_IM_GUI__SUBTTITTLES
 // Requires ofxSurfingImGui and an ofxImGui fork
+// Can be commented to use ofxGui only!
 
 #define USE_WIDGET__SUBTTITTLES
 // A floating widget to display some info
 
 #define USE_TIME_CODE__SUBTTITTLES
+// Only to help in some time convertions.
 
 //----
 
