@@ -154,7 +154,7 @@ public:
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
 	ofParameter<bool> bPlayForce;
-	ofParameter<float> speedForce;
+	ofParameter<float> speedPlayForce;
 
 	ofParameterGroup params_Preset;
 
@@ -181,14 +181,14 @@ public:
 
 private:
 
-	float dtAnim;
-	float alpha;
-	bool isAnim;
-	
-	ofParameter<float> progressForce;
+	float dtAnim = 1;
+	float alpha = 1;
+	bool isAnim = false;
+
+	ofParameter<float>progressPlayGlobalPrc;
+	ofParameter<float> progressPlaySlide;
 	uint64_t tPlaySlideStart = 0;
 	uint64_t tPlaySlideDuration = 0;
-	ofParameter<float>progressPrc;
 
 	glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebug = ofColor::black;
@@ -197,11 +197,11 @@ private:
 
 	ofParameter<int> currentLine;//current loaded subtitle slide 
 
-	float boxhMax;
+	float boxhMax = 0;
 
 	ofxPanel gui;
 
-	uint64_t tPlay;
+	uint64_t tPlay = 0;
 
 	//void refreshFontStyles();
 	void Changed(ofAbstractParameter& e);

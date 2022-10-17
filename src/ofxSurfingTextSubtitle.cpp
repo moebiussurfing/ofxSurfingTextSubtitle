@@ -32,7 +32,9 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	timecode.setFPS(fps);
 #endif
 
+	// Internal Gui
 	ofxSurfingHelpers::setThemeDarkMini_ofxGui();
+	//gui.setup("TEXT SUBTITLE");
 	gui.setup(params.getName());
 	gui.add(params);
 
@@ -86,10 +88,10 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bNext.set(">", false);
 	bPlay.set("Play", false);
 	bPlayForce.set("PlayForce", false);
-	speedForce.set("Speed", 0, 0, 1);
+	speedPlayForce.set("Speed", 0, 0, 1);
 
-	progressPrc.set("%", 0, 0, 1);//full length progress
-	progressForce.set("% ", 0, 0, 1);//slide progress
+	progressPlayGlobalPrc.set("%", 0, 0, 1);//full length progress
+	progressPlaySlide.set("% ", 0, 0, 1);//slide progress
 
 	AutoScroll.set("AutoScroll", true);
 	bAnimated.set("In", false);
@@ -117,11 +119,9 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	//--
 
-	progressPrc.setSerializable(false);
-	progressForce.setSerializable(false);
-
-	bPlay.setSerializable(false);
-	bPlayForce.setSerializable(false);
+	//TODO: crashes when loading settings if uncommented!
+	//bPlay.setSerializable(false);//!
+	//bPlayForce.setSerializable(false);
 
 	fName.setSerializable(false);
 	fPath.setSerializable(false);
@@ -130,6 +130,9 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bNext.setSerializable(false);
 	bPrev.setSerializable(false);
 	currentLine.setSerializable(false);
+
+	progressPlayGlobalPrc.setSerializable(false);
+	progressPlaySlide.setSerializable(false);
 
 	//--
 
@@ -145,13 +148,13 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	params_Transport.setName("Transport");
 	params_Transport.add(currentLine);
-	params_Transport.add(progressPrc);
+	params_Transport.add(progressPlayGlobalPrc);
 	params_Transport.add(bPrev);
 	params_Transport.add(bNext);
 	params_Transport.add(bPlay);
 	params_Transport.add(bPlayForce);
-	params_Transport.add(speedForce);
-	params_Transport.add(progressForce);
+	params_Transport.add(speedPlayForce);
+	params_Transport.add(progressPlaySlide);
 	//params_Transport.add(bExternal);
 
 	params_Fade.setName("Fade");
@@ -388,13 +391,13 @@ void ofxSurfingTextSubtitle::update()
 		}
 
 		uint64_t tp = ofGetElapsedTimeMillis() - tPlaySlideStart;
-		progressForce = ofMap(tp, 0, tPlaySlideDuration, 0, 1);
+		progressPlaySlide = ofMap(tp, 0, tPlaySlideDuration, 0, 1);
 	}
 
 	if (bPlayForce && !bPlay)
 	{
-		int n = ofMap(speedForce, 0, 1, 100, 5);
-		progressForce = ofMap(ofGetFrameNum() % n, 0, n, 0, 1);
+		int n = ofMap(speedPlayForce, 0, 1, 100, 5, true);
+		progressPlaySlide = ofMap(ofGetFrameNum() % n, 0, n, 0, 1);
 		if (ofGetFrameNum() % n == 0) currentLine++;
 	}
 
@@ -408,7 +411,7 @@ void ofxSurfingTextSubtitle::update()
 	if (sub.size() == 0)
 	{
 		ofLogVerbose("ofxSurfingTextSubtitle") << "SUB object empty!";
-		progressPrc = 0;
+		progressPlayGlobalPrc = 0;
 	}
 	else
 	{
@@ -439,16 +442,16 @@ void ofxSurfingTextSubtitle::update()
 			{
 				ts = 0;
 				te = sub[0]->getEndTime();
-				progressForce = ofMap(t, ts, te, 0, 1);
+				progressPlaySlide = ofMap(t, ts, te, 0, 1);
 			}
 			else {
 			}
 
-			progressPrc = ofMap(t, 0, sub.back()->getEndTime(), 0, 1);
+			progressPlayGlobalPrc = ofMap(t, 0, sub.back()->getEndTime(), 0, 1);
 		}
 		else if (bPlayForce || !bPlay)
 		{
-			progressPrc = ofMap(currentLine, 0, sub.size(), 0, 1);
+			progressPlayGlobalPrc = ofMap(currentLine, 0, sub.size(), 0, 1);
 		}
 	}
 
@@ -468,7 +471,7 @@ void ofxSurfingTextSubtitle::update()
 	{
 		/*
 		const int SPEED_SCALE = 5;
-		float speed = ofMap(speedForce, -1, 1, 0.25f, (float)SPEED_SCALE);
+		float speed = ofMap(speedPlayForce, -1, 1, 0.25f, (float)SPEED_SCALE);
 		uint64_t t = ofGetElapsedTimeMillis() * speed - tPlay;
 		s += timecode.timecodeForMillis(t);
 		//s += ofToString(t / 1000);
@@ -510,12 +513,13 @@ void ofxSurfingTextSubtitle::draw() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 {
+
 	static bool bAttending = false;
 	if (bAttending) return;
 
 	string name = e.getName();
 
-	if (name == progressForce.getName() || name == progressPrc.getName()) return;
+	if (name == progressPlaySlide.getName() || name == progressPlayGlobalPrc.getName()) return;
 	ofLogNotice("ofxSurfingTextSubtitle::Changed ") << name << " : " << e;
 
 	//--
@@ -568,11 +572,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			//bExternal.setWithoutEventNotifications(false);
 			bPlayForce.setWithoutEventNotifications(false);
 			tPlay = ofGetElapsedTimeMillis();
-			currentLine = 0;
+			//currentLine = 0;//crash
+			currentLine.setWithoutEventNotifications(0);
 		}
 		else
 		{
-			currentLine = 0;
+			//return;
+			currentLine.setWithoutEventNotifications(0);
+			//currentLine = 0;//crash
 			isAnim = false;
 			alpha = 1;
 		}
@@ -623,11 +630,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		fSize = fSizePrc * fSize.getMax();
 		//fSize = fSizePrc * box.getWidth() / 5;
 	}
-	// font size, spacing, line height
+	// spacing
 	else if (name == fSpacing.getName())
 	{
 		font.setCharacterSpacing(fSpacing);
 	}
+	// height
 	else if (name == fLineHeight.getName())
 	{
 		font.setLineHeight(fLineHeight);
@@ -637,7 +645,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
-	// vcenter
+	// v center
 	else if (name == bCentered.getName())
 	{
 		if (bCentered) {
@@ -993,7 +1001,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		}
 
 		s2 += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
-		//s2 += " " + ofToString(progressPrc * 100, 0) + ofToString("'%'");//TODO: fix
+		//s2 += " " + ofToString(progressPlayGlobalPrc * 100, 0) + ofToString("'%'");//TODO: fix
 		s2 += "\n";
 
 		if (bPlay) {
@@ -1029,11 +1037,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->Add(bPlayForce, OFX_IM_TOGGLE_SMALL, 2);
 
 		if (bPlay) {
-			ui->Add(progressForce, OFX_IM_PROGRESS_BAR_NO_TEXT);
+			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		if (bPlayForce) {
-			ui->Add(progressForce, OFX_IM_PROGRESS_BAR_NO_TEXT);
-			ui->Add(speedForce);
+			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
+			ui->Add(speedPlayForce);
 		}
 		ui->AddSpacing();
 
@@ -1055,11 +1063,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->Add(bPlayForce, OFX_IM_TOGGLE_SMALL, 2);
 
 		if (bPlay) {
-			ui->Add(progressForce, OFX_IM_PROGRESS_BAR_NO_TEXT);
+			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		if (bPlayForce) {
-			ui->Add(speedForce);
-			ui->Add(progressForce, OFX_IM_PROGRESS_BAR_NO_TEXT);
+			ui->Add(speedPlayForce);
+			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		ui->AddSpacing();
 
@@ -1153,7 +1161,7 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 			ui->AddLabelBig(pathSrt);
 			ui->AddSpacing();
 
-			ui->Add(progressPrc, OFX_IM_PROGRESS_BAR);
+			ui->Add(progressPlayGlobalPrc, OFX_IM_PROGRESS_BAR);
 			ui->AddSpacing();
 
 			int track_item = currentLine;
