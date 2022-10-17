@@ -212,7 +212,7 @@ private:
 	ofRectangle getTextBox(std::string _t, ofRectangle r);
 
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
-	void drawInsertionPoint(float _x, float _y, float _w = 0);
+	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
 	vector<string> subsText;
 	string pathSrt;

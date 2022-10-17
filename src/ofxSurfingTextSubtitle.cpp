@@ -315,16 +315,22 @@ void ofxSurfingTextSubtitle::drawRaw() {
 
 		//--
 
-		// Center Point
+		//TODO: workaround
+		if(bCentered && box.isChanged()) boxhMax = 0;
+
 		//TODO:
-		if (0)
+		// Center Point
+		if (bEdit && bCentered)
 		{
 			float _x = box.getX();
 			float _y = box.getY();
+
 			_x += box.getWidth() / 2;
-			_y += box.getHeight() / 2;
+			_y += boxhMax / 2.f;
+			//_y += box.getHeight() / 2;
 			//_y += r.getHeight() / 2;
-			drawInsertionPoint(_x, _y);
+
+			drawInsertionPoint(_x, _y, 8, 8);
 		}
 	}
 }
@@ -563,6 +569,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			isAnim = true;
 			alpha = 0.f;
 		}
+
+		ofLogNotice("ofxSurfingTextSubtitle") << textCurrent;
 	}
 
 	else if (name == bPlay.getName())
@@ -610,10 +618,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		currentLine--;
 	}
 
+	// edit and debug
 	else if (name == bEdit.getName()) {
 		box.bEdit = bEdit;
 	}
 
+	// TODO: for video link mode
 	//else if (name == bExternal.getName())
 	//{
 	//	if (bExternal) 
@@ -737,7 +747,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		ofDrawRectangle(_bbox);
 
 		// 3. anchor
-		drawInsertionPoint(_x, _y, 50);
+		drawInsertionPoint(_x, _y, 15);
 
 		/*
 		// 4. elastic bar
@@ -939,20 +949,25 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w)
+void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, float _h)
 {
-	float r = 3;
+	float r = 2;
 
 	ofPushStyle();
 	ofFill();
-	float v = ofMap((ofGetFrameNum() % 60) / 60.f, 0, 60, 0.25, 1);
+	float v = ofMap(ofGetFrameNum() % 60, 0, 60, 0.25, 1);
 	ofSetColor(colorDebug, v * 255);
 	ofDrawCircle(_x, _y, r);
 
-	if (_w != 0) {//an extra line
+	if (_w != 0) {//an extra horizontal line
 		ofNoFill();
 		ofSetColor(colorDebug, 64);
-		ofDrawLine(_x - 10, _y, _x + _w, _y);
+		ofDrawLine(_x - _w, _y, _x + _w, _y);
+	}
+	if (_h != 0) {//an extra vertical line
+		ofNoFill();
+		ofSetColor(colorDebug, 64);
+		ofDrawLine(_x, _y - _h, _x, _y + _h);
 	}
 
 	ofPopStyle();
