@@ -49,7 +49,7 @@ void ofApp::draw()
 
 ### TODO
 - Pass time to link with an external video player.
-- Load render fonts on runtime.
+- Load render fonts and .srt files on runtime.
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
