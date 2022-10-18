@@ -3,18 +3,18 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	//ofSetWindowPosition(-1920, 25);
+	ofSetWindowPosition(-1920, 25);
 	ofSetLogLevel("ofxSurfingTextSubtitle", OF_LOG_SILENT);
 
 	ofSetFrameRate(60);
-	//ofSetVerticalSync(true);
+	ofSetVerticalSync(true);
 
 	// Video
-	bLoaded = movie.load("movies/fingers.mov");
+	//bLoaded = movie.load("movies/fingers.mov");
 	//TODO: some videos make drop down the frame rate a lot.
-	// should check installed codecs here.
+	// should check installed codecs here?.
+	bLoaded = movie.load(ofToDataPath("Z:\\_DATA\\VIDEO\\Huxley_.mp4", true));
 	//bLoaded = movie.load(ofToDataPath("Z:\\_DATA\\VIDEO\\LET.mp4", true));
-	//bLoaded = movie.load(ofToDataPath("Z:\\_DATA\\VIDEO\\_Huxley.mp4", true));
 	//bLoaded = movie.load(ofToDataPath("Z:\\_DATA\\\VIDEO\\fingers.mov", true));
 
 	// Subs

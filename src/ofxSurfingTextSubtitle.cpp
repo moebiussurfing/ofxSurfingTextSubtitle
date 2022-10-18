@@ -348,7 +348,7 @@ void ofxSurfingTextSubtitle::update()
 
 				//TODO:
 				if (bPlayForced) {
-					progressIn = ofClamp(alpha, 0, 1);
+					progressIn = ofClamp(alpha, 0, 1);//workaround to avoid deep calculations..
 					//progressIn = ofMap(tSlide, 0, durationPlayForced, 0, 1, true);
 				}
 				else if (bPlay) {
