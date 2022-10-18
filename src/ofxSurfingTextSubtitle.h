@@ -24,7 +24,7 @@
 
 // OPTIONAL
 
-//#define USE_IM_GUI__SUBTTITTLES
+#define USE_IM_GUI__SUBTTITTLES // -> Pick your GUI! ofxGui/ImGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 

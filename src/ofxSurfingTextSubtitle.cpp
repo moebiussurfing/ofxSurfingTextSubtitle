@@ -96,8 +96,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bNext.set(">", false);
 	bPlay.set("Play", false);
 	bPlayForce.set("PlayForce", false);
-	//speedPlayForce.set("Speed", 0, 0, 1);
 	durationPlayForce.set("Duration", 2000, 1, 3000);
+	//speedPlayForce.set("Speed", 0, 0, 1);
 	//bExternal.set("External", false);
 
 	progressPlayFilm.set("% Film", 0, 0, 1);//full length progress
@@ -652,7 +652,7 @@ void ofxSurfingTextSubtitle::draw() {
 		float x;
 		float y;
 		float pad;
-		float w = 78;//hard coded to text widget
+		float w = 79;//hard coded to text widget
 		float h;//bar
 		glm::vec2 p;
 
@@ -682,7 +682,7 @@ void ofxSurfingTextSubtitle::draw() {
 		ofPopStyle();
 
 		float h2 = 15;
-		x += 3;
+		x += 4;
 		y -= h;
 		y += 3;
 		string s = (bAnimatedIn && isAnimIn) ? "IN" : "  ";
@@ -722,14 +722,14 @@ void ofxSurfingTextSubtitle::draw() {
 			}
 		}
 
-		if (bAnimatedOut) 
+		if (bAnimatedOut)
 		{
 			float r = 0.5f;
 			if (bPlayForce) {
-				r = 1.f - (durationPlayForce / MAX(1,countDownOut));//ratio
+				r = 1.f - (durationPlayForce / MAX(1, countDownOut));//ratio
 			}
 			if (bPlay) {
-				r = 1.f - (durationPlaySlide / MAX(1,countDownOut));//ratio
+				r = 1.f - (durationPlaySlide / MAX(1, countDownOut));//ratio
 			}
 			float xOut = p.x + w * r;
 			float sz = 10;
@@ -1080,15 +1080,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	string s1 = "";
 	string s2 = "";
 	{
+		// filename
 		if (!ui->bMinimize) {
 			s1 += pathSrt;
 			//s1 += "\n";
 		}
 
-		s2 += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
-		//s2 += " " + ofToString(progressPlayFilm * 100, 0) + ofToString("'%'");//TODO: fix
-		s2 += "\n";
-
+		// time
 		if (bPlay) {
 			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 
@@ -1101,6 +1099,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		else {
 			s2 += sub[currentLine]->getStartTimeString();
 		}
+		s2 += "\n";
+
+		// index
+		s2 += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
+		//s2 += " " + ofToString(progressPlayFilm * 100, 0) + ofToString("'%'");//TODO: fix
 		//s2 += "\n";
 	}
 
@@ -1126,7 +1129,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		}
 		if (bPlayForce) {
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-			ui->Add(speedPlayForce);
+			//ui->Add(speedPlayForce);
 		}
 		ui->AddSpacing();
 
@@ -1151,7 +1154,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		if (bPlayForce) {
-			ui->Add(speedPlayForce);
+			//ui->Add(speedPlayForce);
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		ui->AddSpacing();
@@ -1165,19 +1168,50 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->AddSpacing();
 	}
 
-	//if (!ui->bMinimize) 
+	if (ui->BeginTree("FADES", false, false))
 	{
-		if (!ui->bMinimize) ui->AddLabelBig("FADE");
-		ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(speedFadeIn, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
-		if (bAnimatedIn) {
-			ofxImGuiSurfing::ProgressBar2(alpha);
-			//static ofParameter<float>v{ "v", 0, 0, 1 };
-			//v.setWithoutEventNotifications(alpha);
-			//ui->Add(v, OFX_IM_PROGRESS_BAR_NO_TEXT, 2);
+		if (ui->bMinimize)
+		{
+			// in
+			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+			// out
+			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
+			if (bAnimatedIn) ofxImGuiSurfing::ProgressBar2(alpha);
+			if (bAnimatedOut) ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
-		ui->AddSpacingSeparated();
+		else
+		{
+			//ui->AddLabelBig("FADE");
+
+			// in
+			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+			ui->Add(speedFadeIn, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
+			ui->AddTooltip(speedFadeIn);
+			if (bAnimatedIn) {
+				ofxImGuiSurfing::ProgressBar2(alpha);
+				//static ofParameter<float>v{ "v", 0, 0, 1 };
+				//v.setWithoutEventNotifications(alpha);
+				//ui->Add(v, OFX_IM_PROGRESS_BAR_NO_TEXT, 2);
+			}
+			ui->AddSpacing();
+
+			// out
+			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2, true);
+			ui->Add(speedFadeOut, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
+			ui->AddTooltip(speedFadeOut);
+			if (bAnimatedOut) {
+				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
+				ui->Add(countDownOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
+				ui->AddTooltip(countDownOut);
+			}
+			ui->AddSpacing();
+
+			ui->Add(bResetFades, OFX_IM_BUTTON_SMALL);
+		}
+		ui->EndTree();
 	}
+
+	if (!ui->bMinimize) ui->AddSpacingSeparated();
 
 	//ui->AddGroup(params_Style);
 	if (!ui->bMinimize) {
