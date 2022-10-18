@@ -91,7 +91,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	// Control
 	bDraw.set("Draw", true);
 	bEdit.set("Edit", true);
-	currentLine.set("Dialog", 0, 0, 0);
+	currentDialog.set("Dialog", 0, 0, 0);
 	bPrev.set("<", false);
 	bNext.set(">", false);
 	bPlay.set("Play", false);
@@ -147,7 +147,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bResetFades.setSerializable(false);
 	bNext.setSerializable(false);
 	bPrev.setSerializable(false);
-	currentLine.setSerializable(false);
+	currentDialog.setSerializable(false);
 
 	progressPlayFilm.setSerializable(false);
 	progressPlaySlide.setSerializable(false);
@@ -167,7 +167,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Transport.setName("Transport");
 	params_Transport.add(bPrev);
 	params_Transport.add(bNext);
-	params_Transport.add(currentLine);
+	params_Transport.add(currentDialog);
 	params_Transport.add(progressPlayFilm);
 	params_Transport.add(progressPlaySlide);
 	params_Transport.add(bPlay);
@@ -236,7 +236,7 @@ void ofxSurfingTextSubtitle::setupSubs() {
 	sub = parser->getSubtitles();
 	if (sub.size() == 0) ofLogError("ofxSurfingTextSubtitle") << "SUB object empty!";
 
-	currentLine.setMax(sub.size() - 1);
+	currentDialog.setMax(sub.size() - 1);
 
 	// pre read all subs on a vector
 	//not used yet
@@ -278,6 +278,42 @@ void ofxSurfingTextSubtitle::exit() {
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
 	ofxSurfingHelpers::saveGroup(params, "ofApp");
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::update(uint64_t frame)
+{
+	//TODO: WIP: external link 
+#ifdef USE_TIME_CODE__SUBTITLES
+	uint64_t t = timecode.millisForFrame(frame);
+
+	// Force sync mode
+	//if (!bPlay) bPlay = true;
+
+	if (bPlay)
+	{
+		//tPlay = t;
+
+		/*
+		uint64_t tDiff = tPlay - t;
+		if (tDiff > 0) {
+		}
+		else {
+		}
+		*/
+	}
+	if (bPlayForced)
+	{
+		//TODO:
+		//should calculate which dialog correspond to this time,
+		//then jump to that dialog / currentDialog
+		//tPlayForce = t;
+	}
+#endif
+
+	//--
+
+	update();
 }
 
 //--------------------------------------------------------------
@@ -420,10 +456,10 @@ void ofxSurfingTextSubtitle::update()
 				static int currentLine_ = -1;
 				currentLine_ = k;
 
-				// To apply only once if currentLine changed!
-				if (currentLine != currentLine_)
+				// To apply only once if currentDialog changed!
+				if (currentDialog != currentLine_)
 				{
-					currentLine = currentLine_;//will trig the callback!
+					currentDialog = currentLine_;//will trig the callback!
 
 					doUpdateSlidePlay(element);
 				}
@@ -445,7 +481,7 @@ void ofxSurfingTextSubtitle::update()
 		uint64_t tf = ofGetElapsedTimeMillis() - tPlayForce;
 		if (tf > durationPlayForced) {
 			tPlayForce = ofGetElapsedTimeMillis();//restart timer. next slide
-			currentLine++;
+			currentDialog++;
 		}
 		progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1);
 	}
@@ -473,7 +509,7 @@ void ofxSurfingTextSubtitle::update()
 
 			// workaround:
 			// fix this case
-			if (currentLine == 0)
+			if (currentDialog == 0)
 			{
 				ts = 0;
 				te = sub[0]->getEndTime();
@@ -487,7 +523,7 @@ void ofxSurfingTextSubtitle::update()
 		//else if (bPlayForced || !bPlay)
 		else // for any other modes
 		{
-			progressPlayFilm = ofMap(currentLine, 0, sub.size(), 0, 1);
+			progressPlayFilm = ofMap(currentDialog, 0, sub.size(), 0, 1);
 		}
 	}
 
@@ -521,17 +557,17 @@ void ofxSurfingTextSubtitle::update()
 		}
 
 		s += "\n\n";
-		s += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
+		s += ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
 		s += "\n\n";
-		s += sub[currentLine]->getStartTimeString();
+		s += sub[currentDialog]->getStartTimeString();
 		s += "\n";
-		s += sub[currentLine]->getEndTimeString();
+		s += sub[currentDialog]->getEndTimeString();
 		s += "\n";
 
 		boxInfo.setText(s);
 #endif
+		}
 	}
-}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawGui() {
@@ -777,7 +813,7 @@ void ofxSurfingTextSubtitle::draw() {
 			if (xOut2 < p.x + w) ofSetColor(0, 255);
 			else ofSetColor(0, 32);//attenuate if goes out of the  time line!
 			ofSetLineWidth(2);
-			sz -=2;
+			sz -= 2;
 			ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
 
 			//--
@@ -1149,12 +1185,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 		}
 		else {
-			s2 += sub[currentLine]->getStartTimeString();
+			s2 += sub[currentDialog]->getStartTimeString();
 		}
 		s2 += "\n";
 
 		// index
-		s2 += ofToString(currentLine) + "/" + ofToString(sub.size() - 1);
+		s2 += ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
 		//s2 += " " + ofToString(progressPlayFilm * 100, 0) + ofToString("'%'");//TODO: fix
 		//s2 += "\n";
 	}
@@ -1187,7 +1223,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		ui->AddLabel(s1);
 		ui->AddLabelBig(s2);
-		ui->Add(currentLine, OFX_IM_HSLIDER_MINI_NO_NAME);
+		ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 		ui->PushButtonRepeat();
 		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
 		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
@@ -1212,7 +1248,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->AddSpacing();
 
 		ui->AddLabelBig(s2);
-		ui->Add(currentLine, OFX_IM_HSLIDER_MINI_NO_NAME);
+		ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 		ui->PushButtonRepeat();
 		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
 		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
@@ -1335,7 +1371,7 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 			ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
 			ui->AddSpacing();
 
-			int track_item = currentLine;
+			int track_item = currentDialog;
 			ui->Add(bAutoScroll, OFX_IM_TOGGLE_ROUNDED_MINI);
 
 			ui->AddSpacingBigSeparated();
@@ -1345,7 +1381,7 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 			// iterate all srt dialogs
 			for (int n = 0; n < subsText.size(); n++)
 			{
-				/*if (currentLine == n)*/ ui->AddSeparated();
+				/*if (currentDialog == n)*/ ui->AddSeparated();
 
 				//float h = ImGui::GetContentRegionAvail().y;
 				float h = ui->getWidgetsHeightUnit();
@@ -1364,21 +1400,21 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 				bool bDoUpdate = false;
 
-				if (currentLine == n) ui->BeginBorderFrame();
+				if (currentDialog == n) ui->BeginBorderFrame();
 
 				if (ImGui::Button(s.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, h)))
 				{
-					//currentLine = n;
+					//currentDialog = n;
 					bDoUpdate = true;
 				}
 
-				if (currentLine == n) ui->EndBorderFrame();
+				if (currentDialog == n) ui->EndBorderFrame();
 
-				if (bDoUpdate) currentLine = n;
+				if (bDoUpdate) currentDialog = n;
 
 				ImGui::NextColumn();
 
-				if (currentLine == n)
+				if (currentDialog == n)
 				{
 					//ImGui::ButtonEx(subsText[n].c_str(), ImVec2(w, 40));
 					ui->AddLabelBig(subsText[n]);//bigger if selected
@@ -1494,14 +1530,14 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 				ImGui::Columns(1);
 
-				//*if (currentLine == n) ui->AddSeparated();
+				//*if (currentDialog == n) ui->AddSeparated();
 			}
 
 			ImGui::EndChild();
 
 			ui->EndWindow();
+		}
 	}
-}
 }
 
 #endif
@@ -1579,30 +1615,30 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	if (false) {}
 
 	// set sub index
-	else if (name == currentLine.getName())
+	else if (name == currentDialog.getName())
 	{
 		//return;
 
 		if (sub.size() == 0)
 		{
-			currentLine.setWithoutEventNotifications(0);
+			currentDialog.setWithoutEventNotifications(0);
 			textCurrent = "NO_TEXT";
 			ofLogError("ofxSurfingTextSubtitle") << "Not loaded subs file or it's empty or wrong format.";
 			return;
 		}
 
 		// clamp
-		if (currentLine < 0)
+		if (currentDialog < 0)
 		{
-			currentLine.setWithoutEventNotifications(0);//first
-			//currentLine.setWithoutEventNotifications(sub.size() - 1);//last
+			currentDialog.setWithoutEventNotifications(0);//first
+			//currentDialog.setWithoutEventNotifications(sub.size() - 1);//last
 		}
-		else if (currentLine > sub.size() - 1) currentLine.setWithoutEventNotifications(0);//first
+		else if (currentDialog > sub.size() - 1) currentDialog.setWithoutEventNotifications(0);//first
 
 		// get dialog
-		if (currentLine.get() < sub.size())
+		if (currentDialog.get() < sub.size())
 		{
-			textCurrent = sub[currentLine.get()]->getDialogue();
+			textCurrent = sub[currentDialog.get()]->getDialogue();
 		}
 		else
 		{
@@ -1626,6 +1662,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		ofLogNotice("ofxSurfingTextSubtitle") << textCurrent;
 	}
 
+	//--
+	
 	else if (name == bPlay.getName())
 	{
 		if (bPlay)
@@ -1634,18 +1672,41 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			bPlayForced.set(false);
 			//bPlayForced.setWithoutEventNotifications(false);
 			tPlay = ofGetElapsedTimeMillis();
-			//currentLine = 0;//crash
-			currentLine.setWithoutEventNotifications(0);
+			//currentDialog = 0;//crash
+			currentDialog.setWithoutEventNotifications(0);
 		}
 		else
 		{
 			//return;
-			currentLine.setWithoutEventNotifications(0);
-			//currentLine = 0;//crash
+			currentDialog.setWithoutEventNotifications(0);
+			//currentDialog = 0;//crash
 
 			if (bAnimatedIn && isAnimIn) isAnimIn = false;
 			if (bAnimatedOut && isAnimOut) isAnimOut = false;
 			//if (!bAnimatedIn && !bAnimatedOut) alpha = 1;//?
+		}
+	}
+	
+	else if (name == bPlayForced.getName())
+	{
+		if (bPlayForced) 
+		{
+			bPlay.set(false);
+			//bPlay.setWithoutEventNotifications(false);
+			//bExternal.setWithoutEventNotifications(false);
+
+			tPlayForce = ofGetElapsedTimeMillis();
+			progressPlaySlide = 0;
+		}
+		else 
+		{
+			progressPlaySlide = 0;
+
+			//isAnimIn = false;
+			//isAnimOut = false;
+			if (bAnimatedIn && isAnimIn) isAnimIn = false;
+			if (bAnimatedOut && isAnimOut) isAnimOut = false;
+			//alpha = 1;
 		}
 	}
 
@@ -1667,38 +1728,17 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		}
 	}
 
-	else if (name == bPlayForced.getName())
-	{
-		if (bPlayForced) {
-			bPlay.set(false);
-			//bPlay.setWithoutEventNotifications(false);
-			//bExternal.setWithoutEventNotifications(false);
-
-			tPlayForce = ofGetElapsedTimeMillis();
-			progressPlaySlide = 0;
-		}
-		else {
-			progressPlaySlide = 0;
-
-			//isAnimIn = false;
-			//isAnimOut = false;
-			if (bAnimatedIn && isAnimIn) isAnimIn = false;
-			if (bAnimatedOut && isAnimOut) isAnimOut = false;
-			//alpha = 1;
-		}
-	}
-
 	// next
 	else if (name == bNext.getName() && bNext)
 	{
 		bNext.setWithoutEventNotifications(false);
-		currentLine++;
+		currentDialog++;
 	}
 	// prev
 	else if (name == bPrev.getName() && bPrev)
 	{
 		bPrev.setWithoutEventNotifications(false);
-		currentLine--;
+		currentDialog--;
 	}
 
 	// edit and debug

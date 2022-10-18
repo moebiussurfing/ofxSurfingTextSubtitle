@@ -8,7 +8,8 @@
 
 	TODO:
 
-	add fade out engine
+	test video player encoding problems...
+	split out bDebug again from bEdit. split widgets enable too.
 	fix right align
 	add list and set custom fonts on runtime
 	add load another .srt file on runtime
@@ -87,6 +88,7 @@ public:
 	void setup(string _pathSrt);
 	//pass the .srt file path to load
 
+	void update(uint64_t frame);
 	void update();
 
 	void draw();
@@ -100,19 +102,23 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
 	//disables ofxGui. useful when using ImGui or to disable gui.
 
+	bool isPlaying() const { return bPlay.get(); }
 	void setTogglePlay() { bPlay = !bPlay; }
+	void play() { bPlay = true; }
+	void stop() { bPlay = false; }
 	void setToggleAuto() { bPlayForced = !bPlayForced; }
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
+	void setToggleVisibleGui() { bGui = !bGui; }
 	//void setToggleDebug() { bEdit = !bEdit; }
 	//void setToggleEdit() { box.bEdit = !box.bEdit; }
 	//void setDebug(bool b) { bEdit = b; }
 	//void setEdit(bool b) { box.bEdit = b; }
 
-	void setSubtitleIndex(int i) { currentLine = i; }
-	void setSubtitlePrevious() { currentLine--; }
-	void setSubtitleNext() { currentLine++; }
-	int getNumSubtitles() const { return (currentLine.getMax() + 1); }
+	void setSubtitleIndex(int i) { currentDialog = i; }
+	void setSubtitlePrevious() { currentDialog--; }
+	void setSubtitleNext() { currentDialog++; }
+	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return fColorBg.get(); }
 
 	ofParameter<bool> bGui_Internal;
@@ -202,7 +208,7 @@ private:
 	ofParameter<float> progressOut;
 
 	uint64_t tPlayStartSlide = 0;
-	uint64_t tPlayForce= 0;
+	uint64_t tPlayForce = 0;
 	uint64_t durationPlaySlide = 0;
 
 	glm::vec2 offset = glm::vec2(0, 0);
@@ -210,7 +216,7 @@ private:
 
 	string textCurrent = "";
 
-	ofParameter<int> currentLine; // dialog index. current loaded subtitle slide.  
+	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 	float boxhMax = 0;
 
