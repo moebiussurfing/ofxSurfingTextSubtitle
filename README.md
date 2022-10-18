@@ -1,8 +1,10 @@
-## Screenshot
+## Screenshots
 #### example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
 #### example-Subtitle2 / ImGui (Optional) 
 ![Screenshot](example-Subtitle2/Capture.PNG)
+#### example-Subtitle3 / ofxGui (Video Player) 
+![Screenshot](example-Subtitle3/Capture.PNG)
 
 ## Features
 - Fast `FontStash` render.
@@ -11,30 +13,27 @@
 - Transport `player` and browser.
 - `Persistent` settings.
 - `Presets` Engine (Optional). Look `example-Subtitle2`. Requires ImGui.
-- Animated `Fade In`.
+- Animated `Fade In/Out`.
 
 ## Example example-Subtitle / ofxGui
 #### ofApp.h
 ```.cpp
 // Remember to comment to use ofxGui only and to disable ImGui!
-// #define USE_IM_GUI__SUBTTITTLES
+// #define USE_IM_GUI__SUBTITLES
 #include "ofxSurfingTextSubtitle.h"
-ofxSurfingTextSubtitle sub;
+ofxSurfingTextSubtitle subs;
 ```
 #### ofApp.cpp
 ```.cpp
-void ofApp::setup() 
-{
-	sub.setup("Alphaville.srt");
+void ofApp::setup() {
+	subs.setup("Alphaville.srt");
 }
-void ofApp::update() 
-{
-	sub.update();
+void ofApp::update() {
+	subs.update();
 }
-void ofApp::draw() 
-{
-	sub.draw();
-	sub.drawGui();
+void ofApp::draw() {
+	subs.draw();
+	subs.drawGui();
 }
 ```
 
@@ -48,14 +47,14 @@ void ofApp::draw()
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
-- Pass time to link with an external video player.
+- Pass time/frame to improve link with an external video player.
 - Load render fonts and .srt files on runtime.
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
 
 ## Thanks
-`srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
+File `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
 Thanks `@Jonathhhan`.
 
 ## License
