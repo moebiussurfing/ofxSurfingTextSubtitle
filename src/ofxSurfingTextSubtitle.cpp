@@ -20,7 +20,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	setupParams();
 	setupSubs();
 
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 	boxInfo.setMode(ofxSurfingBoxHelpText::TOP_RIGHT);
 	boxInfo.setup();
 #endif
@@ -95,8 +95,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bPrev.set("<", false);
 	bNext.set(">", false);
 	bPlay.set("Play", false);
-	bPlayForce.set("PlayForce", false);
-	durationPlayForce.set("Duration", 2000, 1, 3000);
+	bPlayForced.set("PlayForced", false);
+	durationPlayForced.set("Duration", 2000, 1, 3000);
 	//speedPlayForce.set("Speed", 0, 0, 1);
 	//bExternal.set("External", false);
 
@@ -124,12 +124,13 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fColor.set("Color", ofColor::white, ofColor(0, 0), ofColor(255, 255));
 	fAlign.set("Align", 1, 1, 3);
 	fAlign_str.set("Align ", "-1");
-	bCentered.set("Centered", false);//TODO:
 	bResetFont.set("Reset Style", false);
+
+	bCentered.set("Centered", false);//TODO:
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 	boxInfo.bGui.makeReferenceTo(bEdit);
 #endif
 
@@ -137,7 +138,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	//TODO: crashes when loading settings if uncommented!
 	//bPlay.setSerializable(false);//!
-	//bPlayForce.setSerializable(false);
+	//bPlayForced.setSerializable(false);
 
 	fName.setSerializable(false);
 	fPath.setSerializable(false);
@@ -157,7 +158,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.add(bDraw);
 	params_Control.add(bEdit);
 
-#ifdef USE_IM_GUI__SUBTTITTLES
+#ifdef USE_IM_GUI__SUBTITLES
 	params_Control.add(bGui_SrtFull);
 #endif
 	//params_Control.add(bGui);
@@ -170,8 +171,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Transport.add(progressPlayFilm);
 	params_Transport.add(progressPlaySlide);
 	params_Transport.add(bPlay);
-	params_Transport.add(bPlayForce);
-	params_Transport.add(durationPlayForce);
+	params_Transport.add(bPlayForced);
+	params_Transport.add(durationPlayForced);
 	//params_Transport.add(speedPlayForce);
 	//params_Transport.add(bExternal);
 
@@ -182,11 +183,11 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_FadeOut.setName("Out");
 	params_FadeIn.add(bAnimatedIn);
 	params_FadeIn.add(speedFadeIn);
-	//params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
+	params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
 	params_FadeOut.add(bAnimatedOut);
-	params_FadeOut.add(countDownOut);
 	params_FadeOut.add(speedFadeOut);
 	params_FadeOut.add(progressOut);
+	params_FadeOut.add(countDownOut);
 	params_Fade.add(params_FadeIn);
 	params_Fade.add(params_FadeOut);
 	params_Fade.add(bResetFades);
@@ -294,68 +295,61 @@ void ofxSurfingTextSubtitle::update()
 
 	// Calculate Fade In
 
-	if (bPlay || bPlayForce)
+	if (bPlay || bPlayForced)
 	{
 		if (bAnimatedIn && isAnimIn)
 		{
 			if (alpha < 1.f) {//make opacity grow 
-				static float dt = 1 / 60.f;
+				static float dt = 1 / fps;
 				dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
 				alpha += dtAnim;
 
 				//-
 
 				uint64_t tSlide;
-				if (bPlayForce) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
+				if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
 				else if (bPlay) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 
 				//TODO:
-				/*
-				if (bPlayForce) {
-					progressIn = ofMap(tSlide, 0, durationPlayForce, 0, 1, true);
+				if (bPlayForced) {
+					progressIn = ofClamp(alpha, 0, 1);
+					//progressIn = ofMap(tSlide, 0, durationPlayForced, 0, 1, true);
 				}
 				else if (bPlay) {
-					progressIn = ofMap(tSlide, 0, durationPlaySlide, 0, 1, true);
+					progressIn = ofClamp(alpha, 0, 1);
+					//progressIn = ofMap(tSlide, 0, durationPlaySlide, 0, 1, true);
 				}
-				*/
 			}
 			if (alpha >= 1.f) {//stop if finished
 				alpha = 1;
 				isAnimIn = false;
-				////progressIn = 1;
+				progressIn = ofClamp(alpha, 0, 1);
 			}
 		}
 		else {
-			//progressIn = 0;
+			progressIn = 1;
 		}
 	}
 
-	// force alpha if stopped
-	/*
-	if (!bPlay || !bPlayForce)
-	{
-		if (bAnimatedIn)
-		{
-			if(!isAnimIn) alpha = 1;
-		}
-	}
-	*/
+	//--
+
+	// Calculate Fade Out
 
 	if (bAnimatedOut)
 	{
-		if (bPlay || bPlayForce)
+		if (bPlay || bPlayForced)
 		{
 			uint64_t tSlide;
-			if (bPlayForce) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
+			if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
 			else if (bPlay) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 
 			if (!isAnimOut) // checking if requires trig fade out
 			{
 				// trigs fade out
 
-				if (bPlayForce)
+				if (bPlayForced)
 				{
-					if (tSlide > durationPlayForce - countDownOut)
+					if (tSlide > durationPlayForced - countDownOut)
 					{
 						isAnimOut = true;
 					}
@@ -373,17 +367,19 @@ void ofxSurfingTextSubtitle::update()
 			if (isAnimOut) // fading out
 			{
 				uint64_t t = tSlide - countDownOut;
-				if (bPlayForce) {
-					progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
+				if (bPlayForced) {
+					progressOut = ofClamp(alpha, 0, 1);
+					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
 				}
 				else if (bPlay) {
-					progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
+					progressOut = ofClamp(alpha, 0, 1);
+					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
 				}
 				//else progressOut = 1;
 
 				if (alpha > 0.f)//decrease opacity 
 				{
-					static float dt = 1.f / 60.f;
+					static float dt = 1.f / fps;
 					dtAnim = ofMap(speedFadeOut, 0, 1, dt * 0.4f, dt * 7.f, true);
 					alpha -= dtAnim;
 				}
@@ -442,16 +438,16 @@ void ofxSurfingTextSubtitle::update()
 
 	//--
 
-	// bPlayForce
+	// bPlayForced
 
-	if (bPlayForce)
+	if (bPlayForced)
 	{
 		uint64_t tf = ofGetElapsedTimeMillis() - tPlayForce;
-		if (tf > durationPlayForce) {
+		if (tf > durationPlayForced) {
 			tPlayForce = ofGetElapsedTimeMillis();//restart timer. next slide
 			currentLine++;
 		}
-		progressPlaySlide = ofMap(tf, 0, durationPlayForce, 0, 1);
+		progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1);
 	}
 
 	//if (bExternal) {
@@ -488,7 +484,7 @@ void ofxSurfingTextSubtitle::update()
 
 			progressPlayFilm = ofMap(t, 0, sub.back()->getEndTime(), 0, 1);
 		}
-		//else if (bPlayForce || !bPlay)
+		//else if (bPlayForced || !bPlay)
 		else // for any other modes
 		{
 			progressPlayFilm = ofMap(currentLine, 0, sub.size(), 0, 1);
@@ -499,7 +495,7 @@ void ofxSurfingTextSubtitle::update()
 
 	// Debug info
 	{
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 		string s = "";
 		s += pathSrt;//srt filename
 
@@ -542,7 +538,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (!bGui) return;
 
 	// info
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 	boxInfo.draw();
 #endif
 
@@ -631,6 +627,8 @@ void ofxSurfingTextSubtitle::drawRaw() {
 void ofxSurfingTextSubtitle::draw() {
 	if (!bDraw) return;
 
+	drawRaw();
+
 	// container
 	//workflow auto scale
 	/*
@@ -656,18 +654,18 @@ void ofxSurfingTextSubtitle::draw() {
 		float h;//bar
 		glm::vec2 p;
 
-		if (bTop) {
+		if (bTop) {//top
 			p = box.getRectangle().getTopLeft();
 			h = 6;
 			pad = 0;
-			x = p.x;
+			x = p.x - 1;
 			y = p.y - pad - h;
 		}
-		else {
+		else {//bottom
 			p = box.getRectangle().getBottomLeft();
 			h = 6;
 			pad = -4;
-			x = p.x;
+			x = p.x - 1;
 			y = p.y + 15 + pad + h;
 		}
 
@@ -677,8 +675,7 @@ void ofxSurfingTextSubtitle::draw() {
 		ofDrawRectangle(x, y, w * alpha, h);
 		ofNoFill();
 		ofSetColor(0, 255);
-		//ofDrawLine(x + w * alpha, y, x + w * alpha, y + h);
-		ofDrawRectangle(x, y, w, h);
+		ofDrawRectangle(x + 1, y, w - 1, h);
 		ofPopStyle();
 
 		float h2 = 15;
@@ -692,55 +689,110 @@ void ofxSurfingTextSubtitle::draw() {
 	}
 
 	// slide progress
-	if (bEdit && (bPlay || bPlayForce))
+	// bottom thin line
+	if (bEdit && (bPlay || bPlayForced))
 	{
 		ofPushStyle();
 
-		auto p = box.getRectangle().getBottomLeft();
-		float w = box.getRectangle().getWidth();
-		float x = p.x;
+		float lw1 = 3;
 		float h = 3;
+		auto p = box.getRectangle().getBottomLeft();
+		float w = box.getRectangle().getWidth() + 1;
+		float x = p.x;
+		float y = p.y - h / 2;
 		ofSetColor(0, 255);
 		ofSetLineWidth(h);
-		float y = p.y - h / 2;
-		ofDrawLine(x, y, x + w * MIN(progressPlaySlide, 1), y);
+		ofDrawLine(x - 1, y, x - 1 + (w + 1) * MIN(progressPlaySlide, 1), y);
 		//float y = p.y - h;
 		//ofDrawRectangle(x, y, w * MIN(progressPlaySlide, 1), h);
 
+		// Phase fade in/out lines
+		float sz = 6;
+		float dt = 1 / fps;
+
+		float xIn = 0;
+		float xOut1 = 0;
+		float xOut2 = 0;
+
+		//TODO:
+		// mark fade in phase end point with a vertical line
+		// hard to do bc using speed instead of time duration in ms!
+
 		if (bAnimatedIn)
 		{
-			//TODO:
-			// mark in out points
-			// hard to do bc using speed instead of time duration in ms!
-			float xIn;
-			if (bPlayForce) {
-				//static float dt = 1 / 60.f;
-				//dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
-				//float t = dt * dtAnim;
-				//xIn = ofMap();
-				//pii = durationPlayForce;
+			dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
+			float d = 1.f / dtAnim;
+
+			// estimated duration of the fade in phase,
+			// bc we are applying this amount of the above
+			// dt on every single frame!
+			int t = (d / fps) * 1000;
+
+			float r;
+			if (bPlayForced) {
+				r = (t / (float)durationPlayForced);//ratio
+			}
+			if (bPlay) {
+				r = (t / (float)durationPlaySlide);//ratio
+			}
+			xIn = p.x + w * r;
+
+			if (xIn != -1) {
+				ofSetLineWidth(lw1);
+				ofDrawLine(xIn, p.y - sz, xIn, p.y + sz);
 			}
 		}
 
+		//--
+
+		// mark fade out phase start point with a vertical line
+		// mark countdown 
 		if (bAnimatedOut)
 		{
-			float r = 0.5f;
-			if (bPlayForce) {
-				r = 1.f - (durationPlayForce / MAX(1, countDownOut));//ratio
+			ofSetLineWidth(lw1);
+
+			float r = 0.f;
+			if (bPlayForced) {
+				r = 1.f - (countDownOut / (float)durationPlayForced);//ratio
 			}
 			if (bPlay) {
-				r = 1.f - (durationPlaySlide / MAX(1, countDownOut));//ratio
+				r = 1.f - (countDownOut / (float)durationPlaySlide);//ratio
 			}
-			float xOut = p.x + w * r;
-			float sz = 10;
-			ofSetLineWidth(1);
-			ofDrawLine(xOut, p.y - sz, xOut, p.y + sz);
+			xOut1 = p.x + w * r;
+			ofDrawLine(xOut1, p.y - sz, xOut1, p.y + sz);
+
+			//--
+
+			float pixPerMillis = 0;
+			if (bPlayForced) {
+				pixPerMillis = w / (float)durationPlayForced;//ratio
+			}
+			if (bPlay) {
+				pixPerMillis = w / (float)durationPlaySlide;//ratio
+			}
+			dtAnim = ofMap(speedFadeOut, 0, 1, dt * 0.4f, dt * 7.f, true);
+			float d = 1.f / dtAnim;
+			int t = (d / fps) * 1000;//duration required to fade out until 0!
+			xOut2 = xOut1 + t * pixPerMillis;
+			if (xOut2 < p.x + w) ofSetColor(0, 255);
+			else ofSetColor(0, 32);//attenuate if goes out of the  time line!
+			ofSetLineWidth(2);
+			sz -=2;
+			ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
+
+			//--
+
+			// Make fatter the line for the full opacity section!
+
+			int lw = 4;
+			int off = 0;
+			ofSetLineWidth(lw);
+			ofSetColor(0, 64);
+			ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
 		}
 
 		ofPopStyle();
 	}
-
-	drawRaw();
 }
 
 //--------------------------------------------------------------
@@ -1043,7 +1095,7 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 	ofPopStyle();
 }
 
-#ifdef USE_IM_GUI__SUBTTITTLES
+#ifdef USE_IM_GUI__SUBTITLES
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGui()
@@ -1122,12 +1174,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->AddLabelBig("TRANSPORT");
 		ui->AddSpacing();
 		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bPlayForce, OFX_IM_TOGGLE_SMALL, 2);
+		ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL, 2);
 
 		if (bPlay) {
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
-		if (bPlayForce) {
+		if (bPlayForced) {
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 			//ui->Add(speedPlayForce);
 		}
@@ -1148,12 +1200,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		//ui->AddLabelBig("TRANSPORT");		
 		ui->AddSpacing();
 		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bPlayForce, OFX_IM_TOGGLE_SMALL, 2);
+		ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL, 2);
 
 		if (bPlay) {
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
-		if (bPlayForce) {
+		if (bPlayForced) {
 			//ui->Add(speedPlayForce);
 			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
@@ -1448,8 +1500,8 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 			ImGui::EndChild();
 
 			ui->EndWindow();
-		}
 	}
+}
 }
 
 #endif
@@ -1493,7 +1545,7 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	bAnimatedOut = true;
 	countDownOut = 1000;
 	speedFadeIn = .1;
-	speedFadeOut = .5;
+	speedFadeOut = .25;
 }
 
 //--------------------------------------------------------------
@@ -1516,6 +1568,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	//ignore
 	if (name == progressPlaySlide.getName() ||
 		name == progressPlayFilm.getName() ||
+		name == progressIn.getName() ||
 		name == progressOut.getName())
 		return;
 
@@ -1578,8 +1631,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		if (bPlay)
 		{
 			//bExternal.setWithoutEventNotifications(false);
-			bPlayForce.set(false);
-			//bPlayForce.setWithoutEventNotifications(false);
+			bPlayForced.set(false);
+			//bPlayForced.setWithoutEventNotifications(false);
 			tPlay = ofGetElapsedTimeMillis();
 			//currentLine = 0;//crash
 			currentLine.setWithoutEventNotifications(0);
@@ -1614,9 +1667,9 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		}
 	}
 
-	else if (name == bPlayForce.getName())
+	else if (name == bPlayForced.getName())
 	{
-		if (bPlayForce) {
+		if (bPlayForced) {
 			bPlay.set(false);
 			//bPlay.setWithoutEventNotifications(false);
 			//bExternal.setWithoutEventNotifications(false);

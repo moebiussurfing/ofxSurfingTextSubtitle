@@ -6,6 +6,7 @@
         },
         "Fades": {
             "In": {
+                "%_In": "0.901001",
                 "Enable_In": "1",
                 "SpeedIn": "0.1"
             },
@@ -13,22 +14,22 @@
                 "%_Out": "1",
                 "CountDown": "1000",
                 "Enable_Out": "1",
-                "SpeedOut": "0.552083"
+                "SpeedOut": "0.25"
             }
         },
         "Style": {
-            "Align": "1",
+            "Align": "3",
             "Centered": "0",
             "Color": "0, 0, 0, 255",
-            "ColorBg": "255, 67, 0, 255",
+            "ColorBg": "255, 99, 0, 255",
             "Height": "0.75",
-            "Size": "0.343367",
-            "Spacing": "-8.57143"
+            "Size": "0.279082",
+            "Spacing": "0"
         },
         "Transport": {
-            "Duration": "2112",
+            "Duration": "3000",
             "Play": "0",
-            "PlayForce": "1"
+            "PlayForced": "1"
         }
     }
 }

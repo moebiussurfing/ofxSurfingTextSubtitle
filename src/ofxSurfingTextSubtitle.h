@@ -24,21 +24,21 @@
 
 // OPTIONAL
 
-#define USE_IM_GUI__SUBTTITTLES // -> Pick your GUI! ofxGui/ImGui
+//#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ofxGui/ImGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
-#define USE_WIDGET__SUBTTITTLES
+#define USE_WIDGET__SUBTITLES
 // A floating widget to display some info
 
-#define USE_TIME_CODE__SUBTTITTLES
+#define USE_TIME_CODE__SUBTITLES
 // Only to help in some time convertions.
 
 //----
 
 #include "ofMain.h"
 
-#ifdef USE_IM_GUI__SUBTTITTLES
+#ifdef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingImGui.h"
 #endif
 
@@ -48,15 +48,15 @@
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfing_ofxGui.h"
 
-#ifdef USE_TIME_CODE__SUBTTITTLES
+#ifdef USE_TIME_CODE__SUBTITLES
 #include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #endif
 
 // disable widget when using ImGui bc could be redundant.
-#ifdef USE_IM_GUI__SUBTTITTLES
-#undef USE_WIDGET__SUBTTITTLES
+#ifdef USE_IM_GUI__SUBTITLES
+#undef USE_WIDGET__SUBTITLES
 #endif
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 #include "ofxSurfingBoxHelpText.h"
 #endif
 
@@ -67,7 +67,7 @@
 class ofxSurfingTextSubtitle
 {
 
-#ifdef USE_IM_GUI__SUBTTITTLES
+#ifdef USE_IM_GUI__SUBTITLES
 private:
 	ofxSurfingGui* ui;
 public:
@@ -101,7 +101,7 @@ public:
 	//disables ofxGui. useful when using ImGui or to disable gui.
 
 	void setTogglePlay() { bPlay = !bPlay; }
-	void setToggleAuto() { bPlayForce = !bPlayForce; }
+	void setToggleAuto() { bPlayForced = !bPlayForced; }
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
 	//void setToggleDebug() { bEdit = !bEdit; }
@@ -130,7 +130,7 @@ private:
 
 	ofxSurfingBoxInteractive box;
 
-#ifdef USE_WIDGET__SUBTTITTLES
+#ifdef USE_WIDGET__SUBTITLES
 	ofxSurfingBoxHelpText boxInfo;
 #endif
 
@@ -138,7 +138,7 @@ private:
 	ofxTimecode timecode;
 #endif
 
-	float fps = 30;
+	float fps = 60;
 
 public:
 
@@ -161,8 +161,8 @@ public:
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
 	ofParameter<bool> bPlay;
-	ofParameter<bool> bPlayForce;
-	ofParameter<int> durationPlayForce;
+	ofParameter<bool> bPlayForced;
+	ofParameter<int> durationPlayForced;
 	//ofParameter<float> speedPlayForce;
 	//ofParameter<bool> bExternal;
 
@@ -170,7 +170,8 @@ public:
 	ofParameter<float> speedFadeIn;
 	ofParameter<bool> bAnimatedOut;
 	ofParameter<float> speedFadeOut;
-	ofParameter<int> countDownOut;//time before end to start fadeout from. in ms 
+	ofParameter<int> countDownOut;//time before the end to start fadeout from. in ms 
+	ofParameter<bool> bResetFades;
 
 	ofParameter<bool> bAutoScroll;
 	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
@@ -186,7 +187,6 @@ public:
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bResetFont;
-	ofParameter<bool> bResetFades;
 
 private:
 
@@ -197,6 +197,7 @@ private:
 
 	ofParameter<float> progressPlayFilm;
 	ofParameter<float> progressPlaySlide;
+
 	ofParameter<float> progressIn;
 	ofParameter<float> progressOut;
 

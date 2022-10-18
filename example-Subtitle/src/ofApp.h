@@ -3,7 +3,7 @@
 
 	NOTE:
 	You must disable ImGui mode commenting the below line: 
-	// #define USE_IM_GUI__SUBTTITTLES
+	// #define USE_IM_GUI__SUBTITLES
 
 */
 
