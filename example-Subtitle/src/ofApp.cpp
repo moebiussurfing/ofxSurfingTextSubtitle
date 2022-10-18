@@ -3,6 +3,11 @@
 //--------------------------------------------------------------
 void ofApp::setup() 
 {
+	ofSetWindowTitle("example-Subtitle");
+	ofSetWindowPosition(-1920, 25);
+
+	//ofSetLogLevel("ofxSurfingTextSubtitle", OF_LOG_WARNING);
+
 	path = "subs/Huxley.srt";
 	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
@@ -26,6 +31,8 @@ void ofApp::draw() {
 void ofApp::keyPressed(int key)
 {
 	if (key == 'e') { subs.setToggleEdit(); }
+
+	// transport
 	if (key == ' ') { subs.setTogglePlay(); }
 	if (key == OF_KEY_RETURN) { subs.setToggleAuto(); }
 

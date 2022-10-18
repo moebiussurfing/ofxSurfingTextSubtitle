@@ -8,11 +8,12 @@
 
 	TODO:
 
-	fix center mode
+	add fade out engine
 	fix right align
-	add API set custom fonts on runtime
-	add load another srt file on runtime
-	add auto set layout. ex:
+	add list and set custom fonts on runtime
+	add load another .srt file on runtime
+	fix v center mode
+		add auto set layout. ex:
 		re center box to a center point
 		when different box sizes happens,
 		when different amount of lines.
@@ -83,17 +84,21 @@ public:
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
 
-	void setup(string _pathSrt);//pass the .srt file path to load
+	void setup(string _pathSrt);
+	//pass the .srt file path to load
+
 	void update();
 
 	void draw();
 	void draw(ofRectangle view);
-	void drawRaw();//letters only. without boxes, interaction nor gui
+	void drawRaw();
+	//letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
 	void drawGui();
 
-	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }//disables ofxGui. useful when using ImGui or to disable gui.
+	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
+	//disables ofxGui. useful when using ImGui or to disable gui.
 
 	void setTogglePlay() { bPlay = !bPlay; }
 	void setToggleAuto() { bPlayForce = !bPlayForce; }
@@ -119,8 +124,6 @@ private:
 	void startup();
 	void exit();
 
-	//bool bGui_Internal = true;
-
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
 	std::vector<SubtitleItem*> sub;
@@ -141,31 +144,37 @@ public:
 
 	void setFps(float _fps) { fps = _fps; }
 
-	ofParameterGroup params;
+	ofParameterGroup params;//for the gui and callback
 	ofParameterGroup params_Transport;
 	ofParameterGroup params_Control;
+	ofParameterGroup params_Style;
+	ofParameterGroup params_Fade;
+	ofParameterGroup params_FadeIn;
+	ofParameterGroup params_FadeOut;
+	ofParameterGroup params_Preset;//re collect params for preset/settings
+
 	ofParameter<bool> bGui;
 	ofParameter<bool> bGui_SrtFull;
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bEdit;
 
-	//ofParameter<bool> bExternal;
-	ofParameter<bool> bPlay;
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
+	ofParameter<bool> bPlay;
 	ofParameter<bool> bPlayForce;
-	ofParameter<float> speedPlayForce;
+	ofParameter<int> durationPlayForce;
+	//ofParameter<float> speedPlayForce;
+	//ofParameter<bool> bExternal;
 
-	ofParameterGroup params_Preset;
+	ofParameter<bool> bAnimatedIn;
+	ofParameter<float> speedFadeIn;
+	ofParameter<bool> bAnimatedOut;
+	ofParameter<float> speedFadeOut;
+	ofParameter<int> countDownOut;//time before end to start fadeout from. in ms 
 
-	ofParameterGroup params_Fade;
-	ofParameter<bool> bAnimated;
-	ofParameter<float> speedFade;
-	//ofParameter<bool> bAnimatedOut;
-	//ofParameter<float> speedFadeOut;
-	ofParameter<bool> AutoScroll;
+	ofParameter<bool> bAutoScroll;
+	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
 
-	ofParameterGroup params_Style;
 	ofParameter<std::string> fName;
 	ofParameter<std::string> fPath; // hardcoded file fonts paths
 	ofParameter<float> fSizePrc; // relative to column width font size
@@ -176,26 +185,31 @@ public:
 	ofParameter<ofColor> fColorBg;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
-	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
 	ofParameter<bool> bResetFont;
+	ofParameter<bool> bResetFades;
 
 private:
 
-	float dtAnim = 1;
-	float alpha = 1;
-	bool isAnim = false;
+	float alpha = 1.f;
+	float dtAnim = 1.f;
+	bool isAnimIn = false;
+	bool isAnimOut = false;
 
-	ofParameter<float>progressPlayGlobalPrc;
+	ofParameter<float> progressPlayFilm;
 	ofParameter<float> progressPlaySlide;
-	uint64_t tPlaySlideStart = 0;
-	uint64_t tPlaySlideDuration = 0;
+	ofParameter<float> progressIn;
+	ofParameter<float> progressOut;
+
+	uint64_t tPlayStartSlide = 0;
+	uint64_t tPlayForce= 0;
+	uint64_t durationPlaySlide = 0;
 
 	glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebug = ofColor::black;
 
 	string textCurrent = "";
 
-	ofParameter<int> currentLine;//current loaded subtitle slide 
+	ofParameter<int> currentLine; // dialog index. current loaded subtitle slide.  
 
 	float boxhMax = 0;
 
@@ -203,7 +217,6 @@ private:
 
 	uint64_t tPlay = 0;
 
-	//void refreshFontStyles();
 	void Changed(ofAbstractParameter& e);
 
 	ofxFontStash font;
@@ -215,9 +228,12 @@ private:
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
 	vector<string> subsText;
-	string pathSrt;
+	string pathSrt;//srt filename
 
 	void doResetFont();
 	std::string getAlignNameFromIndex(int index) const;
+
+	void doResetFades();
+	void doUpdateSlidePlay(SubtitleItem* element);
 
 };

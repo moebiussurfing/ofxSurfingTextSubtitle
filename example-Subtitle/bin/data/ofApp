@@ -1,26 +1,34 @@
 {
-    "TEXT_SUBTITLE": {
+    "SUBTITLES": {
         "Control": {
             "Draw": "1",
-            "Edit": "0"
+            "Edit": "1"
+        },
+        "Fades": {
+            "In": {
+                "Enable_In": "1",
+                "SpeedIn": "0.1"
+            },
+            "Out": {
+                "%_Out": "1",
+                "CountDown": "1000",
+                "Enable_Out": "1",
+                "SpeedOut": "0.552083"
+            }
         },
         "Style": {
-            "Align": "3",
+            "Align": "1",
             "Centered": "0",
-            "Color": "0, 255, 122, 255",
-            "ColorBg": "255, 12, 98, 255",
+            "Color": "0, 0, 0, 255",
+            "ColorBg": "255, 67, 0, 255",
             "Height": "0.75",
-            "Size": "0.315625",
-            "Spacing": "0"
+            "Size": "0.343367",
+            "Spacing": "-8.57143"
         },
         "Transport": {
-            "Fade": {
-                "In": "1",
-                "SpeedIn": "0.212766"
-            },
+            "Duration": "2112",
             "Play": "0",
-            "PlayForce": "1",
-            "Speed": "0"
+            "PlayForce": "1"
         }
     }
 }
