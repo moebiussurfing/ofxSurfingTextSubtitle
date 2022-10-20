@@ -1,7 +1,7 @@
 #include "ofxSurfingVideoPlayer.h"
 
 ofxSurfingVideoPlayer::ofxSurfingVideoPlayer() {
-
+	//path_Video = "movies/fingers.mov";
 };
 
 ofxSurfingVideoPlayer::~ofxSurfingVideoPlayer() {
@@ -12,9 +12,9 @@ ofxSurfingVideoPlayer::~ofxSurfingVideoPlayer() {
 void ofxSurfingVideoPlayer::setup()
 {
 	setupGuiVideo();
-	path_Video = ofToDataPath("Z:\\_DATA\\VIDEO\\Huxley_.mp4");
 
 	// Video
+	//path_Video = ofToDataPath("Z:\\_DATA\\VIDEO\\Huxley_.mp4");
 	//path_Video = (ofToDataPath("Z:\\_DATA\\VIDEO\\Huxley_.mp4", true));
 	//path_Video = "movies/fingers.mov";
 	//path_Video = (ofToDataPath("Z:\\_DATA\\VIDEO\\LET.mp4", true));
@@ -74,6 +74,20 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 
 	// create listeners for the buttons
 
+	listeners.push(playback.stop.newListener([&]() {
+		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed\n";
+		//if (bPlay) 
+		if (playback.play)
+		{
+			//pause();
+			stop();
+		}
+		else {
+			position.set(0);
+			stop();
+		}
+		}));
+
 	listeners.push(bOpenVideo.newListener([&]() {
 		ofLogNotice("ofxSurfingVideoPlayer") << "Open Video\n";
 		doOpenFile();
@@ -93,22 +107,11 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 		ofLogNotice("ofxSurfingVideoPlayer") << "Rec pressed\n";
 		}));
 
-	listeners.push(playback.stop.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed\n";
-		if (bPlay) {
-			//pause();
-			stop();
-		}
-		else {
-			position.set(0);
-			stop();
-		}
-		}));
-
 	listeners.push(playback.play.newListener([&](bool& b) {
 		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
 		if (b) play();
-		else stop();
+		else pause();
+		//else stop();
 		}));
 
 	listeners.push(volume.newListener([&](float& v) {
@@ -117,7 +120,8 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 		}));
 
 	listeners.push(position.newListener([&](float& v) {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Position:" << position;
+		ofLogVerbose("ofxSurfingVideoPlayer") << "Position:" << position;
+		if (position == movie.getPosition()) return;
 		movie.setPosition(v);
 		}));
 
@@ -140,9 +144,9 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 
 //--------------------------------------------------------------
 void ofxSurfingVideoPlayer::updateVideo() {
-	movie.update();
+	if (!bDraw_Video) movie.update();
 
-	position.setWithoutEventNotifications(movie.getPosition());
+	position.set(movie.getPosition());
 
 	/*
 	//TODO: WIP: link
@@ -186,26 +190,6 @@ void ofxSurfingVideoPlayer::drawVideo() {
 //	stop();
 //	movie.stop();
 //}
-
-
-//--------------------------------------------------------------
-void ofxSurfingVideoPlayer::keyPressed(int key)
-{
-	/*
-	if (key == '1') {
-		string p = "subs/Huxley.srt";
-		setupSubs(p);
-	}
-	if (key == '2') {
-		string p = "subs/Alphaville.srt";
-		setupSubs(p);
-	}
-	if (key == '3') {
-		string p = "subs/spanish.srt";
-		setupSubs(p);
-	}
-	*/
-}
 
 //--------------------------------------------------------------
 void ofxSurfingVideoPlayer::doForwards()

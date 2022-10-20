@@ -117,7 +117,7 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
 	//disables ofxGui. useful when using ImGui or to disable gui.
 
-	//void keyPressed(int key);
+	void keyPressed(int key);
 
 	//--
 
@@ -305,4 +305,7 @@ private:
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	ofxSurfingVideoPlayer player;
 #endif
+
+	ofEventListeners listeners;
+
 };

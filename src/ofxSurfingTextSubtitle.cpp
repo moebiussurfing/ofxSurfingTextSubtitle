@@ -49,7 +49,28 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.setup();
-#endif
+#endif	
+	
+	// link both players
+	// create listeners for the buttons
+	
+	listeners.push(player.playback.play.newListener([&](bool& b) {
+		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
+		if (b) play();
+		else stop();
+		}));
+
+	listeners.push(player.playback.stop.newListener([&]() {
+		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed\n";
+		if (bPlay) {
+			//pause();
+			stop();
+		}
+		else {
+			//position.set(0);
+			stop();
+		}
+		}));
 
 	//--
 
@@ -164,7 +185,9 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.setName("Control");
 	params_Control.add(bDraw);
 	params_Control.add(bEdit);
-	params_Control.add(bGui_VideoPlayer);
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	params_Control.add(player.bGui_VideoPlayer);
+#endif
 
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Control.add(bGui_SrtFull);
@@ -1841,4 +1864,24 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		bResetFades = false;
 		doResetFades();
 	}
+}
+
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::keyPressed(int key)
+{
+	/*
+	if (key == '1') {
+		string p = "subs/Huxley.srt";
+		setupSubs(p);
+	}
+	if (key == '2') {
+		string p = "subs/Alphaville.srt";
+		setupSubs(p);
+	}
+	if (key == '3') {
+		string p = "subs/spanish.srt";
+		setupSubs(p);
+	}
+	*/
 }
