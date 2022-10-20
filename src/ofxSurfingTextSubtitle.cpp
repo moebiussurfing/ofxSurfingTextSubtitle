@@ -15,10 +15,11 @@ ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
-	pathSrt = _pathSrt;
+	//path_Srt = _pathSrt;
 
 	setupParams();
-	setupSubs();
+
+	setupSubs(_pathSrt);
 
 #ifdef USE_WIDGET__SUBTITLES
 	boxInfo.setMode(ofxSurfingBoxHelpText::TOP_RIGHT);
@@ -43,6 +44,12 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	//gui.add(params);
 
 	gui.minimizeAll();
+
+	//--
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.setup();
+#endif
 
 	//--
 
@@ -157,6 +164,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.setName("Control");
 	params_Control.add(bDraw);
 	params_Control.add(bEdit);
+	params_Control.add(bGui_VideoPlayer);
 
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Control.add(bGui_SrtFull);
@@ -223,14 +231,16 @@ void ofxSurfingTextSubtitle::setupParams() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::setupSubs() {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
+void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
+	path_Srt = _pathSrt;
 
-	subParserFactory = new SubtitleParserFactory(ofToDataPath(pathSrt));
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
 
-	if (!subParserFactory) ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << pathSrt;
+	subParserFactory = new SubtitleParserFactory(ofToDataPath(path_Srt));
 
-	//bGui_SrtFull.setName(pathSrt);
+	if (!subParserFactory) ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
+
+	//bGui_SrtFull.setName(path_Srt);
 
 	parser = subParserFactory->getParser();
 	sub = parser->getSubtitles();
@@ -249,15 +259,20 @@ void ofxSurfingTextSubtitle::setupSubs() {
 		subsText.push_back(s);
 	}
 
-	//TODO: not sure if srt file is loaded before the first frame!
+	//TODO: not sure if .srt file is loaded before the first frame!
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::startup() {
+void ofxSurfingTextSubtitle::startup()
+{
 	//return;
 
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
-	ofxSurfingHelpers::loadGroup(params, "ofApp");
+	ofxSurfingHelpers::loadGroup(params, path_SubtitlerSettings);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.startup();
+#endif
 }
 
 /*
@@ -277,7 +292,11 @@ void ofxSurfingTextSubtitle::exit() {
 	ofLogNotice("ofxSurfingTextSubtitle") << "exit";
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
-	ofxSurfingHelpers::saveGroup(params, "ofApp");
+	ofxSurfingHelpers::saveGroup(params, path_SubtitlerSettings);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.exit();
+#endif
 }
 
 //--------------------------------------------------------------
@@ -319,11 +338,17 @@ void ofxSurfingTextSubtitle::update(uint64_t frame)
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::update()
 {
+	//--
+
 	//TODO:
 	// Delayed startup to avoid crashes
 	if (ofGetFrameNum() == 1) startup();
 
 	//--
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.updateVideo();
+#endif
 
 	//if (!bDraw) return;
 
@@ -340,7 +365,7 @@ void ofxSurfingTextSubtitle::update()
 				dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
 				alpha += dtAnim;
 
-				//-
+				//--
 
 				uint64_t tSlide;
 				if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
@@ -533,7 +558,7 @@ void ofxSurfingTextSubtitle::update()
 	{
 #ifdef USE_WIDGET__SUBTITLES
 		string s = "";
-		s += pathSrt;//srt filename
+		s += path_Srt;//srt filename
 
 		if (bPlay)
 		{
@@ -566,8 +591,8 @@ void ofxSurfingTextSubtitle::update()
 
 		boxInfo.setText(s);
 #endif
-		}
 	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawGui() {
@@ -580,6 +605,10 @@ void ofxSurfingTextSubtitle::drawGui() {
 
 	if (!bGui_Internal) return;
 	gui.draw();
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.drawGui();
+#endif
 }
 
 //--------------------------------------------------------------
@@ -661,6 +690,11 @@ void ofxSurfingTextSubtitle::drawRaw() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::draw() {
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.drawVideo();
+#endif
+
 	if (!bDraw) return;
 
 	drawRaw();
@@ -812,9 +846,11 @@ void ofxSurfingTextSubtitle::draw() {
 			xOut2 = xOut1 + t * pixPerMillis;
 			if (xOut2 < p.x + w) ofSetColor(0, 255);
 			else ofSetColor(0, 32);//attenuate if goes out of the  time line!
-			ofSetLineWidth(2);
-			sz -= 2;
-			ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
+			//sz -= 2;
+			//ofSetLineWidth(2);
+			//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
+			ofFill();
+			ofDrawCircle(xOut2, p.y, 4);
 
 			//--
 
@@ -1170,7 +1206,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	{
 		// filename
 		if (!ui->bMinimize) {
-			s1 += pathSrt;
+			s1 += path_Srt;
 			//s1 += "\n";
 		}
 
@@ -1365,7 +1401,7 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 		if (ui->BeginWindow(bGui_SrtFull, ImGuiWindowFlags_None))
 		{
-			ui->AddLabelBig(pathSrt);
+			ui->AddLabelBig(path_Srt);
 			ui->AddSpacing();
 
 			ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
@@ -1596,12 +1632,12 @@ void ofxSurfingTextSubtitle::doUpdateSlidePlay(SubtitleItem* element) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 {
-	static bool bAttending = false;
-	if (bAttending) return;
+	static bool bDISABLE_CALLBACKS = false;
+	if (bDISABLE_CALLBACKS) return;
 
 	string name = e.getName();
 
-	//ignore
+	// ignore
 	if (name == progressPlaySlide.getName() ||
 		name == progressPlayFilm.getName() ||
 		name == progressIn.getName() ||
@@ -1663,7 +1699,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 
 	//--
-	
+
 	else if (name == bPlay.getName())
 	{
 		if (bPlay)
@@ -1686,10 +1722,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			//if (!bAnimatedIn && !bAnimatedOut) alpha = 1;//?
 		}
 	}
-	
+
 	else if (name == bPlayForced.getName())
 	{
-		if (bPlayForced) 
+		if (bPlayForced)
 		{
 			bPlay.set(false);
 			//bPlay.setWithoutEventNotifications(false);
@@ -1698,7 +1734,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			tPlayForce = ofGetElapsedTimeMillis();
 			progressPlaySlide = 0;
 		}
-		else 
+		else
 		{
 			progressPlaySlide = 0;
 
@@ -1793,10 +1829,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 		/*
 		//TODO: crashes..
-		bAttending = true;
+		bDISABLE_CALLBACKS = true;
 		bResetFont.setWithoutEventNotifications(false);
 		doResetFont();
-		bAttending = false;
+		bDISABLE_CALLBACKS = false;
 		*/
 	}
 	// reset fades

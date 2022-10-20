@@ -569,3 +569,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 example-Subtitle/bin/data/ofApp
+example-Subtitle3/bin/data/ofApp

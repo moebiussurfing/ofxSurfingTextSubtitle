@@ -9,8 +9,14 @@
 	TODO:
 
 	test video player encoding problems...
-	split out bDebug again from bEdit. split widgets enable too.
-	fix right align
+	split out bDebug again from bEdit.
+		split widgets enable too.
+	fix right align:
+		a new approach doing calculating
+		the amount of lines and adding \n
+		to the paragraph
+	add light theme colors for the hud
+		to help when dark videos.
 	add list and set custom fonts on runtime
 	add load another .srt file on runtime
 	fix v center mode
@@ -29,6 +35,11 @@
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
+#define USE_WIDGET__VIDEO_PLAYER
+// A simple video player is bundled for commodity, 
+// then can be removed just by commenting here.
+// (Probably you would want to use your own external video player) 
+
 #define USE_WIDGET__SUBTITLES
 // A floating widget to display some info
 
@@ -41,6 +52,10 @@
 
 #ifdef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingImGui.h"
+#endif
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+#include "ofxSurfingVideoPlayer.h"
 #endif
 
 #include "srtparser.h"
@@ -102,11 +117,10 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
 	//disables ofxGui. useful when using ImGui or to disable gui.
 
-	bool isPlaying() const { return bPlay.get(); }
-	void setTogglePlay() { bPlay = !bPlay; }
-	void play() { bPlay = true; }
-	void stop() { bPlay = false; }
-	void setToggleAuto() { bPlayForced = !bPlayForced; }
+	//void keyPressed(int key);
+
+	//--
+
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
 	void setToggleVisibleGui() { bGui = !bGui; }
@@ -118,17 +132,20 @@ public:
 	void setSubtitleIndex(int i) { currentDialog = i; }
 	void setSubtitlePrevious() { currentDialog--; }
 	void setSubtitleNext() { currentDialog++; }
+	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
-	ofColor getColorBg() const { return fColorBg.get(); }
+	ofColor getColorBg() const { return fColorBg.get(); };
 
 	ofParameter<bool> bGui_Internal;
 
 private:
 
 	void setupParams();
-	void setupSubs();
+	void setupSubs(string _pathSrt);
 	void startup();
 	void exit();
+	
+	string path_SubtitlerSettings= "Subtitler.json";
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
@@ -235,7 +252,7 @@ private:
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
 	vector<string> subsText;
-	string pathSrt;//srt filename
+	string path_Srt;//.srt filename
 
 	void doResetFont();
 	std::string getAlignNameFromIndex(int index) const;
@@ -243,4 +260,49 @@ private:
 	void doResetFades();
 	void doUpdateSlidePlay(SubtitleItem* element);
 
+	//--
+
+	// Transport
+
+public:
+
+	void setTogglePlayForced() { bPlayForced = !bPlayForced; }
+
+	bool isPlaying() const {
+		return bPlay.get();
+	}
+
+	void setTogglePlay() {
+		bPlay = !bPlay;
+#ifdef USE_WIDGET__VIDEO_PLAYER
+		if (bPlay) player.play();
+		else player.stop();
+#endif
+	}
+
+	void play() {
+		bPlay = true;
+#ifdef USE_WIDGET__VIDEO_PLAYER
+		player.play();
+#endif
+	}
+
+	void stop() {
+		bPlay = false;
+#ifdef USE_WIDGET__VIDEO_PLAYER
+		player.stop();
+#endif
+	}
+
+	void pause() {
+		player.pause();
+	}
+
+	//--
+
+private:
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	ofxSurfingVideoPlayer player;
+#endif
 };
