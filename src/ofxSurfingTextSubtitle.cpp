@@ -329,7 +329,6 @@ void ofxSurfingTextSubtitle::startup()
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.startup();
 #endif
-
 }
 
 /*
@@ -418,7 +417,7 @@ void ofxSurfingTextSubtitle::update()
 		if (bAnimatedIn && isAnimIn)
 		{
 			// make opacity grow 
-			if (alpha < 1.f) 
+			if (alpha < 1.f)
 			{
 				static float dt = 1 / fps;
 				dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
@@ -831,7 +830,7 @@ void ofxSurfingTextSubtitle::draw() {
 			p = box.getRectangle().getTopLeft();
 			h = 6;
 			pad = 0;
-			x = p.x ;
+			x = p.x;
 			//x = p.x - 1;
 			y = p.y - pad - h;
 		}
@@ -840,7 +839,7 @@ void ofxSurfingTextSubtitle::draw() {
 			h = 6;
 			pad = -4;
 			//x = p.x - 1;
-			x = p.x ;
+			x = p.x;
 			y = p.y + 15 + pad + h;
 		}
 
@@ -849,7 +848,7 @@ void ofxSurfingTextSubtitle::draw() {
 		ofFill();
 		ofDrawRectangle(x, y, w * alpha, h);
 		ofNoFill();
-		ofDrawRectangle(x , y, w - 1, h);
+		ofDrawRectangle(x, y, w - 1, h);
 		ofPopStyle();
 
 		float h2 = 15;
@@ -859,7 +858,7 @@ void ofxSurfingTextSubtitle::draw() {
 		string s = (bAnimatedIn && isAnimIn) ? "IN" : "  ";
 		s += "    ";
 		s += (bAnimatedOut && isAnimOut) ? "OUT" : "   ";
-		if(bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
+		if (bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
 		else ofDrawBitmapStringHighlight(s, x, y);
 	}
 
@@ -1220,11 +1219,9 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 	//-
 
 	if (oneOnly) v = v1;
-	else v = (v1 + v2 + v3 + v4) / 4.0f; // ?? this is weird
+	else v = (v1 + v2 + v3 + v4) / 4.0f;
 
 	//-
-
-	//v += 2; // fix. workaround to hard code calibrate.
 
 	return v;
 }
@@ -1344,6 +1341,32 @@ void ofxSurfingTextSubtitle::drawImGui()
 	}
 
 	drawImGuiSrtFull();
+
+	//--
+
+#ifdef USE_WIDGET__VIDEO_PLAYER	
+	if (ui->BeginWindow(player.bGui))
+	{
+		ui->AddLabelBig("VIDEO PLAYER");
+		ui->Add(player.bOpenVideo, OFX_IM_BUTTON_SMALL);
+		ui->Add(player.path_Video, OFX_IM_TEXT_DISPLAY);
+		//ui->Add(player.bGui_VideoPlayer, OFX_IM_TOGGLE_ROUNDED_SMALL);
+		ui->AddSpacingSeparated();
+
+		ui->Add(player.bDraw_Video, OFX_IM_TOGGLE_ROUNDED_SMALL);
+		ui->Add(player.volume, OFX_IM_HSLIDER_MINI);
+		ui->Add(player.position, OFX_IM_HSLIDER_MINI);
+		ui->AddSpacingSeparated();
+
+		ofxImGuiSurfing::AddToggleNamed(player.playback.play, "Playing", "Play");
+		//ui->Add(player.playback.play, OFX_IM_TOGGLE_SMALL);
+		ui->Add(player.playback.stop, OFX_IM_BUTTON_SMALL);
+		ui->Add(player.playback.backwards, OFX_IM_BUTTON_SMALL, 2, true);
+		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
+
+		ui->EndWindow();
+	}
+#endif	
 }
 
 //--------------------------------------------------------------
@@ -1354,9 +1377,16 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	ui->Add(ui->bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	ui->AddSpacingSeparated();
 
+	ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+	ui->AddLabel(path_Srt);
 	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
 	ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	ui->AddSpacingSeparated();
+	ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
 
 #ifdef USE_WIDGET__SUBTITLES
 	ui->Add(bInfo, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -1397,11 +1427,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	if (!ui->bMinimize) // maximized 
 	{
-		if (bDraw) {
+		if (bDraw)
+		{
 			//ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-			ui->Add(bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+			//ui->Add(bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
 			ui->Add(bInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
@@ -2049,20 +2080,6 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
 {
-	/*
-	if (key == '1') {
-		string p = "subs/Huxley.srt";
-		setupSubs(p);
-	}
-	if (key == '2') {
-		string p = "subs/Alphaville.srt";
-		setupSubs(p);
-	}
-	if (key == '3') {
-		string p = "subs/spanish.srt";
-		setupSubs(p);
-	}
-	*/
 }
 
 //--------------------------------------------------------------

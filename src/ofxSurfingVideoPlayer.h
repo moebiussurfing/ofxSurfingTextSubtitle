@@ -31,7 +31,8 @@ public:
 
 	ofParameterGroup params_VideoPlayer{ "Video Player" };
 	ofParameter<void> bOpenVideo{ "Open" };
-	ofParameter<bool> bGui_VideoPlayer{ "VIDEO PLAYER", true };
+	ofParameter<bool> bGui{ "VIDEO PLAYER", true };
+	ofParameter<bool> bGui_VideoPlayer{ "VIDEO PLAYER ", true };
 	ofParameter<bool> bDraw_Video{ "Draw Video", true };
 	//ofParameter<bool> bEnableAudio{ "Enable Audio", true };
 	ofParameter<float> volume{ "Volume", 0.5, 0, 1 };

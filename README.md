@@ -56,7 +56,8 @@ void ofApp::draw() {
 
 ## Thanks
 File `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
-Thanks `@Jonathhhan`. Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.
+Thanks `@Jonathhhan`. Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
+[ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. 
 
 ## License
 **MIT License**

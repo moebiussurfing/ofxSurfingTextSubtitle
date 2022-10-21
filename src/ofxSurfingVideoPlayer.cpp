@@ -129,11 +129,12 @@ void ofxSurfingVideoPlayer::setupParams()
 	//	//movie.audio(position);
 	//	}));
 
-	params_VideoPlayer.add(path_Video);
+	params_VideoPlayer.add(bGui);
 	params_VideoPlayer.add(bGui_VideoPlayer);
 	params_VideoPlayer.add(bDraw_Video);
 	params_VideoPlayer.add(volume);
 	params_VideoPlayer.add(position);
+	params_VideoPlayer.add(path_Video);
 
 	position.setSerializable(false);
 }

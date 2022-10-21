@@ -3,8 +3,8 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofSetWindowTitle("ofxSurfingTextSubtitle");
 	ofSetWindowPosition(-1920, 25);
+	ofSetFrameRate(30);
 
 	subs.setUiPtr(&ui);
 	subs.setDisableGuiInternal(true);
@@ -23,6 +23,9 @@ void ofApp::setup()
 
 //--------------------------------------------------------------
 void ofApp::update() {
+	string s = "example-Subtitle2 " + ofToString(ofGetFrameRate(), 0) + " Fps";
+	ofSetWindowTitle(s);
+
 	subs.update();
 }
 
@@ -58,7 +61,7 @@ void ofApp::keyPressed(int key)
 {
 	if (key == 'e') { subs.setToggleEdit(); }
 	if (key == ' ') { subs.setTogglePlay(); }
-	if (key == OF_KEY_RETURN) { subs.setToggleAuto(); }
+	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleIndex((int)ofRandom(subs.getNumSubtitles())); };
