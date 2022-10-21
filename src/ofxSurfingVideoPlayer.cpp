@@ -11,7 +11,7 @@ ofxSurfingVideoPlayer::~ofxSurfingVideoPlayer() {
 //--------------------------------------------------------------
 void ofxSurfingVideoPlayer::setup()
 {
-	setupGuiVideo();
+	setupParams();
 
 	// Video
 	//path_Video = ofToDataPath("Z:\\_DATA\\VIDEO\\Huxley_.mp4");
@@ -52,7 +52,7 @@ void ofxSurfingVideoPlayer::exit()
 }
 
 //--------------------------------------------------------------
-void ofxSurfingVideoPlayer::setupGuiVideo()
+void ofxSurfingVideoPlayer::setupParams()
 {
 	// playback widget
 	playback.setup();
@@ -74,60 +74,50 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 
 	// create listeners for the buttons
 
-	listeners.push(playback.stop.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed\n";
-		//if (bPlay) 
-		if (playback.play)
-		{
-			//pause();
-			stop();
-		}
-		else {
-			position.set(0);
-			stop();
-		}
-		}));
-
 	listeners.push(bOpenVideo.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Open Video\n";
+		ofLogNotice("ofxSurfingVideoPlayer") << "Open Video";
 		doOpenFile();
 		}));
 
 	listeners.push(playback.forwards.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Forwards pressed\n";
+		ofLogNotice("ofxSurfingVideoPlayer") << "Forwards pressed";
 		doForwards();
 		}));
 
 	listeners.push(playback.backwards.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Backwards pressed\n";
+		ofLogNotice("ofxSurfingVideoPlayer") << "Backwards pressed";
 		doBackwards();
 		}));
 
 	listeners.push(playback.rec.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Rec pressed\n";
+		ofLogNotice("ofxSurfingVideoPlayer") << "Rec pressed";
+		}));
+
+	listeners.push(playback.stop.newListener([&]() {
+		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed";
+		movie.stop();
 		}));
 
 	listeners.push(playback.play.newListener([&](bool& b) {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
-		if (b) play();
-		else pause();
-		//else stop();
+		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b;
+		if (b) movie.play(); 
+		else movie.setPaused(true);
 		}));
 
 	listeners.push(volume.newListener([&](float& v) {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Volume:" << volume;
+		ofLogNotice("ofxSurfingVideoPlayer") << "Volume:" << volume.get();
 		movie.setVolume(volume);
 		}));
 
 	listeners.push(position.newListener([&](float& v) {
-		ofLogVerbose("ofxSurfingVideoPlayer") << "Position:" << position;
+		ofLogVerbose("ofxSurfingVideoPlayer") << "Position:" << position.get();
 		if (position == movie.getPosition()) return;
 		movie.setPosition(v);
 		}));
 
 	listeners.push(path_Video.newListener([&](string& s) {
-		ofLogNotice("ofxSurfingVideoPlayer") << "path_Video:" << path_Video;
-		setupVideo(path_Video, true);
+		ofLogNotice("ofxSurfingVideoPlayer") << "path_Video:" << path_Video.get();
+		setupVideo(path_Video.get(), true);
 		}));
 
 	//listeners.push(bEnableAudio.newListener([&](bool& b) {
@@ -143,10 +133,10 @@ void ofxSurfingVideoPlayer::setupGuiVideo()
 }
 
 //--------------------------------------------------------------
-void ofxSurfingVideoPlayer::updateVideo() {
-	if (!bDraw_Video) movie.update();
+void ofxSurfingVideoPlayer::update() {
+	if (bDraw_Video) movie.update();
 
-	position.set(movie.getPosition());
+	if (position.get() != movie.getPosition()) position.set(movie.getPosition());
 
 	/*
 	//TODO: WIP: link
@@ -197,9 +187,12 @@ void ofxSurfingVideoPlayer::doForwards()
 	auto p = position.get();
 	//auto cf = movie.getCurrentFrame();
 	auto f = movie.getDuration() / movie.getTotalNumFrames(); // duration per frame
-	auto i = f / movie.getDuration();
+	auto i = f / movie.getDuration(); // prc of a frame related to full video length
+
+	auto step = 0.1f;//10%
 	//auto step = 30 / f;//frames
-	auto step = 0.1f;
+	//auto step = f;//one frame
+
 	position.set(p + step);
 }
 
@@ -209,25 +202,29 @@ void ofxSurfingVideoPlayer::doBackwards()
 	auto p = position.get();
 	//auto cf = movie.getCurrentFrame();
 	auto f = movie.getDuration() / movie.getTotalNumFrames(); // duration per frame
-	auto i = f / movie.getDuration();
+	auto i = f / movie.getDuration(); // prc of a frame related to full video length
+
+	auto step = 0.1f;//10%
 	//auto step = 30 / f;//frames
-	auto step = 0.1f;
+	//auto step = f;//one frame
+
 	position.set(p - step);
 }
 
-
 //--------------------------------------------------------------
 void ofxSurfingVideoPlayer::dragEvent(ofDragInfo info) {
-	/*
-	if (info.files.size() > 0) {
-		dragPt = info.position;
 
-		draggedImages.assign(info.files.size(), ofImage());
-		for (unsigned int k = 0; k < info.files.size(); k++) {
-			draggedImages[k].load(info.files[k]);
-		}
+	if (info.files.size() > 0) {
+		ofLogError("ofxSurfingVideoPlayer") << "Must drag one file only.";
+		return;
 	}
-	*/
+
+	if (info.files.size() == 1) {
+		auto dragPt = info.position;
+		ofLogNotice("ofxSurfingVideoPlayer") << "dragPt: " + ofToString(dragPt);
+		auto path = info.files[0];
+		ofLogNotice("ofxSurfingVideoPlayer") << "path: " + ofToString(path);
+	}
 }
 
 //--------------------------------------------------------------
@@ -273,6 +270,9 @@ void ofxSurfingVideoPlayer::processOpenFileSelection(ofFileDialogResult openFile
 
 			//load video
 			path_Video.set(path);
+
+			//workflow
+			playback.play = true;
 		}
 	}
 }
@@ -281,7 +281,7 @@ void ofxSurfingVideoPlayer::processOpenFileSelection(ofFileDialogResult openFile
 void ofxSurfingVideoPlayer::doOpenFile()
 {
 	//Open the Open File Dialog
-	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a video file .mp4 or .mkv");
+	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a video file.");
 
 	//Check if the user opened a file
 	if (openFileResult.bSuccess) {

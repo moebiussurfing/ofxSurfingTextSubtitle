@@ -43,6 +43,7 @@ void ofApp::keyPressed(int key)
 {
 	if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'e') { subs.setToggleEdit(); }
+	if (key == 'd') { subs.setToggleDebug(); }
 
 	// Browse subs
 	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }

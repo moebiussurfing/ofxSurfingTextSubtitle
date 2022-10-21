@@ -27,7 +27,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 #endif
 
 	box.setRectConstraintMin(glm::vec2(200, 200));
-	box.setBorderColor(colorDebug);
+	box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
 	box.setup();
 
 #ifdef USING_OFX_TIME_CODE
@@ -49,28 +49,51 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.setup();
-#endif	
-	
-	// link both players
+
+	// link both players	
+
+	listeners.push(player.bLoaded.newListener([&](bool& b) {
+		if (b && bLoadBothVideoAndSubs)
+		{
+			string s = player.path_Video.get();
+			auto ss = ofSplitString(s, ".");
+			string strunk = ss[0];
+			string path = strunk + ".srt";
+			if (ofFile::doesFileExist(path)) {
+				ofLogNotice("ofxSurfingTextSubtitle") << path << " found. Trying to load it.";
+				setupSubs(path);
+			}
+			else {
+				ofLogError("ofxSurfingTextSubtitle") << "Not found an .srt file with same name that " << s;
+			}
+		}
+
+		}));
+
 	// create listeners for the buttons
-	
+
 	listeners.push(player.playback.play.newListener([&](bool& b) {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
+		ofLogNotice("ofxSurfingTextSubtitle") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
 		if (b) play();
 		else stop();
 		}));
 
 	listeners.push(player.playback.stop.newListener([&]() {
-		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed\n";
-		if (bPlay) {
-			//pause();
-			stop();
-		}
-		else {
-			//position.set(0);
-			stop();
-		}
+		ofLogNotice("ofxSurfingTextSubtitle") << "Stop pressed\n";
+		stop();
+
+		/*
+	if (bPlay) {
+		//pause();
+		stop();
+	}
+	else {
+		//position.set(0);
+		stop();
+	}
+		*/
 		}));
+#endif	
 
 	//--
 
@@ -117,8 +140,14 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//--
 
 	// Control
+	bOpen.set("Open");
 	bDraw.set("Draw", true);
 	bEdit.set("Edit", true);
+	bDebug.set("Debug", true);
+	bTop.set("Top", false);
+#ifdef USE_WIDGET__SUBTITLES
+	bInfo.set("Info", true);
+#endif
 	currentDialog.set("Dialog", 0, 0, 0);
 	bPrev.set("<", false);
 	bNext.set(">", false);
@@ -133,7 +162,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	bAutoScroll.set("bAutoScroll", true);//for ImGui only
 
-	// fade
+	// Fade
 	bAnimatedIn.set("Enable In", false);
 	speedFadeIn.set("SpeedIn", 0, 0, 1);
 	bAnimatedOut.set("Enable Out", false);
@@ -145,7 +174,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 
 	// Style
 	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
-	fSizePrc.set("Size", 0.5, 0.1, 1.0f);
+	fSizePrc.set("Size", 0.2, 0.1, 1.0f);
 	fSpacing.set("Spacing", 0, -20, 50);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
 	fColorBg.set("ColorBg", ofColor::gray, ofColor(0, 0), ofColor(255, 255));
@@ -154,13 +183,14 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fAlign_str.set("Align ", "-1");
 	bResetFont.set("Reset Style", false);
 
-	bCentered.set("Centered", false);//TODO:
+	bCentered.set("V Centered", false);//TODO:
+	amountLinesTargetCentered.set("Lines", 4, 1, 10);
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
-#ifdef USE_WIDGET__SUBTITLES
-	boxInfo.bGui.makeReferenceTo(bEdit);
-#endif
+//#ifdef USE_WIDGET__SUBTITLES
+//	boxInfo.bGui.makeReferenceTo(bEdit);
+//#endif
 
 	//--
 
@@ -183,10 +213,18 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//--
 
 	params_Control.setName("Control");
+	params_Control.add(bOpen);
 	params_Control.add(bDraw);
 	params_Control.add(bEdit);
+	params_Control.add(bDebug);
+	params_Control.add(bTheme);
+	params_Control.add(bTop);
+#ifdef USE_WIDGET__SUBTITLES
+	params_Control.add(bInfo);
+#endif
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	params_Control.add(player.bGui_VideoPlayer);
+	params_Control.add(bLoadBothVideoAndSubs);
 #endif
 
 #ifdef USE_IM_GUI__SUBTITLES
@@ -233,7 +271,10 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Style.add(fLineHeight);
 	params_Style.add(fAlign);
 	params_Style.add(fAlign_str);
+#ifdef USE_WIP_CENTERED
 	params_Style.add(bCentered);
+	params_Style.add(amountLinesTargetCentered);
+#endif
 	params_Style.add(bResetFont);
 
 	params.setName(bGui.getName());//TODO: BUG: crashes
@@ -296,6 +337,7 @@ void ofxSurfingTextSubtitle::startup()
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.startup();
 #endif
+
 }
 
 /*
@@ -370,7 +412,7 @@ void ofxSurfingTextSubtitle::update()
 	//--
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
-	player.updateVideo();
+	player.update();
 #endif
 
 	//if (!bDraw) return;
@@ -383,7 +425,9 @@ void ofxSurfingTextSubtitle::update()
 	{
 		if (bAnimatedIn && isAnimIn)
 		{
-			if (alpha < 1.f) {//make opacity grow 
+			// make opacity grow 
+			if (alpha < 1.f) 
+			{
 				static float dt = 1 / fps;
 				dtAnim = ofMap(speedFadeIn, 0, 1, dt * 0.4f, dt * 7, true);
 				alpha += dtAnim;
@@ -404,7 +448,8 @@ void ofxSurfingTextSubtitle::update()
 					//progressIn = ofMap(tSlide, 0, durationPlaySlide, 0, 1, true);
 				}
 			}
-			if (alpha >= 1.f) {//stop if finished
+			// stop if finished
+			if (alpha >= 1.f) {
 				alpha = 1;
 				isAnimIn = false;
 				progressIn = ofClamp(alpha, 0, 1);
@@ -580,39 +625,78 @@ void ofxSurfingTextSubtitle::update()
 	// Debug info
 	{
 #ifdef USE_WIDGET__SUBTITLES
-		string s = "";
-		s += path_Srt;//srt filename
-
-		if (bPlay)
+		if (bInfo)
 		{
-			/*
-			//TODO: add tweakeable speed
-			const int SPEED_SCALE = 5;
-			float speed = ofMap(speedPlayForce, -1, 1, 0.25f, (float)SPEED_SCALE);
-			uint64_t t = ofGetElapsedTimeMillis() * speed - tPlay;
-			s += timecode.timecodeForMillis(t);
-			//s += ofToString(t / 1000);
-			s += "\n";
-			*/
+			string s = "";
 
-			s += "\n";
-			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
+			//--
+
+			uint64_t t = 0;
+
+			if (bPlay)
+			{
+#ifdef USE_WIDGET__VIDEO_PLAYER
+				if (player.isPlaying()) {
+					t = ofGetElapsedTimeMillis() - tPlay;
+				}
+				else {//stopped
+					t = tPlay;
+				}
+#else
+				t = ofGetElapsedTimeMillis() - tPlay;
+#endif
+			}
+
+			//--
+
+			if (bPlayForced)
+			{
+#ifdef USE_WIDGET__VIDEO_PLAYER
+				if (player.isPlaying()) {
+					t = ofGetElapsedTimeMillis() - tPlayForceFilm;
+				}
+				else {//stopped
+					t = tPlayForceFilm;
+				}
+#else
+				t = ofGetElapsedTimeMillis() - tPlayForceFilm;
+#endif
+			}
+
+			//--
+
+			// convert formatting
 #ifdef USING_OFX_TIME_CODE
 			s += timecode.timecodeForMillis(t);
 #else
-			s += t / 1000.f;
+			s += t / 1000.f + "''";
 #endif
+			s += "\n";
+
+			if (bDebug)
+			{
+				s += path_Srt; // .srt filename
+				s += "\n";
+			}
+
+			//--
+
+			// display begin/end subs times
+			if (bDebug)
+			{
+				s += "\n";
+				s += ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
+				s += "\n\n";
+				s += sub[currentDialog]->getStartTimeString();
+				s += "\n";
+				s += sub[currentDialog]->getEndTimeString();
+				s += "\n";
+			}
+
+			//--
+
+			boxInfo.setText(s);
 		}
-
-		s += "\n\n";
-		s += ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-		s += "\n\n";
-		s += sub[currentDialog]->getStartTimeString();
-		s += "\n";
-		s += sub[currentDialog]->getEndTimeString();
-		s += "\n";
-
-		boxInfo.setText(s);
 #endif
 	}
 }
@@ -623,7 +707,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 
 	// info
 #ifdef USE_WIDGET__SUBTITLES
-	boxInfo.draw();
+	if (bInfo) boxInfo.draw();
 #endif
 
 	if (!bGui_Internal) return;
@@ -664,14 +748,20 @@ void ofxSurfingTextSubtitle::drawRaw(ofRectangle view) {
 void ofxSurfingTextSubtitle::drawRaw() {
 	if (!bDraw) return;
 
-	if (!bCentered)
+#ifndef USE_WIP_CENTERED
+	drawTextBox(textCurrent, box.getRectangle(), true);
+#else
+	if (!bCentered)//centered disabled
 	{
 		drawTextBox(textCurrent, box.getRectangle(), true);
 	}
-	else
+	else // centered enabled
 	{
+		ofPushMatrix();
+
 		ofRectangle r = getTextBox(textCurrent, box.getRectangle());
 
+		/*
 		offset = glm::vec2(0, -r.getHeight() / 2.f);
 		offset += glm::vec2(0, boxhMax / 2.f);
 		//offset = offset + glm::vec2(0, box.getHeight() / 2.f);
@@ -681,34 +771,58 @@ void ofxSurfingTextSubtitle::drawRaw() {
 			boxhMax = r.getHeight();
 		}
 
-		// draw
-		ofPushMatrix();
-		ofTranslate(offset);
+		//TODO: workaround
+		if (bCentered && box.isChanged()) boxhMax = 0;
 
+		// draw
+		ofTranslate(offset);
+		*/
+
+		//--
+
+		// Force box height
+		float h = getOneLineHeight(true) + getSpacingBetweenLines();
+		int n = amountLinesTargetCentered;
+		//h -= getSpacingBetweenLines();
+		box.setHeight(n * h);
+
+		// Translate
+		float _offset = 0;
+		//if (amountLinesDrawn <= amountLinesTargetCentered)
+		{
+			int _offsetLines = (amountLinesTargetCentered - amountLinesDrawn) / 2.f;
+			_offset = (getOneLineHeight() + getSpacingBetweenLines()) * _offsetLines;
+			ofTranslate(0, _offset);
+		}
+
+		// Draw
 		drawTextBox(textCurrent, box.getRectangle(), true);
 
 		ofPopMatrix();
 
 		//--
 
-		//TODO: workaround
-		if (bCentered && box.isChanged()) boxhMax = 0;
-
-		//TODO:
-		// Center Point
-		if (bEdit && bCentered)
+		// Mark Center Point
+		if (bDebug)
 		{
 			float _x = box.getX();
 			float _y = box.getY();
 
 			_x += box.getWidth() / 2;
+			_y += _offset;
+			_y += r.getHeight() / 2;
+
+			/*
+			_x += box.getWidth() / 2;
 			_y += boxhMax / 2.f;
 			//_y += box.getHeight() / 2;
 			//_y += r.getHeight() / 2;
+			*/
 
 			drawInsertionPoint(_x, _y, 8, 8);
 		}
 	}
+#endif
 }
 
 //--------------------------------------------------------------
@@ -731,14 +845,23 @@ void ofxSurfingTextSubtitle::draw() {
 	*/
 	box.draw();
 
-	if (bEdit) box.drawBorderBlinking();
+	if (bEdit) {
+		//fill
+		//ofPushStyle();
+		//ofSetColor(fColorBg);
+		//ofFill();
+		//ofDrawRectangle(box.getRectangle());
+		//ofPopStyle();
+
+		box.drawBorderBlinking();
+	}
 
 	// debug
 
 	// alpha preview
-	if (bEdit && (bAnimatedIn || bAnimatedOut))
+	if (bDebug && (bAnimatedIn || bAnimatedOut))
 	{
-		bool bTop = false;
+		//bool bTop = false;
 
 		float x;
 		float y;
@@ -763,6 +886,7 @@ void ofxSurfingTextSubtitle::draw() {
 		}
 
 		ofPushStyle();
+		//ofSetColor(fColorBg);
 		ofSetColor(0, 255);
 		ofFill();
 		ofDrawRectangle(x, y, w * alpha, h);
@@ -781,18 +905,23 @@ void ofxSurfingTextSubtitle::draw() {
 		ofDrawBitmapStringHighlight(s, x, y);
 	}
 
-	// slide progress
-	// bottom thin line
-	if (bEdit && (bPlay || bPlayForced))
+	//--
+
+	// Timeline: slide progress
+	// thin line
+	if (bDebug && (bPlay || bPlayForced))
 	{
 		ofPushStyle();
 
 		float lw1 = 3;
-		float h = 3;
-		auto p = box.getRectangle().getBottomLeft();
+		float h = 5;
+		//float h = 3;
+		auto p = bTop.get() ? box.getRectangle().getTopLeft() : box.getRectangle().getBottomLeft();
 		float w = box.getRectangle().getWidth() + 1;
 		float x = p.x;
-		float y = p.y - h / 2;
+		float y = p.y;
+		//float y = p.y - h / 2;
+
 		ofSetColor(0, 255);
 		ofSetLineWidth(h);
 		ofDrawLine(x - 1, y, x - 1 + (w + 1) * MIN(progressPlaySlide, 1), y);
@@ -891,7 +1020,13 @@ void ofxSurfingTextSubtitle::draw() {
 }
 
 //--------------------------------------------------------------
-ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bRaw) {
+ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bRaw)
+{
+	// NOTE that uses only the rectangle width! not the height!
+
+	//TODO:
+	//bRaw not used. remove?
+
 	float _x = box.getX();
 	float _y = box.getY();
 	float _w = box.getWidth();
@@ -923,7 +1058,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	ofRectangle _bbox;
 	int _numLines = 20;
 	bool _wordsWereCropped = false;
-	bool _bCenter = ((_align == 3) ? true : false);
+	bool _bCenter = ((_align == 3) ? true : false);//centered
 	bool _br = false;
 
 	_bbox = font.drawMultiLineColumn(_str,	/*string*/
@@ -945,13 +1080,13 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	// draw debug
 	//if (bEdit && !bRaw)
-	if (bEdit)
+	if (bDebug)
 	{
 		ofPushStyle();
 
 		// 1. prepare
 		ofColor c;
-		c = colorDebug;
+		c = bTheme ? colorDebugLight : colorDebugDark;
 		int _period = 60; // one second
 		bool b = ofGetFrameNum() % _period > _period / 2;
 		ofSetColor(ofColor(c, (b ? 48 : 24)));
@@ -1041,6 +1176,8 @@ ofRectangle ofxSurfingTextSubtitle::getTextBox(std::string _str, ofRectangle r)
 		_bCenter				/*centered*/
 	);
 
+	amountLinesDrawn = _numLines; // amount lines of the last current drawn 
+
 	return _bbox;
 }
 
@@ -1048,12 +1185,11 @@ ofRectangle ofxSurfingTextSubtitle::getTextBox(std::string _str, ofRectangle r)
 float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 	bool _br = false;
 
+	// Pre calculate line heights
+
 	// to get more precise value, we should use 3 lines, 
 	// applying also lines-height and dividing by 3
 	std::string _str1 = "T";// one lines
-	std::string _str2 = "T\nT";// two lines
-	std::string _str3 = "T\nT\nT";// three lines
-	std::string _str4 = "T\nT\nT\nT";// four lines
 
 	int _align;
 	int _size;
@@ -1101,6 +1237,10 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 
 	if (!oneOnly)
 	{
+		std::string _str2 = "T\nT";// two lines
+		std::string _str3 = "T\nT\nT";// three lines
+		std::string _str4 = "T\nT\nT\nT";// four lines
+
 		//_bbox = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 		_bbox = font.drawMultiLineColumn(_str2,	/*string*/
 			_size,					/*size*/
@@ -1160,9 +1300,78 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) {
 
 	//-
 
-	v += 2; // fix. workaround to hard code calibrate.
+	//v += 2; // fix. workaround to hard code calibrate.
 
 	return v;
+}
+
+//--------------------------------------------------------------
+float ofxSurfingTextSubtitle::getSpacingBetweenLines()
+{
+	float spacing = -1;
+
+	bool _br = false;
+
+	// Pre calculate line heights
+
+	// to get more precise value, we should use 3 lines, 
+	// applying also lines-height and dividing by 3
+	std::string _str1 = "T";// one lines
+
+	int _align;
+	int _size;
+
+	_size = fSize.get();
+	_align = fAlign.get();
+
+	//-
+
+	ofRectangle _bbox;
+	int _numLines = 20;
+	bool _wordsWereCropped = false;
+	bool _bCenter = ((_align == 3) ? true : false);
+	float _w = 1000;
+	int _x, _y;
+	_x = 0;
+	_y = 0;
+	float v1, v2;
+
+	_bbox = font.drawMultiLineColumn(_str1,	/*string*/
+		_size,					/*size*/
+		_x, _y,					/*where*/
+		MAX(10, _w),			/*column width*/
+		_numLines,				/*get back the number of lines*/
+		true,					/* if true, we wont draw (just get bbox back) */
+		20,						/* max number of lines to draw, crop after that */
+		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+								BE ARWARE that using TRUE in here will modify your supplied string! */
+		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+		_bCenter				/*centered*/
+	);
+	v1 = MAX(_bbox.getHeight(), 1);
+
+	//-
+
+	std::string _str2 = "T\nT";// two lines
+
+	//_bbox = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+	_bbox = font.drawMultiLineColumn(_str2,	/*string*/
+		_size,					/*size*/
+		_x, _y,					/*where*/
+		MAX(10, _w),			/*column width*/
+		_numLines,				/*get back the number of lines*/
+		true,					/* if true, we wont draw (just get bbox back) */
+		20,						/* max number of lines to draw, crop after that */
+		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+								BE ARWARE that using TRUE in here will modify your supplied string! */
+		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+		_bCenter				/*centered*/
+	);
+	v2 = MAX(_bbox.getHeight(), 1);
+
+	spacing = v2 - (2 * v1);
+
+	return spacing;
 }
 
 //--------------------------------------------------------------
@@ -1173,17 +1382,17 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 	ofPushStyle();
 	ofFill();
 	float v = ofMap(ofGetFrameNum() % 60, 0, 60, 0.25, 1);
-	ofSetColor(colorDebug, v * 255);
+	ofSetColor(bTheme ? colorDebugLight : colorDebugDark, v * 255);
 	ofDrawCircle(_x, _y, r);
 
 	if (_w != 0) {//an extra horizontal line
 		ofNoFill();
-		ofSetColor(colorDebug, 64);
+		ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
 		ofDrawLine(_x - _w, _y, _x + _w, _y);
 	}
 	if (_h != 0) {//an extra vertical line
 		ofNoFill();
-		ofSetColor(colorDebug, 64);
+		ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
 		ofDrawLine(_x, _y - _h, _x, _y + _h);
 	}
 
@@ -1222,6 +1431,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
 	ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+	ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+
+#ifdef USE_WIDGET__SUBTITLES
+	ui->Add(bInfo, OFX_IM_TOGGLE_ROUNDED_MINI);
+#endif
 
 	// time label
 	string s1 = "";
@@ -1262,6 +1476,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			//ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
 			if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+			ui->Add(bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#ifdef USE_WIDGET__SUBTITLES
+			ui->Add(bInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
 			//if(bEdit) ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_MINI);
 		}
 
@@ -1394,7 +1612,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddCombo(fAlign, names);
 			//ui->Add(fAlign, OFX_IM_DEFAULT);
 			//ui->Add(fAlign_str);
+#ifdef USE_WIP_CENTERED
 			ui->Add(bCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
+#endif
 			ui->AddSpacing();
 		}
 		ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
@@ -1638,6 +1859,7 @@ std::string ofxSurfingTextSubtitle::getAlignNameFromIndex(int index) const {
 void ofxSurfingTextSubtitle::doResetFades() {
 	bAnimatedIn = true;
 	bAnimatedOut = true;
+	durationPlayForced = 3000;
 	countDownOut = 1000;
 	speedFadeIn = .1;
 	speedFadeOut = .25;
@@ -1705,18 +1927,30 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			textCurrent = "NO_TEXT";
 		}
 
-		if (bAnimatedIn)
+		if (bAnimatedIn && bAnimatedOut)
 		{
 			isAnimIn = true;
 			alpha = 0.f;
+			if (isAnimOut) isAnimOut = false;
 		}
+		else if (bAnimatedIn && !bAnimatedOut)
+		{
+			isAnimIn = true;
+			alpha = 0.f;
+			//if (bPlay || bPlayForced) alpha = 1.f;//should force play
+		}
+		else if (!bAnimatedIn && bAnimatedOut) {
+			alpha = 1.f;
+		}
+		else if (!bAnimatedIn && !bAnimatedOut) {
+			alpha = 1.f;
+		}
+		/*
 		if (bAnimatedOut)
 		{
 			isAnimOut = false;
 		}
-		if (bAnimatedOut && !bAnimatedIn) {
-			alpha = 1.f;
-		}
+		*/
 
 		ofLogNotice("ofxSurfingTextSubtitle") << textCurrent;
 	}
@@ -1755,10 +1989,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			//bExternal.setWithoutEventNotifications(false);
 
 			tPlayForce = ofGetElapsedTimeMillis();
+			tPlayForceFilm = ofGetElapsedTimeMillis();
 			progressPlaySlide = 0;
 		}
 		else
 		{
+			tPlayForceFilm = 0;
 			progressPlaySlide = 0;
 
 			//isAnimIn = false;
@@ -1800,10 +2036,11 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		currentDialog--;
 	}
 
-	// edit and debug
+	// edit 
 	else if (name == bEdit.getName()) {
 		box.bEdit = bEdit;
 	}
+	// debug
 
 	// TODO: for video link mode
 	//else if (name == bExternal.getName())
@@ -1838,12 +2075,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
 	// v center
+#ifdef USE_WIP_CENTERED
 	else if (name == bCentered.getName())
 	{
-		if (bCentered) {
-			boxhMax = 0;
-		}
+		//if (bCentered) {
+		//	boxhMax = 0;
+		//}
 	}
+#endif
 	// reset style
 	else if (name == bResetFont.getName() && bResetFont.get())
 	{
@@ -1863,6 +2102,19 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		bResetFades = false;
 		doResetFades();
+	}
+
+	//TODO:
+	// box resize
+	else if (name == amountLinesTargetCentered.getName())
+	{
+
+	}
+
+	// Open
+	else if (name == bOpen.getName())
+	{
+		doOpenFile();
 	}
 }
 
@@ -1884,4 +2136,50 @@ void ofxSurfingTextSubtitle::keyPressed(int key)
 		setupSubs(p);
 	}
 	*/
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doOpenFile()
+{
+	//Open the Open File Dialog
+	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a .srt file.");
+
+	//Check if the user opened a file
+	if (openFileResult.bSuccess) {
+
+		ofLogNotice("ofxSurfingTextSubtitle") << ("User selected a file");
+
+		//We have a file, check it and process it
+		processOpenFileSelection(openFileResult);
+	}
+	else {
+		ofLogNotice("ofxSurfingTextSubtitle") << ("User hit cancel");
+	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::processOpenFileSelection(ofFileDialogResult openFileResult) {
+
+	ofLogNotice("ofxSurfingTextSubtitle") << ("getName(): " + openFileResult.getName());
+	ofLogNotice("ofxSurfingTextSubtitle") << ("getPath(): " + openFileResult.getPath());
+
+	string path = openFileResult.getPath();
+	ofFile file(openFileResult.getPath());
+
+	if (file.exists()) {
+
+		ofLogNotice("ofxSurfingTextSubtitle") << ("The file exists - now checking the type via file extension");
+		string fileExtension = ofToUpper(file.getExtension());
+
+		//We only want 
+		if (fileExtension == "SRT")
+		{
+			//load subs
+			setupSubs(path);
+
+			//workflow
+			//bPlay = true;
+			bPlayForced = true;
+		}
+	}
 }

@@ -31,7 +31,7 @@
 
 // OPTIONAL
 
-//#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ofxGui/ImGui
+//#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
@@ -45,6 +45,8 @@
 
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time convertions.
+
+#define USE_WIP_CENTERED
 
 //----
 
@@ -124,10 +126,8 @@ public:
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
 	void setToggleVisibleGui() { bGui = !bGui; }
-	//void setToggleDebug() { bEdit = !bEdit; }
-	//void setToggleEdit() { box.bEdit = !box.bEdit; }
-	//void setDebug(bool b) { bEdit = b; }
-	//void setEdit(bool b) { box.bEdit = b; }
+	void setToggleDebug() { bDebug = !bDebug; }
+	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
 	void setSubtitlePrevious() { currentDialog--; }
@@ -142,6 +142,10 @@ private:
 
 	void setupParams();
 	void setupSubs(string _pathSrt);
+
+	void doOpenFile();
+	void processOpenFileSelection(ofFileDialogResult openFileResult);
+
 	void startup();
 	void exit();
 	
@@ -167,20 +171,25 @@ public:
 
 	void setFps(float _fps) { fps = _fps; }
 
-	ofParameterGroup params;//for the gui and callback
+	ofParameterGroup params; // for the gui and callback
 	ofParameterGroup params_Transport;
 	ofParameterGroup params_Control;
 	ofParameterGroup params_Style;
 	ofParameterGroup params_Fade;
 	ofParameterGroup params_FadeIn;
 	ofParameterGroup params_FadeOut;
-	ofParameterGroup params_Preset;//re collect params for preset/settings
+	ofParameterGroup params_Preset; // re collect params for preset/settings
 
 	ofParameter<bool> bGui;
+	ofParameter<void> bOpen;
 	ofParameter<bool> bGui_SrtFull;
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bEdit;
-
+	ofParameter<bool> bDebug;
+	ofParameter<bool> bTop;
+#ifdef USE_WIDGET__SUBTITLES
+	ofParameter<bool> bInfo;
+#endif
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
 	ofParameter<bool> bPlay;
@@ -193,11 +202,12 @@ public:
 	ofParameter<float> speedFadeIn;
 	ofParameter<bool> bAnimatedOut;
 	ofParameter<float> speedFadeOut;
-	ofParameter<int> countDownOut;//time before the end to start fadeout from. in ms 
+	ofParameter<int> countDownOut; // time before the end to start fadeout from. in ms 
 	ofParameter<bool> bResetFades;
 
 	ofParameter<bool> bAutoScroll;
 	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
+	ofParameter<int> amountLinesTargetCentered;
 
 	ofParameter<std::string> fName;
 	ofParameter<std::string> fPath; // hardcoded file fonts paths
@@ -212,6 +222,7 @@ public:
 	ofParameter<bool> bResetFont;
 
 private:
+	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
 	float alpha = 1.f;
 	float dtAnim = 1.f;
@@ -226,16 +237,19 @@ private:
 
 	uint64_t tPlayStartSlide = 0;
 	uint64_t tPlayForce = 0;
+	uint64_t tPlayForceFilm = 0;
 	uint64_t durationPlaySlide = 0;
 
-	glm::vec2 offset = glm::vec2(0, 0);
-	ofColor colorDebug = ofColor::black;
+	//glm::vec2 offset = glm::vec2(0, 0);
+	ofColor colorDebugDark = ofColor::black;
+	ofColor colorDebugLight = ofColor::white;
+	ofParameter<bool> bTheme{ "Theme", false };
 
 	string textCurrent = "";
 
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
-	float boxhMax = 0;
+	//float boxhMax = 0;
 
 	ofxPanel gui;
 
@@ -248,7 +262,10 @@ private:
 	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bRaw = false);
 	ofRectangle getTextBox(std::string _t, ofRectangle r);
 
+	//oneOnly true is faster. false is more precise.
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
+	float getSpacingBetweenLines();
+
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
 	vector<string> subsText;
@@ -282,21 +299,25 @@ public:
 
 	void play() {
 		bPlay = true;
-#ifdef USE_WIDGET__VIDEO_PLAYER
-		player.play();
-#endif
+//#ifdef USE_WIDGET__VIDEO_PLAYER
+//		player.play();
+//#endif
 	}
 
 	void stop() {
-		bPlay = false;
-#ifdef USE_WIDGET__VIDEO_PLAYER
-		player.stop();
-#endif
+		if(bPlay) bPlay = false;
+		if(bPlayForced) bPlayForced = false;
+
+//#ifdef USE_WIDGET__VIDEO_PLAYER
+//		player.stop();
+//#endif
 	}
 
+	/*
 	void pause() {
-		player.pause();
+		//player.pause();
 	}
+	*/
 
 	//--
 
@@ -304,8 +325,19 @@ private:
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	ofxSurfingVideoPlayer player;
+	ofParameter<bool> bLoadBothVideoAndSubs{ "Link2Files" ,true };
 #endif
 
 	ofEventListeners listeners;
 
 };
+
+/*
+//TODO: add tweakeable speed
+const int SPEED_SCALE = 5;
+float speed = ofMap(speedPlayForce, -1, 1, 0.25f, (float)SPEED_SCALE);
+uint64_t t = ofGetElapsedTimeMillis() * speed - tPlay;
+s += timecode.timecodeForMillis(t);
+//s += ofToString(t / 1000);
+s += "\n";
+*/

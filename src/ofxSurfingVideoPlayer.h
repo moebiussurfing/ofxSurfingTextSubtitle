@@ -20,12 +20,13 @@ public:
 	void exit();
 
 	void setupVideo(string path, bool bAbs = true);
-	void setupGuiVideo();
-	void updateVideo();
+	void setupParams();
+	void update();
 	void drawVideo();
 	void drawGui();
 
-	bool bLoaded = false;
+	//bool bLoaded = false;
+	ofParameter<bool>  bLoaded{ "DoneLoaded", false };
 	bool bScale = true;
 
 	ofParameterGroup params_VideoPlayer{ "Video Player" };
@@ -55,23 +56,26 @@ public:
 public:
 
 	bool isPlaying() const {
-		movie.isPlaying();
+		return movie.isPlaying();
 	}
 
 	void setTogglePlay() {
-		movie.stop();
+		playback.play = !playback.play;
 	}
 
 	void play() {
-		movie.play();
-	}
-
-	void stop() {
-		movie.stop();
+		//movie.play();
+		if (!playback.play) playback.play = true;
 	}
 
 	void pause() {
-		movie.setPaused(true);
+		//movie.setPaused(true);
+		if (playback.play) playback.play = false;
+	}
+
+	void stop() {
+		//movie.stop();
+		playback.stop.trigger();
 	}
 };
 
