@@ -165,7 +165,8 @@ void ofxSurfingVideoPlayer::drawVideo() {
 		if (ofGetFrameNum() % 30 < 15) {
 			string s = "FILE NOT FOUND OR WRONG VIDEO FORMAT!";
 			//ofDrawBitmapString
-			int w = 400;
+			//ofRectangle r; = ofBitmapFont::getBoundingBox(s, 0, 0)
+			float w = 350;
 			ofDrawBitmapStringHighlight(s, ofGetWidth() / 2 - w / 2, 20);
 		}
 

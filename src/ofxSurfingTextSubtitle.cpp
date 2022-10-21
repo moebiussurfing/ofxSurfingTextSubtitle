@@ -175,7 +175,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fAlign_str.set("Align ", "-1");
 	bResetFont.set("Reset Style", false);
 
-	bCentered.set("V Centered", false);//TODO:
+	bCentered.set("V Centered", true);
 	amountLinesTargetCentered.set("Max Lines", 6, 1, 10);
 
 	box.bGui.makeReferenceTo(bEdit);
@@ -263,10 +263,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Style.add(fLineHeight);
 	params_Style.add(fAlign);
 	params_Style.add(fAlign_str);
-#ifdef USE_WIP_CENTERED
 	params_Style.add(bCentered);
 	params_Style.add(amountLinesTargetCentered);
-#endif
 	params_Style.add(bResetFont);
 
 	params.setName(bGui.getName());//TODO: BUG: crashes
@@ -732,9 +730,6 @@ void ofxSurfingTextSubtitle::draw(ofRectangle view) {
 void ofxSurfingTextSubtitle::drawRaw() {
 	if (!bDraw) return;
 
-#ifndef USE_WIP_CENTERED
-	drawTextBox(textCurrent, box.getRectangle(), true);
-#else
 	if (!bCentered)//centered disabled
 	{
 		drawTextBox(textCurrent, box.getRectangle(), true);
@@ -782,7 +777,6 @@ void ofxSurfingTextSubtitle::drawRaw() {
 			drawInsertionPoint(_x, _y, 8, 8);
 		}
 	}
-#endif
 }
 
 //--------------------------------------------------------------
@@ -817,7 +811,7 @@ void ofxSurfingTextSubtitle::draw() {
 	// alpha preview
 	if (bDebug && (bAnimatedIn || bAnimatedOut))
 	{
-		//bool bTop = false;
+		bool bCenter = true;
 
 		float x;
 		float y;
@@ -830,8 +824,9 @@ void ofxSurfingTextSubtitle::draw() {
 			p = box.getRectangle().getTopLeft();
 			h = 6;
 			pad = 0;
-			x = p.x;
-			//x = p.x - 1;
+			if (bCenter)x = p.x + box.getWidth() / 2.f - w / 2;
+			else x = p.x ;
+			//else x = p.x - 1;
 			y = p.y - pad - h;
 		}
 		else {//bottom
@@ -839,7 +834,8 @@ void ofxSurfingTextSubtitle::draw() {
 			h = 6;
 			pad = -4;
 			//x = p.x - 1;
-			x = p.x;
+			if(bCenter)x = p.x + box.getWidth() / 2.f - w / 2;//center
+			else x = p.x;//left
 			y = p.y + 15 + pad + h;
 		}
 
@@ -852,6 +848,7 @@ void ofxSurfingTextSubtitle::draw() {
 		ofPopStyle();
 
 		float h2 = 15;
+		//x += 3;
 		x += 4;
 		y -= h;
 		y += 3;
@@ -930,6 +927,7 @@ void ofxSurfingTextSubtitle::draw() {
 		{
 			ofSetLineWidth(lw1);
 
+			// fade out begins
 			float r = 0.f;
 			if (bPlayForced) {
 				r = 1.f - (countDownOut / (float)durationPlayForced);//ratio
@@ -942,6 +940,7 @@ void ofxSurfingTextSubtitle::draw() {
 
 			//--
 
+			// fade out ends
 			float pixPerMillis = 0;
 			if (bPlayForced) {
 				pixPerMillis = w / (float)durationPlayForced;//ratio
@@ -959,12 +958,12 @@ void ofxSurfingTextSubtitle::draw() {
 			//ofSetLineWidth(2);
 			//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
 			ofFill();
-			ofDrawCircle(xOut2, p.y, 4);
+			ofDrawCircle(xOut2, p.y, 3);
 
 			//--
 
 			// Make fatter the line for the full opacity section!
-
+			// full alpha zone
 			int lw = 4;
 			int off = 0;
 			ofSetLineWidth(lw);
@@ -1568,10 +1567,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddCombo(fAlign, names);
 			//ui->Add(fAlign, OFX_IM_DEFAULT);
 			//ui->Add(fAlign_str);
-#ifdef USE_WIP_CENTERED
 			ui->Add(bCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
 			ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
-#endif
 			ui->AddSpacing();
 		}
 		ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
@@ -1817,7 +1814,7 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	bAnimatedOut = true;
 	durationPlayForced = 2000;
 	countDownOut = 500;
-	speedFadeIn = .25;
+	speedFadeIn = .15;
 	speedFadeOut = .5;
 }
 
@@ -2036,11 +2033,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
 	// v center
-#ifdef USE_WIP_CENTERED
 	else if (name == bCentered.getName())
 	{
 	}
-#endif
+
 	// reset style
 	else if (name == bResetFont.getName() && bResetFont.get())
 	{

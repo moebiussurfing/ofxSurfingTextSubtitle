@@ -30,11 +30,13 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
+	if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'e') { subs.setToggleEdit(); }
+	if (key == 'd') { subs.setToggleDebug(); }
 
 	// transport
 	if (key == ' ') { subs.setTogglePlay(); }
-	if (key == OF_KEY_RETURN) { subs.setToggleAuto(); }
+	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
 
 	// browse subs
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }

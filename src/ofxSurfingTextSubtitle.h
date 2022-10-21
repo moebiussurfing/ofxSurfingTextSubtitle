@@ -1,6 +1,6 @@
 #pragma once
 
-//	srtparser.h
+// srtparser.h
 // taken from https://github.com/Jonathhhan/ofEmscriptenExamples
 // thanks @Jonathhhan!
 
@@ -10,7 +10,7 @@
 
 	fix first subtitle line hidden
 	to implement master time to link both subtitler and video player.
-		currently both timer count from play momment! 
+		currently both timer count from play moment! 
 		can't do scrubb or jump innto timeline.
 	test video player encoding problems...
 	fix right align:
@@ -25,22 +25,22 @@
 
 // OPTIONAL
 
-#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
+//#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
-#define USE_WIDGET__VIDEO_PLAYER
+//#define USE_WIDGET__VIDEO_PLAYER // -> Could be disable to use your own video player or to use the subtitler as standalone.
 // A simple video player is bundled for commodity, 
 // then can be removed just by commenting here.
 // (Probably you would want to use your own external video player) 
+
+//--
 
 #define USE_WIDGET__SUBTITLES
 // A floating widget to display some info
 
 #define USE_TIME_CODE__SUBTITLES
-// Only to help in some time convertions.
-
-#define USE_WIP_CENTERED
+// Only to help in some time convertions. Can be removed.
 
 //----
 
