@@ -33,6 +33,10 @@
 // A simple video player is bundled for commodity, 
 // then can be removed just by commenting here.
 // (Probably you would want to use your own external video player) 
+// If not using the video player we can remove:
+// the libs/ofxPlaybackGui folder and the ofxSurfingVideoPlayer.h and ofxSurfingVideoPlayer.cpp files.
+// Then, you would use the class outisde just by copying the
+// srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
 
 //--
 
