@@ -22,6 +22,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	setupSubs(_pathSrt);
 
 #ifdef USE_WIDGET__SUBTITLES
+	boxInfo.setFontSize(12);
 	boxInfo.setMode(ofxSurfingBoxHelpText::TOP_RIGHT);
 	boxInfo.setup();
 #endif
@@ -82,16 +83,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Stop pressed\n";
 		stop();
 
-		/*
-	if (bPlay) {
-		//pause();
-		stop();
-	}
-	else {
-		//position.set(0);
-		stop();
-	}
-		*/
+
 		}));
 #endif	
 
@@ -184,7 +176,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bResetFont.set("Reset Style", false);
 
 	bCentered.set("V Centered", false);//TODO:
-	amountLinesTargetCentered.set("Lines", 4, 1, 10);
+	amountLinesTargetCentered.set("Max Lines", 6, 1, 10);
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
@@ -636,7 +628,8 @@ void ofxSurfingTextSubtitle::update()
 			if (bPlay)
 			{
 #ifdef USE_WIDGET__VIDEO_PLAYER
-				if (player.isPlaying()) {
+				if (player.playback.play)
+				{
 					t = ofGetElapsedTimeMillis() - tPlay;
 				}
 				else {//stopped
@@ -652,7 +645,8 @@ void ofxSurfingTextSubtitle::update()
 			if (bPlayForced)
 			{
 #ifdef USE_WIDGET__VIDEO_PLAYER
-				if (player.isPlaying()) {
+				if (player.playback.play)
+				{
 					t = ofGetElapsedTimeMillis() - tPlayForceFilm;
 				}
 				else {//stopped
@@ -729,20 +723,11 @@ void ofxSurfingTextSubtitle::draw(ofRectangle view) {
 
 	ofPushMatrix();
 	ofTranslate(x, y);
+
 	draw();
+
 	ofPopMatrix();
 }
-
-/*
-//--------------------------------------------------------------
-void ofxSurfingTextSubtitle::drawRaw(ofRectangle view) {
-	if (!bDraw) return;
-
-	// text
-	ofRectangle r = drawTextBox(textCurrent, box.getRectangle());
-	//boxhMax = r.getHeight();
-}
-*/
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawRaw() {
@@ -760,23 +745,6 @@ void ofxSurfingTextSubtitle::drawRaw() {
 		ofPushMatrix();
 
 		ofRectangle r = getTextBox(textCurrent, box.getRectangle());
-
-		/*
-		offset = glm::vec2(0, -r.getHeight() / 2.f);
-		offset += glm::vec2(0, boxhMax / 2.f);
-		//offset = offset + glm::vec2(0, box.getHeight() / 2.f);
-
-		if (r.getHeight() > boxhMax)
-		{
-			boxhMax = r.getHeight();
-		}
-
-		//TODO: workaround
-		if (bCentered && box.isChanged()) boxhMax = 0;
-
-		// draw
-		ofTranslate(offset);
-		*/
 
 		//--
 
@@ -803,7 +771,7 @@ void ofxSurfingTextSubtitle::drawRaw() {
 		//--
 
 		// Mark Center Point
-		if (bDebug)
+		if (bDebug && bDebug2)
 		{
 			float _x = box.getX();
 			float _y = box.getY();
@@ -811,13 +779,6 @@ void ofxSurfingTextSubtitle::drawRaw() {
 			_x += box.getWidth() / 2;
 			_y += _offset;
 			_y += r.getHeight() / 2;
-
-			/*
-			_x += box.getWidth() / 2;
-			_y += boxhMax / 2.f;
-			//_y += box.getHeight() / 2;
-			//_y += r.getHeight() / 2;
-			*/
 
 			drawInsertionPoint(_x, _y, 8, 8);
 		}
@@ -836,13 +797,8 @@ void ofxSurfingTextSubtitle::draw() {
 
 	drawRaw();
 
-	// container
-	//workflow auto scale
-	/*
-	if (box.getHeight() < boxhMax) {
-		box.setHeight(boxhMax);
-	}
-	*/
+	if (!bGui) return;
+
 	box.draw();
 
 	if (bEdit) {
@@ -853,6 +809,7 @@ void ofxSurfingTextSubtitle::draw() {
 		//ofDrawRectangle(box.getRectangle());
 		//ofPopStyle();
 
+		//box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
 		box.drawBorderBlinking();
 	}
 
@@ -874,25 +831,25 @@ void ofxSurfingTextSubtitle::draw() {
 			p = box.getRectangle().getTopLeft();
 			h = 6;
 			pad = 0;
-			x = p.x - 1;
+			x = p.x ;
+			//x = p.x - 1;
 			y = p.y - pad - h;
 		}
 		else {//bottom
 			p = box.getRectangle().getBottomLeft();
 			h = 6;
 			pad = -4;
-			x = p.x - 1;
+			//x = p.x - 1;
+			x = p.x ;
 			y = p.y + 15 + pad + h;
 		}
 
 		ofPushStyle();
-		//ofSetColor(fColorBg);
-		ofSetColor(0, 255);
+		ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
 		ofFill();
 		ofDrawRectangle(x, y, w * alpha, h);
 		ofNoFill();
-		ofSetColor(0, 255);
-		ofDrawRectangle(x + 1, y, w - 1, h);
+		ofDrawRectangle(x , y, w - 1, h);
 		ofPopStyle();
 
 		float h2 = 15;
@@ -902,7 +859,8 @@ void ofxSurfingTextSubtitle::draw() {
 		string s = (bAnimatedIn && isAnimIn) ? "IN" : "  ";
 		s += "    ";
 		s += (bAnimatedOut && isAnimOut) ? "OUT" : "   ";
-		ofDrawBitmapStringHighlight(s, x, y);
+		if(bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
+		else ofDrawBitmapStringHighlight(s, x, y);
 	}
 
 	//--
@@ -922,7 +880,7 @@ void ofxSurfingTextSubtitle::draw() {
 		float y = p.y;
 		//float y = p.y - h / 2;
 
-		ofSetColor(0, 255);
+		ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
 		ofSetLineWidth(h);
 		ofDrawLine(x - 1, y, x - 1 + (w + 1) * MIN(progressPlaySlide, 1), y);
 		//float y = p.y - h;
@@ -996,8 +954,8 @@ void ofxSurfingTextSubtitle::draw() {
 			float d = 1.f / dtAnim;
 			int t = (d / fps) * 1000;//duration required to fade out until 0!
 			xOut2 = xOut1 + t * pixPerMillis;
-			if (xOut2 < p.x + w) ofSetColor(0, 255);
-			else ofSetColor(0, 32);//attenuate if goes out of the  time line!
+			if (xOut2 < p.x + w) ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
+			else ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 32);//attenuate if goes out of the  time line!
 			//sz -= 2;
 			//ofSetLineWidth(2);
 			//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
@@ -1011,7 +969,7 @@ void ofxSurfingTextSubtitle::draw() {
 			int lw = 4;
 			int off = 0;
 			ofSetLineWidth(lw);
-			ofSetColor(0, 64);
+			ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
 			ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
 		}
 
@@ -1080,7 +1038,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	// draw debug
 	//if (bEdit && !bRaw)
-	if (bDebug)
+	if (bGui && bDebug && bDebug2)
 	{
 		ofPushStyle();
 
@@ -1098,40 +1056,6 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 		// 3. anchor
 		//drawInsertionPoint(_x, _y, 15);//useful to debug ofxFontStash
-
-		/*
-		// 4. elastic bar
-		// TODO: not working bc rectangle is not positioned, just storing w and h
-		//_y = textBox[debugIndex].getRectangle().getBottom();
-		_y = _bbox.getBottom() - 7;
-
-		if (debugIndex != -1)
-		{
-			_x = columnUnits * canvasColumnUnitWidth - 16;
-
-			ofFill();
-
-			float _hb = 25;
-			float _w = ofMap(animatorElastic.getValue(), 0, 1, 1, _hb);
-			float _ww = 12;
-			float _yy = -6 + _y + _hb * 0.5;
-
-			// 4.1 bg box
-			ofSetColor(0, 0, 0, 255);
-			ofDrawRectangle(_x - 4, _y - 15, 16, 48);
-
-			// 4.2 text
-			std::string s;
-			s = ofToString(debugIndex);
-			//s += "\n";
-			//s += ofToString(textBox[debugIndex].getSpacer(), 1);
-			ofDrawBitmapStringHighlight(s, _x, _y);
-
-			// 4.3 bar
-			ofSetColor(255, 220);
-			ofDrawRectangle(_x - 2, _yy, _ww, _w);
-		}
-		*/
 
 		ofPopStyle();
 	}
@@ -1380,6 +1304,7 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 	float r = 2;
 
 	ofPushStyle();
+
 	ofFill();
 	float v = ofMap(ofGetFrameNum() % 60, 0, 60, 0.25, 1);
 	ofSetColor(bTheme ? colorDebugLight : colorDebugDark, v * 255);
@@ -1859,10 +1784,10 @@ std::string ofxSurfingTextSubtitle::getAlignNameFromIndex(int index) const {
 void ofxSurfingTextSubtitle::doResetFades() {
 	bAnimatedIn = true;
 	bAnimatedOut = true;
-	durationPlayForced = 3000;
-	countDownOut = 1000;
-	speedFadeIn = .1;
-	speedFadeOut = .25;
+	durationPlayForced = 2000;
+	countDownOut = 500;
+	speedFadeIn = .25;
+	speedFadeOut = .5;
 }
 
 //--------------------------------------------------------------
@@ -1956,6 +1881,11 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 
 	//--
+
+	else if (name == bTheme.getName())
+	{
+		box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
+	}
 
 	else if (name == bPlay.getName())
 	{
@@ -2078,9 +2008,6 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 #ifdef USE_WIP_CENTERED
 	else if (name == bCentered.getName())
 	{
-		//if (bCentered) {
-		//	boxhMax = 0;
-		//}
 	}
 #endif
 	// reset style

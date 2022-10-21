@@ -37,6 +37,9 @@ void ofxSurfingVideoPlayer::setupVideo(string path, bool bAbs) {
 	*/
 
 	//--
+
+	//workflow
+	playback.play = true;
 }
 
 //--------------------------------------------------------------
@@ -96,11 +99,12 @@ void ofxSurfingVideoPlayer::setupParams()
 	listeners.push(playback.stop.newListener([&]() {
 		ofLogNotice("ofxSurfingVideoPlayer") << "Stop pressed";
 		movie.stop();
+		position.set(0.f);
 		}));
 
 	listeners.push(playback.play.newListener([&](bool& b) {
 		ofLogNotice("ofxSurfingVideoPlayer") << "Play Paused pressed. Playing " << std::boolalpha << b;
-		if (b) movie.play(); 
+		if (b) movie.play();
 		else movie.setPaused(true);
 		}));
 
@@ -130,6 +134,8 @@ void ofxSurfingVideoPlayer::setupParams()
 	params_VideoPlayer.add(bDraw_Video);
 	params_VideoPlayer.add(volume);
 	params_VideoPlayer.add(position);
+
+	position.setSerializable(false);
 }
 
 //--------------------------------------------------------------
@@ -155,8 +161,12 @@ void ofxSurfingVideoPlayer::drawGui() {
 //--------------------------------------------------------------
 void ofxSurfingVideoPlayer::drawVideo() {
 	if (!bLoaded)
-		if (ofGetFrameNum() % 30 < 15)
-			ofDrawBitmapStringHighlight("FILE NOT FOUND OR WRONG VIDEO FORMAT!", ofGetWidth() / 2, 20);
+		if (ofGetFrameNum() % 30 < 15) {
+			string s = "FILE NOT FOUND OR WRONG VIDEO FORMAT!";
+			//ofDrawBitmapString
+			int w = 400;
+			ofDrawBitmapStringHighlight(s, ofGetWidth() / 2 - w / 2, 20);
+		}
 
 	if (!bDraw_Video) return;
 

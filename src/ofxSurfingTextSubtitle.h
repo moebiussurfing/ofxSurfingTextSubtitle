@@ -8,22 +8,16 @@
 
 	TODO:
 
+	fix first subtitle line hidden
+	to implement master time to link both subtitler and video player.
+		currently both timer count from play momment! 
+		can't do scrubb or jump innto timeline.
 	test video player encoding problems...
-	split out bDebug again from bEdit.
-		split widgets enable too.
 	fix right align:
 		a new approach doing calculating
 		the amount of lines and adding \n
 		to the paragraph
-	add light theme colors for the hud
-		to help when dark videos.
 	add list and set custom fonts on runtime
-	add load another .srt file on runtime
-	fix v center mode
-		add auto set layout. ex:
-		re center box to a center point
-		when different box sizes happens,
-		when different amount of lines.
 
 */
 
@@ -222,6 +216,7 @@ public:
 	ofParameter<bool> bResetFont;
 
 private:
+
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
 	float alpha = 1.f;
@@ -240,7 +235,6 @@ private:
 	uint64_t tPlayForceFilm = 0;
 	uint64_t durationPlaySlide = 0;
 
-	//glm::vec2 offset = glm::vec2(0, 0);
 	ofColor colorDebugDark = ofColor::black;
 	ofColor colorDebugLight = ofColor::white;
 	ofParameter<bool> bTheme{ "Theme", false };
@@ -248,8 +242,6 @@ private:
 	string textCurrent = "";
 
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
-
-	//float boxhMax = 0;
 
 	ofxPanel gui;
 
@@ -262,7 +254,7 @@ private:
 	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bRaw = false);
 	ofRectangle getTextBox(std::string _t, ofRectangle r);
 
-	//oneOnly true is faster. false is more precise.
+	// oneOnly true is faster but false is probably more precise.
 	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
 
@@ -285,10 +277,12 @@ public:
 
 	void setTogglePlayForced() { bPlayForced = !bPlayForced; }
 
+	//--------------------------------------------------------------
 	bool isPlaying() const {
 		return bPlay.get();
 	}
 
+	//--------------------------------------------------------------
 	void setTogglePlay() {
 		bPlay = !bPlay;
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -297,16 +291,23 @@ public:
 #endif
 	}
 
+	//--------------------------------------------------------------
 	void play() {
 		bPlay = true;
+
 //#ifdef USE_WIDGET__VIDEO_PLAYER
 //		player.play();
 //#endif
 	}
 
+	//--------------------------------------------------------------
 	void stop() {
 		if(bPlay) bPlay = false;
 		if(bPlayForced) bPlayForced = false;
+
+		textCurrent = "";
+		currentDialog = 0;
+		//alpha = 0;
 
 //#ifdef USE_WIDGET__VIDEO_PLAYER
 //		player.stop();
@@ -326,10 +327,11 @@ private:
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	ofxSurfingVideoPlayer player;
 	ofParameter<bool> bLoadBothVideoAndSubs{ "Link2Files" ,true };
+	ofEventListeners listeners;
 #endif
 
-	ofEventListeners listeners;
-
+	// extra info
+	bool bDebug2 = false;
 };
 
 /*
