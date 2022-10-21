@@ -175,7 +175,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fAlign_str.set("Align ", "-1");
 	bResetFont.set("Reset Style", false);
 
-	bCentered.set("V Centered", true);
+	bvCentered.set("V Centered", true);
 	amountLinesTargetCentered.set("Max Lines", 6, 1, 10);
 
 	box.bGui.makeReferenceTo(bEdit);
@@ -263,7 +263,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Style.add(fLineHeight);
 	params_Style.add(fAlign);
 	params_Style.add(fAlign_str);
-	params_Style.add(bCentered);
+	params_Style.add(bvCentered);
 	params_Style.add(amountLinesTargetCentered);
 	params_Style.add(bResetFont);
 
@@ -730,11 +730,11 @@ void ofxSurfingTextSubtitle::draw(ofRectangle view) {
 void ofxSurfingTextSubtitle::drawRaw() {
 	if (!bDraw) return;
 
-	if (!bCentered)//centered disabled
+	if (!bvCentered) // v centered disabled
 	{
 		drawTextBox(textCurrent, box.getRectangle(), true);
 	}
-	else // centered enabled
+	else // v centered enabled
 	{
 		ofPushMatrix();
 
@@ -780,21 +780,10 @@ void ofxSurfingTextSubtitle::drawRaw() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::draw() {
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.drawVideo();
-#endif
-
-	if (!bDraw) return;
-
-	drawRaw();
-
-	if (!bGui) return;
-
-	box.draw();
-
-	if (bEdit) {
+void ofxSurfingTextSubtitle::drawDebug()
+{
+	if (bEdit)
+	{
 		//fill
 		//ofPushStyle();
 		//ofSetColor(fColorBg);
@@ -820,21 +809,25 @@ void ofxSurfingTextSubtitle::draw() {
 		float h;//bar
 		glm::vec2 p;
 
-		if (bTop) {//top
+		// top
+		if (bTop) 
+		{ 
 			p = box.getRectangle().getTopLeft();
 			h = 6;
 			pad = 0;
 			if (bCenter)x = p.x + box.getWidth() / 2.f - w / 2;
-			else x = p.x ;
+			else x = p.x;
 			//else x = p.x - 1;
-			y = p.y - pad - h;
+			y = p.y - pad - h - 2;
 		}
-		else {//bottom
+		// bottom
+		else
+		{ 
 			p = box.getRectangle().getBottomLeft();
 			h = 6;
 			pad = -4;
 			//x = p.x - 1;
-			if(bCenter)x = p.x + box.getWidth() / 2.f - w / 2;//center
+			if (bCenter)x = p.x + box.getWidth() / 2.f - w / 2;//center
 			else x = p.x;//left
 			y = p.y + 15 + pad + h;
 		}
@@ -844,7 +837,7 @@ void ofxSurfingTextSubtitle::draw() {
 		ofFill();
 		ofDrawRectangle(x, y, w * alpha, h);
 		ofNoFill();
-		ofDrawRectangle(x, y, w - 1, h);
+		ofDrawRectangle(x, y, w, h);
 		ofPopStyle();
 
 		float h2 = 15;
@@ -862,6 +855,7 @@ void ofxSurfingTextSubtitle::draw() {
 	//--
 
 	// Timeline: slide progress
+
 	// thin line
 	if (bDebug && (bPlay || bPlayForced))
 	{
@@ -890,6 +884,8 @@ void ofxSurfingTextSubtitle::draw() {
 		float xOut1 = 0;
 		float xOut2 = 0;
 
+		float szt = 8;
+
 		//TODO:
 		// mark fade in phase end point with a vertical line
 		// hard to do bc using speed instead of time duration in ms!
@@ -913,9 +909,31 @@ void ofxSurfingTextSubtitle::draw() {
 			}
 			xIn = p.x + w * r;
 
-			if (xIn != -1) {
+			if (xIn != -1)
+			{
+				//triangle
+				ofFill();
+				ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+				ofBeginShape();
+				ofVertex(p.x, p.y);
+				ofVertex(p.x + szt, p.y - szt);
+				ofVertex(p.x + szt, p.y);
+				//ofVertex(p.x + sz, p.y + sz);
+				ofEndShape();
+
+				//line
 				ofSetLineWidth(lw1);
-				ofDrawLine(xIn, p.y - sz, xIn, p.y + sz);
+				ofDrawLine(xIn, p.y - szt, xIn, p.y + szt);
+
+				////triangle
+				//ofFill();
+				//ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+				//ofBeginShape();
+				//ofVertex(xIn - sz, p.y );
+				//ofVertex(xIn, p.y -sz);
+				//ofVertex(xIn, p.y +sz);
+				////ofVertex(xIn - sz, p.y );
+				//ofEndShape();
 			}
 		}
 
@@ -936,7 +954,19 @@ void ofxSurfingTextSubtitle::draw() {
 				r = 1.f - (countDownOut / (float)durationPlaySlide);//ratio
 			}
 			xOut1 = p.x + w * r;
-			ofDrawLine(xOut1, p.y - sz, xOut1, p.y + sz);
+
+			////line
+			//ofDrawLine(xOut1, p.y - sz, xOut1, p.y + sz);
+
+			//triangle
+			ofFill();
+			ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+			ofBeginShape();
+			ofVertex(xOut1 + szt, p.y + 1);
+			ofVertex(xOut1, p.y - szt);
+			ofVertex(xOut1, p.y + 1 );
+			//ofVertex(xOut1, p.y + sz);
+			ofEndShape();
 
 			//--
 
@@ -973,6 +1003,25 @@ void ofxSurfingTextSubtitle::draw() {
 
 		ofPopStyle();
 	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::draw()
+{
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+	player.drawVideo();
+#endif
+
+	if (!bDraw) return;
+
+	drawRaw();
+
+	if (!bGui) return;
+
+	box.draw();
+
+	drawDebug();
 }
 
 //--------------------------------------------------------------
@@ -1567,7 +1616,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddCombo(fAlign, names);
 			//ui->Add(fAlign, OFX_IM_DEFAULT);
 			//ui->Add(fAlign_str);
-			ui->Add(bCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
 			ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
 			ui->AddSpacing();
 		}
@@ -1764,12 +1813,12 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 				ImGui::Columns(1);
 
 				//*if (currentDialog == n) ui->AddSeparated();
-			}
+	}
 
 			ImGui::EndChild();
 
 			ui->EndWindow();
-		}
+}
 	}
 }
 
@@ -2033,7 +2082,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
 	// v center
-	else if (name == bCentered.getName())
+	else if (name == bvCentered.getName())
 	{
 	}
 

@@ -109,6 +109,7 @@ public:
 	void draw();
 	void draw(ofRectangle view);
 	void drawRaw();
+	void drawDebug();
 	//letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
@@ -204,7 +205,7 @@ public:
 	ofParameter<bool> bResetFades;
 
 	ofParameter<bool> bAutoScroll;
-	ofParameter<bool> bCentered; // move up block to center not depending of amount of lines.
+	ofParameter<bool> bvCentered; // move up block to center not depending of amount of lines.
 	ofParameter<int> amountLinesTargetCentered;
 
 	ofParameter<std::string> fName;
