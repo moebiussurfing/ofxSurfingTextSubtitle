@@ -30,10 +30,12 @@
 
 // OPTIONAL
 
-//#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
+// 1. GUI
+#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
+// 2. VIDEO PLAYER
 //#define USE_WIDGET__VIDEO_PLAYER // -> Could be disable to use your own video player or to use the subtitler as standalone.
 // A simple video player is bundled for commodity, 
 // then can be removed just by commenting here.
@@ -43,7 +45,7 @@
 // Then, you would use the class outside just by copying the
 // srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
 
-//--
+//----
 
 #define USE_WIDGET__SUBTITLES
 // A floating widget to display some info
@@ -207,6 +209,7 @@ public:
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bEdit;
 	ofParameter<bool> bDebug;
+	ofParameter<bool> bLive;//hide all
 	ofParameter<bool> bTop;
 #ifdef USE_WIDGET__SUBTITLES
 	ofParameter<bool> bInfo;
