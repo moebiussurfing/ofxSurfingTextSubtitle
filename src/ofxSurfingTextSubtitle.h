@@ -9,15 +9,20 @@
 	TODO:
 
 	fix first subtitle line hidden
+
+	WIP
+	bPlayExternal mode
 	to implement master time to link both subtitler and video player.
-		currently both timer count from play moment! 
+		currently both timer count from play moment!
 		can't do scrubb or jump innto timeline.
+
 	test video player encoding problems...
-	fix right align:
-		a new approach doing calculating
-		the amount of lines and adding \n
-		to the paragraph
+	bad framerate
+
 	add list and set custom fonts on runtime
+
+	store srt file path to settings to be persistent too,
+	like the video player
 
 */
 
@@ -35,7 +40,7 @@
 // (Probably you would want to use your own external video player) 
 // If not using the video player we can remove:
 // the libs/ofxPlaybackGui folder and the ofxSurfingVideoPlayer.h and ofxSurfingVideoPlayer.cpp files.
-// Then, you would use the class outisde just by copying the
+// Then, you would use the class outside just by copying the
 // srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
 
 //--
@@ -105,6 +110,9 @@ public:
 
 	void update(uint64_t frame);
 	void update();
+	void updateFades();
+	void updateEngine();
+	void updateDebug();
 
 	void draw();
 	void draw(ofRectangle view);
@@ -118,7 +126,7 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
 	//disables ofxGui. useful when using ImGui or to disable gui.
 
-	void keyPressed(int key);
+	//void keyPressed(int key);
 
 	//--
 
@@ -129,15 +137,29 @@ public:
 	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
-	void setSubtitlePrevious() { currentDialog--; }
-	void setSubtitleNext() { currentDialog++; }
+	
+	void setSubtitlePrevious() { bPrev = true; }
+	void setSubtitleNext() { bNext = true; }
+	//void setSubtitlePrevious() { currentDialog--; }
+	//void setSubtitleNext() { currentDialog++; }
+
 	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
+
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return fColorBg.get(); };
 
 	ofParameter<bool> bGui_Internal;
 
+	// Call before setup. Set duration in ms to be used with play external mode
+	void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
+
 private:
+
+	uint64_t tEndSubsFilm = 0;
+	bool bForceAddBreakLines = true;
+	bool isSlidePlaying = false;
+
+	void setupFont();
 
 	void setupParams();
 	void setupSubs(string _pathSrt);
@@ -147,8 +169,8 @@ private:
 
 	void startup();
 	void exit();
-	
-	string path_SubtitlerSettings= "Subtitler.json";
+
+	string path_SubtitlerSettings = "Subtitler.json";
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
@@ -191,11 +213,15 @@ public:
 #endif
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
+
+	ofParameter<void> bStop;
 	ofParameter<bool> bPlay;
 	ofParameter<bool> bPlayForced;
+
 	ofParameter<int> durationPlayForced;
 	//ofParameter<float> speedPlayForce;
-	//ofParameter<bool> bExternal;
+	ofParameter<bool> bPlayExternal;
+	ofParameter<float> tPosition;
 
 	ofParameter<bool> bAnimatedIn;
 	ofParameter<float> speedFadeIn;
@@ -208,7 +234,7 @@ public:
 	ofParameter<bool> bvCentered; // move up block to center not depending of amount of lines.
 	ofParameter<int> amountLinesTargetCentered;
 
-	ofParameter<std::string> fName;
+	ofParameter<std::string> fName; // name to display only
 	ofParameter<std::string> fPath; // hardcoded file fonts paths
 	ofParameter<float> fSizePrc; // relative to column width font size
 	ofParameter<float> fSize; // real font raw size in px
@@ -229,7 +255,7 @@ private:
 	bool isAnimIn = false;
 	bool isAnimOut = false;
 
-	ofParameter<float> progressPlayFilm;
+	ofParameter<float> progressPlayFilm;//measured in subs dialogs not in time
 	ofParameter<float> progressPlaySlide;
 
 	ofParameter<float> progressIn;
@@ -280,50 +306,12 @@ private:
 
 public:
 
-	void setTogglePlayForced() { bPlayForced = !bPlayForced; }
-
-	//--------------------------------------------------------------
-	bool isPlaying() const {
-		return bPlay.get();
-	}
-
-	//--------------------------------------------------------------
-	void setTogglePlay() {
-		bPlay = !bPlay;
-#ifdef USE_WIDGET__VIDEO_PLAYER
-		if (bPlay) player.play();
-		else player.stop();
-#endif
-	}
-
-	//--------------------------------------------------------------
-	void play() {
-		bPlay = true;
-
-//#ifdef USE_WIDGET__VIDEO_PLAYER
-//		player.play();
-//#endif
-	}
-
-	//--------------------------------------------------------------
-	void stop() {
-		if(bPlay) bPlay = false;
-		if(bPlayForced) bPlayForced = false;
-
-		textCurrent = "";
-		currentDialog = 0;
-		//alpha = 0;
-
-//#ifdef USE_WIDGET__VIDEO_PLAYER
-//		player.stop();
-//#endif
-	}
-
-	/*
-	void pause() {
-		//player.pause();
-	}
-	*/
+	void setTogglePlayForced();
+	bool isPlaying() const;
+	void setTogglePlay();
+	void play();
+	void stop();
+	void pause();
 
 	//--
 

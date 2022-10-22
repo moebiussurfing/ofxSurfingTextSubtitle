@@ -22,6 +22,9 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update()
 {
+	string s = "example-Subtitle3 | " + ofToString(ofGetFrameRate(), 0) + " Fps";
+	ofSetWindowTitle(s);
+
 	// Start play 1 frame delayed vs setup to avoid crashes.
 	if (ofGetFrameNum() == 1) subs.play();
 	 
@@ -31,8 +34,7 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw() 
 {
-	string s = "example-Subtitle3 | " + ofToString(ofGetFrameRate(), 0) + " Fps";
-	ofSetWindowTitle(s);
+	ofBackground(subs.getColorBg());
 
 	subs.draw();
 	subs.drawGui();
@@ -44,6 +46,7 @@ void ofApp::keyPressed(int key)
 	if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	if (key == 'd') { subs.setToggleDebug(); }
+	if (key == '.') { subs.stop(); }
 
 	// Browse subs
 	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
@@ -53,6 +56,4 @@ void ofApp::keyPressed(int key)
 
 	// Play both!
 	if (key == ' ') { subs.setTogglePlay(); }
-
-	subs.keyPressed(key);
 }
