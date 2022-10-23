@@ -9,20 +9,17 @@
 	TODO:
 
 	fix first subtitle line hidden
-
-	WIP
-	bPlayExternal mode
-	to implement master time to link both subtitler and video player.
-		currently both timer count from play moment!
-		can't do scrubb or jump innto timeline.
+	add engine to adapt font size to amount lines/box size.
 
 	test video player encoding problems...
-	bad framerate
+	bad framerate on Debug compilation.
 
-	add list and set custom fonts on runtime
+	add fonts list and set custom fonts on runtime
 
 	store srt file path to settings to be persistent too,
-	like the video player
+	like the video player.
+
+	add presets inside the addon.
 
 */
 
@@ -110,23 +107,34 @@ public:
 	void setup(string _pathSrt);
 	//pass the .srt file path to load
 
-	void update(uint64_t frame);
+	void updatePos(float position);
 	void update();
+
+private:
+	void updateFrame(uint64_t frame);//TODO:
+
 	void updateFades();
 	void updateEngine();
 	void updateDebug();
 
+public:
+
 	void draw();
 	void draw(ofRectangle view);
 	void drawRaw();
+
+private:
+
 	void drawDebug();
 	//letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
+public:
+
 	void drawGui();
 
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
-	//disables ofxGui. useful when using ImGui or to disable gui.
+	// disables ofxGui. useful when using ImGui or to disable gui.
 
 	//void keyPressed(int key);
 
@@ -139,7 +147,7 @@ public:
 	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
-	
+
 	void setSubtitlePrevious() { bPrev = true; }
 	void setSubtitleNext() { bNext = true; }
 	//void setSubtitlePrevious() { currentDialog--; }
@@ -150,12 +158,14 @@ public:
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return fColorBg.get(); };
 
-	ofParameter<bool> bGui_Internal;
-
 	// Call before setup. Set duration in ms to be used with play external mode
-	void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
+	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
+	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
 private:
+
+	ofParameter<bool> bMinimize;
+	ofParameter<bool> bGui_Internal;
 
 	uint64_t tEndSubsFilm = 0;
 	bool bForceAddBreakLines = true;
@@ -165,6 +175,7 @@ private:
 
 	void setupParams();
 	void setupSubs(string _pathSrt);
+	void buildSubsData(); // not really used by the engine. just to preview the SRT window to display all messages.
 
 	void doOpenFile();
 	void processOpenFileSelection(ofFileDialogResult openFileResult);
@@ -194,6 +205,12 @@ public:
 
 	void setFps(float _fps) { fps = _fps; }
 
+	ofParameter<bool> bGui;
+	ofParameter<bool> bDraw;
+	ofParameter<int> durationPlayForced;
+
+private:
+
 	ofParameterGroup params; // for the gui and callback
 	ofParameterGroup params_Transport;
 	ofParameterGroup params_Control;
@@ -203,16 +220,14 @@ public:
 	ofParameterGroup params_FadeOut;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 
-	ofParameter<bool> bGui;
 	ofParameter<void> bOpen;
 	ofParameter<bool> bGui_SrtFull;
-	ofParameter<bool> bDraw;
 	ofParameter<bool> bEdit;
 	ofParameter<bool> bDebug;
-	ofParameter<bool> bLive;//hide all
+	ofParameter<bool> bLive; // hide all
 	ofParameter<bool> bTop;
 #ifdef USE_WIDGET__SUBTITLES
-	ofParameter<bool> bInfo;
+	ofParameter<bool> bDrawWidgetInfo;
 #endif
 	ofParameter<bool> bNext;
 	ofParameter<bool> bPrev;
@@ -221,8 +236,9 @@ public:
 	ofParameter<bool> bPlay;
 	ofParameter<bool> bPlayForced;
 
-	ofParameter<int> durationPlayForced;
-	//ofParameter<float> speedPlayForce;
+	ofParameter<bool> bFontResponsive;
+	//int realAmountLines = 0;
+
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> tPosition;
 
@@ -243,13 +259,19 @@ public:
 	ofParameter<float> fSize; // real font raw size in px
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
-	ofParameter<ofColor> fColor;
-	ofParameter<ofColor> fColorBg;
+	ofParameter<ofFloatColor> fColorTxt;
+	ofParameter<ofFloatColor> fColorBg;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
+	ofParameter<bool> bCapitalize;
 	ofParameter<bool> bResetFont;
 
 private:
+
+	ofParameter<bool> bFine{ "Fine", false };
+	vector<string> names_Align{ "IGNORE","LEFT","RIGHT","CENTER" };
+	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
+	ofParameter<int> indexModes;
 
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
@@ -294,8 +316,9 @@ private:
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
-	vector<string> subsText;
+	vector<string> subsDataText;
 	string path_Srt;//.srt filename
+	string name_Srt;//.srt name
 
 	void doResetFont();
 	std::string getAlignNameFromIndex(int index) const;

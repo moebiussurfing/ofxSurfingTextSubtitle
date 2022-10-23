@@ -148,6 +148,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	// Control
+	indexModes.set("Modes", 0, 0, 2);
+	bCapitalize.set("Capitalize", false);
+	bMinimize.set("Minimize", false);
+	bFontResponsive.set("FontResponsive", false);
 	bStop.set("Stop");
 	bOpen.set("Open");
 	bDraw.set("Draw", true);
@@ -156,7 +160,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bDebug.set("Debug", true);
 	bTop.set("Top", false);
 #ifdef USE_WIDGET__SUBTITLES
-	bInfo.set("Info", true);
+	bDrawWidgetInfo.set("Info", true);
 #endif
 	currentDialog.set("Dialog", 0, 0, 0);
 	bPrev.set("<", false);
@@ -171,7 +175,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	progressPlayFilm.set("% Film", 0, 0, 1);//full length progress
 	progressPlaySlide.set("% Slide", 0, 0, 1);//slide progress
 
-	bAutoScroll.set("bAutoScroll", true);//for ImGui only
+	bAutoScroll.set("Auto Scroll", true);//for ImGui only
 
 	// Fade
 	bAnimatedIn.set("Enable In", false);
@@ -188,14 +192,16 @@ void ofxSurfingTextSubtitle::setupParams()
 	fSizePrc.set("Size", 0.2, 0.1, 1.0f);
 	fSpacing.set("Spacing", 0, -20, 50);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
-	fColorBg.set("ColorBg", ofColor::gray, ofColor(0, 0), ofColor(255, 255));
-	fColor.set("Color", ofColor::white, ofColor(0, 0), ofColor(255, 255));
+	//fColorBg.set("ColorBg", ofColor::gray, ofColor(0, 0), ofColor(255, 255));
+	//fColorTxt.set("Color", ofColor::white, ofColor(0, 0), ofColor(255, 255));
+	fColorBg.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	fColorTxt.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 1, 1, 3);
 	fAlign_str.set("Align ", "-1");
 	bResetFont.set("Reset Style", false);
 
 	bvCentered.set("V Centered", true);
-	amountLinesTargetCentered.set("Max Lines", 6, 1, 10);
+	amountLinesTargetCentered.set("Lines", 6, 1, 10);
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
@@ -221,6 +227,11 @@ void ofxSurfingTextSubtitle::setupParams()
 	progressPlayFilm.setSerializable(false);
 	progressPlaySlide.setSerializable(false);
 
+	//we use index mode
+	bPlay.setSerializable(false);
+	bPlayExternal.setSerializable(false);
+	bPlayForced.setSerializable(false);
+
 	//--
 
 	params_Control.setName("Control");
@@ -232,7 +243,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Control.add(bTheme);
 	params_Control.add(bTop);
 #ifdef USE_WIDGET__SUBTITLES
-	params_Control.add(bInfo);
+	params_Control.add(bDrawWidgetInfo);
 #endif
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	params_Control.add(player.bGui_VideoPlayer);
@@ -241,23 +252,26 @@ void ofxSurfingTextSubtitle::setupParams()
 
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Control.add(bGui_SrtFull);
+	params_Control.add(bMinimize);
 #endif
 	//params_Control.add(bGui);
 	//params_Control.add(box.bEdit);
 
 	params_Transport.setName("Transport");
 	params_Transport.add(currentDialog);
-	//params_Transport.add(progressPlayFilm);
 	params_Transport.add(progressPlaySlide);
 	params_Transport.add(bStop);
+	params_Transport.add(indexModes);
 	params_Transport.add(bPlay);
 	params_Transport.add(bPlayForced);
 	params_Transport.add(durationPlayForced);
 	params_Transport.add(bPrev);
 	params_Transport.add(bNext);
-	//params_Transport.add(speedPlayForce);
 	params_Transport.add(bPlayExternal);
 	params_Transport.add(tPosition);
+
+	//params_Transport.add(progressPlayFilm);
+	//params_Transport.add(speedPlayForce);
 
 	// Fades
 	params_Fade.setName("Fades");
@@ -279,7 +293,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.setName("Style");
 	params_Style.add(fName);
 	params_Style.add(fColorBg);
-	params_Style.add(fColor);
+	params_Style.add(fColorTxt);
 	params_Style.add(fSizePrc);
 	params_Style.add(fSpacing);
 	params_Style.add(fLineHeight);
@@ -287,6 +301,11 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.add(fAlign_str);
 	params_Style.add(bvCentered);
 	params_Style.add(amountLinesTargetCentered);
+	params_Style.add(bCapitalize);
+	params_Style.add(bFontResponsive);
+#ifdef USE_IM_GUI__SUBTITLES
+	params_Style.add(bFine);
+#endif
 	params_Style.add(bResetFont);
 
 	params.setName(bGui.getName());//TODO: BUG: crashes
@@ -310,6 +329,9 @@ void ofxSurfingTextSubtitle::setupParams()
 void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	path_Srt = _pathSrt;
 
+	ofFile file(ofToDataPath(path_Srt));
+	name_Srt = file.getBaseName();
+
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
 
 	subParserFactory = new SubtitleParserFactory(ofToDataPath(path_Srt));
@@ -325,15 +347,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	currentDialog.setMax(sub.size() - 1);
 
 	// pre read all subs on a vector
-	//not used yet
-	int i = 0;
-	subsText.clear();
-	for (SubtitleItem* element : sub)
-	{
-		string s = element->getDialogue();
-		ofLogNotice("ofxSurfingTextSubtitle") << i++ << " " << s;
-		subsText.push_back(s);
-	}
+	buildSubsData();
 
 	//TODO: not sure if .srt file is loaded before the first frame!
 
@@ -344,6 +358,24 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	// get duration from srt subs if is not passed by the user, 
 	// by passing the real video film duration!
 	if (tEndSubsFilm == 0) tEndSubsFilm = sub.back()->getEndTime();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::buildSubsData()
+{
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
+
+	//not used yet
+	int i = 0;
+	subsDataText.clear();
+	for (SubtitleItem* element : sub)
+	{
+		string s = element->getDialogue();
+		if (bCapitalize) s = ofToUpper(s);
+
+		ofLogNotice("ofxSurfingTextSubtitle") << i++ << " " << s;
+		subsDataText.push_back(s);
+	}
 }
 
 //--------------------------------------------------------------
@@ -360,18 +392,6 @@ void ofxSurfingTextSubtitle::startup()
 #endif
 }
 
-/*
-//--------------------------------------------------------------
-void ofxSurfingTextSubtitle::refreshFontStyles() { // refresh font styles after any change
-	ofLogNotice("ofxSurfingTextSubtitle") << "refreshFontStyles";
-
-	fAlign_str = getAlignNameFromIndex(fAlign.get());
-
-	font.setCharacterSpacing(fSpacing);
-	font.setLineHeight(fLineHeight);
-}
-*/
-
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::exit() {
 	ofLogNotice("ofxSurfingTextSubtitle") << "exit";
@@ -385,9 +405,19 @@ void ofxSurfingTextSubtitle::exit() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::update(uint64_t frame)
+void ofxSurfingTextSubtitle::updatePos(float position)
 {
-	//TODO: WIP: external link 
+	tPosition.set(position);
+	update();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::updateFrame(uint64_t frame)
+{
+	//TODO: WIP: 
+	//not implemented yet
+	//external link 
+
 #ifdef USE_TIME_CODE__SUBTITLES
 	uint64_t t = timecode.millisForFrame(frame);
 
@@ -708,7 +738,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 	// Debug info
 	{
 #ifdef USE_WIDGET__SUBTITLES
-		if (bInfo)
+		if (bDrawWidgetInfo)
 		{
 			string s = "";
 
@@ -803,7 +833,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 
 	// info
 #ifdef USE_WIDGET__SUBTITLES
-	if (bInfo) boxInfo.draw();
+	if (bDrawWidgetInfo) boxInfo.draw();
 #endif
 
 	if (!bGui_Internal) return;
@@ -845,30 +875,30 @@ void ofxSurfingTextSubtitle::drawRaw()
 	// v centered enabled
 	else
 	{
-		ofPushMatrix();
-
 		ofRectangle r = getTextBox(textCurrent, box.getRectangle());
+		float _offset = 0;
 
 		//--
 
-		// Force box height
-		float h = getOneLineHeight(true) + getSpacingBetweenLines();
-		int n = amountLinesTargetCentered;
-		//h -= getSpacingBetweenLines();
-		box.setHeight(n * h);
-
-		// Translate
-		float _offset = 0;
-		//if (amountLinesDrawn <= amountLinesTargetCentered)
+		ofPushMatrix();
 		{
-			int _offsetLines = (amountLinesTargetCentered - amountLinesDrawn) / 2.f;
-			_offset = (getOneLineHeight() + getSpacingBetweenLines()) * _offsetLines;
-			ofTranslate(0, _offset);
+			// Force box height
+			float h = getOneLineHeight(true) + getSpacingBetweenLines();
+			int n = amountLinesTargetCentered;
+			//h -= getSpacingBetweenLines();
+			box.setHeight(n * h);
+
+			// Translate
+			//if (amountLinesDrawn <= amountLinesTargetCentered)
+			{
+				int _offsetLines = (amountLinesTargetCentered - amountLinesDrawn) / 2.f;
+				_offset = (getOneLineHeight() + getSpacingBetweenLines()) * _offsetLines;
+				ofTranslate(0, _offset);
+			}
+
+			// Draw
+			drawTextBox(textCurrent, box.getRectangle(), true);
 		}
-
-		// Draw
-		drawTextBox(textCurrent, box.getRectangle(), true);
-
 		ofPopMatrix();
 
 		//--
@@ -896,7 +926,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 {
 	if (!bLive)
 	{
-		if (bEdit)
+		if (bEdit && bDebug)
 		{
 			//fill
 			//ofPushStyle();
@@ -1169,18 +1199,40 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	float _w = box.getWidth();
 	float _h = box.getHeight();
 
+	//ofFloatColor _color;
 	ofColor _color;
+
 	int _align;
 	int _size;
 
-	_size = fSize.get();
+	if (!bFontResponsive) 
+	{ 
+		_size = fSize.get(); 
+	}
+	else 
+	{
+		if (bvCentered) {};
+
+		int diff = 0;
+		if (amountLinesDrawn >= amountLinesTargetCentered)
+		{
+			_size = fSize.get();
+		}
+		else
+		{
+			diff = amountLinesTargetCentered - amountLinesDrawn;
+			_size = ofMap(diff, 0, amountLinesTargetCentered, fSize.get(), amountLinesTargetCentered * fSize.get() * (amountLinesTargetCentered - diff), true);
+		}
+	} 
+
 	_align = fAlign.get();
 
-	_color = fColor.get();
+	_color = fColorTxt.get();
 
 	//if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
 	if ((bAnimatedIn) || (bAnimatedOut))
 	{
+		//_color = ofFloatColor(_color.r, _color.g, _color.b, alpha * _color.a);
 		_color = ofColor(_color, alpha * _color.a);
 	}
 
@@ -1189,67 +1241,69 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	//------
 
-	ofPushStyle();
-	ofSetColor(_color); // don't do nothing. only applies the style
-
 	ofRectangle _bbox;
-	int _numLines = 20;
-	bool _wordsWereCropped = false;
-	bool _bCenter = ((_align == 3) ? true : false);//centered
 
-	/*get the final text formatting (by adding \n's) in the supplied string;
-	BE ARWARE that using TRUE in here will modify your supplied string! */
-	//bool _br = false;
-	bool _br = bForceAddBreakLines;
+	ofPushStyle();
+	{
+		ofSetColor(_color); // don't do nothing. only applies the style
 
-	if (fAlign != 2)//all except right align
-	{
-		_bbox = font.drawMultiLineColumn(
-			_str,					/*string*/
-			_size,					/*size*/
-			_x, _y,					/*where*/
-			MAX(10, _w),			/*column width*/
-			_numLines,				/*get back the number of lines*/
-			false,					/* if true, we wont draw (just get bbox back) */
-			20,						/* max number of lines to draw, crop after that */
-			_br,					/*get the final text formatting (by adding \n's) in the supplied string;
-									BE ARWARE that using TRUE in here will modify your supplied string! */
-			&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
-			_bCenter				/*centered*/
-		);
-	}
-	else // right aligned
-	{
-		//TODO: WIP trying to make work right align
-		if (bForceAddBreakLines)
+		int _numLines = 20;
+		bool _wordsWereCropped = false;
+		bool _bCenter = ((_align == 3) ? true : false);//centered
+
+		/*get the final text formatting (by adding \n's) in the supplied string;
+		BE ARWARE that using TRUE in here will modify your supplied string! */
+		//bool _br = false;
+		bool _br = bForceAddBreakLines;
+
+		if (fAlign != 2) // all (left-center) except right align
 		{
-			auto __bbox = font.drawMultiLineColumn(
+			_bbox = font.drawMultiLineColumn(
 				_str,					/*string*/
 				_size,					/*size*/
 				_x, _y,					/*where*/
 				MAX(10, _w),			/*column width*/
 				_numLines,				/*get back the number of lines*/
-				true,					/* if true, we wont draw (just get bbox back) */
+				false,					/* if true, we wont draw (just get bbox back) */
 				20,						/* max number of lines to draw, crop after that */
 				_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 										BE ARWARE that using TRUE in here will modify your supplied string! */
 				&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
 				_bCenter				/*centered*/
 			);
-
-			_str = _str + " ";//fix last char
-			//textCurrent = _str;
 		}
+		else // right aligned
+		{
+			//TODO: WIP trying to make work right align
+			if (bForceAddBreakLines)
+			{
+				auto __bbox = font.drawMultiLineColumn(
+					_str,					/*string*/
+					_size,					/*size*/
+					_x, _y,					/*where*/
+					MAX(10, _w),			/*column width*/
+					_numLines,				/*get back the number of lines*/
+					true,					/* if true, we wont draw (just get bbox back) */
+					20,						/* max number of lines to draw, crop after that */
+					_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+											BE ARWARE that using TRUE in here will modify your supplied string! */
+					&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+					_bCenter				/*centered*/
+				);
 
-		_bbox = font.drawMultiLine(
-			_str,					/*string*/
-			_size,					/*size*/
-			_x, _y,					/*where*/
-			OF_ALIGN_HORZ_RIGHT,
-			MAX(10, _w)				/*column width*/
-		);
+				_str = _str + " ";//fix last char
+				//textCurrent = _str;
+			}
+
+			_bbox = font.drawMultiLine(
+				_str,					/*string*/
+				_size,					/*size*/
+				_x, _y,					/*where*/
+				OF_ALIGN_HORZ_RIGHT,
+				MAX(10, _w)				/*column width*/
+			);
+		}
 	}
-
 	ofPopStyle();
 
 	//------
@@ -1554,6 +1608,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 
 	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
 	float w = 290;
+	//float w = 250;
 	ImVec2 size_max = ImVec2(w, -1);
 	ImVec2 size_min = ImVec2(w, -1);
 	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
@@ -1597,170 +1652,157 @@ void ofxSurfingTextSubtitle::drawImGui()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWidgets()
 {
-	//ui->AddGroup(subs.params);
-
-	ui->Add(ui->bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
-	ui->AddSpacingSeparated();
-
-	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
-	ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
-	if (!bLive)
-	{
-		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
-		ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-		ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-		ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-	}
-	ui->AddSpacingSeparated();
-	if (!ui->bMinimize) // maximized 
-	{
-		ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-		ui->AddLabel(path_Srt);
-#ifdef USE_WIDGET__VIDEO_PLAYER
-		ui->AddSpacingSeparated();
-		ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
-#endif
-
-#ifdef USE_WIDGET__SUBTITLES
-		ui->Add(bInfo, OFX_IM_TOGGLE_ROUNDED_MINI);
-#endif
-	}
-
 	// time label
-	string s1 = "";
-	string s2 = "";
+	string sfile = "";
+	string sdialog = "";
+	string stime = "";
+	string s;
 	{
 		// filename
-		if (!ui->bMinimize) {
-			s1 += path_Srt;
-			//s1 += "\n";
-		}
+		sfile = name_Srt;
+		//sfile = path_Srt;
 
-		// time
+		// elapsed time 
 		if (bPlay) {
 			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 
 #ifdef USING_OFX_TIME_CODE
-			s2 += timecode.timecodeForMillis(t);
+			stime = timecode.timecodeForMillis(t);
 #else
-			s2 += t / 1000.f;
+			stime += t / 1000.f;
 #endif
 		}
-		else {
-			s2 += sub[currentDialog]->getStartTimeString();
+		if (bPlayForced) {
+			stime = sub[currentDialog]->getStartTimeString();
 		}
-		s2 += "\n";
+		if (bPlayExternal)
+		{
+			auto t = tPosition * (float)tEndSubsFilm;
+#ifdef USING_OFX_TIME_CODE
+			stime = timecode.timecodeForMillis(t);
+#else
+			stime = t / 1000.f + "''";
+#endif
+		}
 
 		// index
-		s2 += ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-		//s2 += " " + ofToString(progressPlayFilm * 100, 0) + ofToString("'%'");//TODO: fix
-		//s2 += "\n";
+		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
+	}
+
+	//----
+
+	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
+	ui->AddSpacingSeparated();
+
+	if (!bMinimize) ui->AddLabelBig(sfile);
+	ui->AddLabelHuge(stime);
+	ui->AddSpacing();
+
+	ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+	s = "Total Duration";
+	ui->AddTooltip(s);
+
+	ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
+	s = "Dialog Duration";
+	ui->AddTooltip(s);
+
+	ui->AddSpacingSeparated();
+
+	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
+	if (!bMinimize) ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
+	ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
+
+	if (!bLive)
+	{
+		ui->Indent();
+		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+		ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+		if (bDebug) {
+			ui->Indent();
+			ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#ifdef USE_WIDGET__SUBTITLES
+			ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
+			ui->Unindent();
+		}
+		ui->Unindent();
+		ui->AddSpacing();
+	}
+
+	ui->AddSpacingSeparated();
+
+	if (!bMinimize) // maximized 
+	{
+		ui->AddLabelBig("SRT FILE");
+
+		std::string n = name_Srt;
+		if (ui->BeginTree(n))
+		{
+			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+			ui->AddSpacingSeparated();
+			ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
+			ui->EndTree();
+		}
+
+		ui->AddSpacingSeparated();
 	}
 
 	//--
 
-	if (!ui->bMinimize) // maximized 
+	// maximized 
+
+	if (!bMinimize)
 	{
-		if (bDraw)
+		if (ui->BeginTree("TRANSPORT", false, false))
 		{
-			if (!bLive)
-			{
-				//ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
-				ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
-				if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-				//ui->Add(bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#ifdef USE_WIDGET__SUBTITLES
-				ui->Add(bInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#endif
-				//if(bEdit) ui->Add(box.bEdit, OFX_IM_TOGGLE_ROUNDED_MINI);
+			//ui->AddLabelBig("TRANSPORT");
+			ui->AddSpacing();
+
+			ui->AddCombo(indexModes, names_Modes);
+			//if (!bPlayExternal) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+
+			if (bPlay) {
+				//ui->Add(bPlay, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
 			}
+			if (bPlayForced) {
+				//ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
+				ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
+				ui->PushButtonRepeat();
+				ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
+				ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
+				ui->PopButtonRepeat();
+			}
+			ui->EndTree();
 		}
 
 		ui->AddSpacingSeparated();
-		ui->AddLabelBig("TRANSPORT");
-		ui->AddSpacing();
-		ui->Add(bPlayExternal, OFX_IM_TOGGLE_SMALL, 3, true);
-		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 3);
-		ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL, 3);
-
-		if (bPlayExternal) {
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-		}
-
-		if (bPlay) {
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-		}
-
-		if (bPlayForced) {
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-			//ui->Add(speedPlayForce);
-		}
-
-		ui->AddSpacing();
-
-		ui->AddLabel(s1);
-		ui->AddLabelBig(s2);
-
-		if (bPlayForced) {
-			ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
-			ui->PushButtonRepeat();
-			ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
-			ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
-			ui->PopButtonRepeat();
-		}
-		ui->AddSpacingSeparated();
-	}
-	else //minimized
-	{
-		ui->AddSpacingSeparated();
-		//ui->AddLabelBig("TRANSPORT");		
-		ui->AddSpacing();
-		ui->Add(bPlay, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL, 2);
-
-		if (bPlay) {
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-		}
-		if (bPlayForced) {
-			//ui->Add(speedPlayForce);
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-		}
-		ui->AddSpacing();
-
-		ui->AddLabelBig(s2);
-		ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
-		ui->PushButtonRepeat();
-		ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
-		ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
-		ui->PopButtonRepeat();
-		ui->AddSpacing();
 	}
 
 	if (ui->BeginTree("FADES", false, false))
 	{
-		if (ui->bMinimize)
+		if (bMinimize)
 		{
 			// in
 			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+
 			// out
 			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
-			if (bAnimatedIn) ofxImGuiSurfing::ProgressBar2(alpha);
+			if (bAnimatedIn) ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
 			if (bAnimatedOut) ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
 		}
 		else
 		{
-			//ui->AddLabelBig("FADE");
-
 			// in
 			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
 			ui->Add(speedFadeIn, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
 			ui->AddTooltip(speedFadeIn);
-			if (bAnimatedIn) {
-				ofxImGuiSurfing::ProgressBar2(alpha);
-				//static ofParameter<float>v{ "v", 0, 0, 1 };
-				//v.setWithoutEventNotifications(alpha);
-				//ui->Add(v, OFX_IM_PROGRESS_BAR_NO_TEXT, 2);
-			}
+			if (bAnimatedIn) ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
 			ui->AddSpacing();
 
 			// out
@@ -1776,50 +1818,100 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			ui->Add(bResetFades, OFX_IM_BUTTON_SMALL);
 		}
+
 		ui->EndTree();
 	}
 
-	if (!ui->bMinimize) ui->AddSpacingSeparated();
+	ui->AddSpacingSeparated();
 
-	//ui->AddGroup(params_Style);
-	if (!ui->bMinimize) {
-		ui->AddLabelBig("STYLE");
-		ui->Add(fName);
-		ui->AddSpacing();
+	if (ui->BeginTree("STYLE", false, false))
+	{
+		if (!bMinimize)
+		{
+			if (ui->BeginTree("COLORS", false, false)) {
+				static bool bShowBg = false;
+				static float _alpha;
+				_alpha = fColorTxt.get().a;
+				if (ImGui::SliderFloat("Alpha", &_alpha, 0, 1)) {
+					ofFloatColor c = fColorTxt.get();
+					fColorTxt.set(ofFloatColor(c.r, c.g, c.b, _alpha));
+				}
 
-		if (ui->BeginTree("COLORS", false, false)) {
-			ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
-			ui->Add(fColor, OFX_IM_COLOR);
+				//ui->Add(fName);
+				//ui->AddSpacing();
+
+				ui->Add(fColorTxt, OFX_IM_COLOR);
+
+				ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
+
+				ui->EndTree();
+			}
+		}
+
+		if (ui->BeginTree("PARAGRAPH", false, false))
+		{
+			if (bMinimize)
+			{
+				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
+			}
+
+			ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
+			SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
+			ui->Add(fSizePrc, st);
+			ui->Add(fSpacing, st);
+			ui->Add(fLineHeight, st);
+			ui->AddSpacing();
+
+			if (!bMinimize)
+			{
+				ui->AddCombo(fAlign, names_Align);
+				ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
+				ui->AddSpacing();
+
+				ui->AddLabel("Container");
+				static float _x;
+				//if (fAlign != 2) 
+				{
+					_x = box.getX();
+					if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+						box.setX(_x);
+					}
+				}
+				//else {
+				//	_x = ofGetWidth() - box.getX();
+				//	if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+				//		box.setX(ofGetWidth() - _x);
+				//	}
+				//}
+				static float _y;
+				_y = box.getY();
+				if (ImGui::SliderFloat("y", &_y, 0, ofGetHeight())) {
+					box.setY(_y);
+				}
+				static float _w;
+				_w = box.getWidth();
+				if (ImGui::SliderFloat("Width", &_w, 0, ofGetWidth())) {
+					box.setWidth(_w);
+				}
+				/*
+				static float _h;
+				_h = box.getHeight();
+				if (ImGui::SliderFloat("Height", &_h, 0, ofGetHeight())) {
+					box.setHeight(_h);
+				}
+				*/
+
+				ui->AddSpacing();
+			}
+			ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
+
 			ui->EndTree();
 		}
-	}
-	//else {
-	//	ui->Add(fColor, OFX_IM_COLOR_NO_INPUTS);
-	//}
 
-	if (ui->BeginTree("PARAGRAPH", false, false)) {
-		if (ui->bMinimize)
-		{
-			ui->Add(fColor, OFX_IM_COLOR_NO_INPUTS);
-		}
-
-		static ofParameter<bool> bFine{ "Fine", false };
-		ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
-		SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
-		ui->Add(fSizePrc, st);
-		ui->Add(fSpacing, st);
-		ui->Add(fLineHeight, st);
-		ui->AddSpacing();
-		if (!ui->bMinimize) {
-			static vector<string>names{ "IGNORE","LEFT","RIGHT","CENTER" };
-			ui->AddCombo(fAlign, names);
-			//ui->Add(fAlign, OFX_IM_DEFAULT);
-			//ui->Add(fAlign_str);
-			ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
-			ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
-			ui->AddSpacing();
-		}
-		ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
 		ui->EndTree();
 	}
 }
@@ -1846,175 +1938,179 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 		if (ui->BeginWindow(bGui_SrtFull, ImGuiWindowFlags_None))
 		{
-			ui->AddLabelBig(path_Srt);
-			ui->AddSpacing();
+			if (!bMinimize) {
+				//ui->AddLabelBig(path_Srt);
+				ui->AddLabelBig(name_Srt + ".srt");
+				ui->AddSpacing();
 
-			ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
-			ui->AddSpacing();
+				ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+				ui->AddSpacing();
 
-			int track_item = currentDialog;
-			ui->Add(bAutoScroll, OFX_IM_TOGGLE_ROUNDED_MINI);
+				int track_item = currentDialog;
+				ui->Add(bAutoScroll, OFX_IM_TOGGLE_ROUNDED_MINI);
 
-			ui->AddSpacingBigSeparated();
-
-			ImGui::BeginChild("_");
-
-			// iterate all srt dialogs
-			for (int n = 0; n < subsText.size(); n++)
-			{
-				/*if (currentDialog == n)*/ ui->AddSeparated();
-
-				//float h = ImGui::GetContentRegionAvail().y;
-				float h = ui->getWidgetsHeightUnit();
-				float w = ImGui::GetContentRegionAvail().x;
-				//float w = ui->getWidgetsWidth(1);
-
-				float w1 = 40;
-				float w2 = w - w1;
-
-				ImGui::Columns(2, "t", false);
-				ImGui::SetColumnWidth(0, w1);
-				ImGui::SetColumnWidth(1, w2);
-
-				string s = ofToString(n);
-				//ui->AddLabel(s);
-
-				bool bDoUpdate = false;
-
-				if (currentDialog == n) ui->BeginBorderFrame();
-
-				if (ImGui::Button(s.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, h)))
-				{
-					//currentDialog = n;
-					bDoUpdate = true;
-				}
-
-				if (currentDialog == n) ui->EndBorderFrame();
-
-				if (bDoUpdate) currentDialog = n;
-
-				ImGui::NextColumn();
-
-				if (currentDialog == n)
-				{
-					//ImGui::ButtonEx(subsText[n].c_str(), ImVec2(w, 40));
-					ui->AddLabelBig(subsText[n]);//bigger if selected
-
-					if (bAutoScroll)
-					{
-						ImGui::SetScrollHereY(0.0f);
-						//ImGui::SetScrollHereY(0.5f);
-						//if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
-					}
-
-					//--
-
-					/*
-					static ImVec2 size(100.0f, 100.0f);
-					static ImVec2 offset(30.0f, 30.0f);
-					ImGui::DragFloat2("size", (float*)&size, 0.5f, 1.0f, 200.0f, "%.0f");
-					ImGui::TextWrapped("(Click and drag to scroll)");
-
-					HelpMarker(
-						"(Left) Using ImGui::PushClipRect():\n"
-						"Will alter ImGui hit-testing logic + ImDrawList rendering.\n"
-						"(use this if you want your clipping rectangle to affect interactions)\n\n"
-						"(Center) Using ImDrawList::PushClipRect():\n"
-						"Will alter ImDrawList rendering only.\n"
-						"(use this as a shortcut if you are only using ImDrawList calls)\n\n"
-						"(Right) Using ImDrawList::AddText() with a fine ClipRect:\n"
-						"Will alter only this specific ImDrawList::AddText() rendering.\n"
-						"This is often used internally to avoid altering the clipping rectangle and minimize draw calls.");
-
-					for (int n = 0; n < 3; n++)
-					{
-						if (n > 0)
-							ImGui::SameLine();
-
-						ImGui::PushID(n);
-						ImGui::InvisibleButton("##canvas", size);
-						if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-						{
-							offset.x += ImGui::GetIO().MouseDelta.x;
-							offset.y += ImGui::GetIO().MouseDelta.y;
-						}
-						ImGui::PopID();
-						if (!ImGui::IsItemVisible()) // Skip rendering as ImDrawList elements are not clipped.
-							continue;
-
-						const ImVec2 p0 = ImGui::GetItemRectMin();
-						const ImVec2 p1 = ImGui::GetItemRectMax();
-						const char* text_str = "Line 1 hello\nLine 2 clip me!";
-						const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
-						ImDrawList* draw_list = ImGui::GetWindowDrawList();
-						switch (n)
-						{
-						case 0:
-							ImGui::PushClipRect(p0, p1, true);
-							draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
-							draw_list->AddText(text_pos, IM_COL32_WHITE, text_str);
-							ImGui::PopClipRect();
-							break;
-						case 1:
-							draw_list->PushClipRect(p0, p1, true);
-							draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
-							draw_list->AddText(text_pos, IM_COL32_WHITE, text_str);
-							draw_list->PopClipRect();
-							break;
-						case 2:
-							ImVec4 clip_rect(p0.x, p0.y, p1.x, p1.y); // AddText() takes a ImVec4* here so let's convert.
-							draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
-							draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize(), text_pos, IM_COL32_WHITE, text_str, NULL, 0.0f, &clip_rect);
-							break;
-						}
-					}
-					*/
-
-					/*
-					static ImVec2 pos(10, 10);
-					static ImVec2 size(40.0f, 40.0f);
-					const ImRect bb(pos, pos + size);
-
-					ItemSize(size, style.FramePadding.y);
-
-					bool hovered, held;
-					bool pressed = ButtonBehavior(bb, 1, &hovered, &held, ImGuiButtonFlags_None);
-					*/
-
-					/*
-					h = 100;
-					w = ImGui::GetContentRegionAvail().x;
-
-					//ImRect bb(text_pos, text_pos + text_size);
-
-					ImVec2 p = ImGui::GetCursorPos();
-					static ImVec2 pos(p.x, p.y);
-					static ImVec2 size(40.0f, 40.0f);
-
-					static ImVec2 p0(pos.x, pos.y);
-					static ImVec2 p1(pos.x + size.x, pos.y + size.y);
-
-					//const ImVec2 p0 = ImGui::GetItemRectMin();
-					//const ImVec2 p1 = ImGui::GetItemRectMax();
-
-					const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
-
-					ImDrawList* draw_list = ImGui::GetWindowDrawList();
-					draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
-					draw_list->AddText(text_pos, IM_COL32_WHITE, "text_pos");
-
-					ImGui::InvisibleButton("butt", ImVec2(w, h));
-					*/
-
-					//--
-				}
-				else ui->AddLabel(subsText[n]);
-
-				ImGui::Columns(1);
-
-				//*if (currentDialog == n) ui->AddSeparated();
+				ui->AddSpacingBig();
+				//ui->AddSpacingBigSeparated();
 			}
 
+			ImGui::BeginChild("_");
+			{
+				// iterate all srt dialogs
+				for (int n = 0; n < subsDataText.size(); n++)
+				{
+					/*if (currentDialog == n)*/ ui->AddSeparated();
+
+					//float h = ImGui::GetContentRegionAvail().y;
+					float h = ui->getWidgetsHeightUnit();
+					float w = ImGui::GetContentRegionAvail().x;
+					//float w = ui->getWidgetsWidth(1);
+
+					float w1 = 40;
+					float w2 = w - w1;
+
+					ImGui::Columns(2, "t", false);
+					ImGui::SetColumnWidth(0, w1);
+					ImGui::SetColumnWidth(1, w2);
+
+					string s = ofToString(n);
+					//ui->AddLabel(s);
+
+					bool bDoUpdate = false;
+
+					if (currentDialog == n) ui->BeginBorderFrame();
+
+					if (ImGui::Button(s.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, h)))
+					{
+						//currentDialog = n;
+						bDoUpdate = true;
+					}
+
+					if (currentDialog == n) ui->EndBorderFrame();
+
+					if (bDoUpdate) currentDialog = n;
+
+					ImGui::NextColumn();
+
+					if (currentDialog == n)
+					{
+						//ImGui::ButtonEx(subsDataText[n].c_str(), ImVec2(w, 40));
+						ui->AddLabelBig(subsDataText[n]);//bigger if selected
+
+						if (bAutoScroll)
+						{
+							ImGui::SetScrollHereY(0.0f);
+							//ImGui::SetScrollHereY(0.5f);
+							//if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+						}
+
+						//--
+
+						/*
+						static ImVec2 size(100.0f, 100.0f);
+						static ImVec2 offset(30.0f, 30.0f);
+						ImGui::DragFloat2("size", (float*)&size, 0.5f, 1.0f, 200.0f, "%.0f");
+						ImGui::TextWrapped("(Click and drag to scroll)");
+
+						HelpMarker(
+							"(Left) Using ImGui::PushClipRect():\n"
+							"Will alter ImGui hit-testing logic + ImDrawList rendering.\n"
+							"(use this if you want your clipping rectangle to affect interactions)\n\n"
+							"(Center) Using ImDrawList::PushClipRect():\n"
+							"Will alter ImDrawList rendering only.\n"
+							"(use this as a shortcut if you are only using ImDrawList calls)\n\n"
+							"(Right) Using ImDrawList::AddText() with a fine ClipRect:\n"
+							"Will alter only this specific ImDrawList::AddText() rendering.\n"
+							"This is often used internally to avoid altering the clipping rectangle and minimize draw calls.");
+
+						for (int n = 0; n < 3; n++)
+						{
+							if (n > 0)
+								ImGui::SameLine();
+
+							ImGui::PushID(n);
+							ImGui::InvisibleButton("##canvas", size);
+							if (ImGui::IsItemActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+							{
+								offset.x += ImGui::GetIO().MouseDelta.x;
+								offset.y += ImGui::GetIO().MouseDelta.y;
+							}
+							ImGui::PopID();
+							if (!ImGui::IsItemVisible()) // Skip rendering as ImDrawList elements are not clipped.
+								continue;
+
+							const ImVec2 p0 = ImGui::GetItemRectMin();
+							const ImVec2 p1 = ImGui::GetItemRectMax();
+							const char* text_str = "Line 1 hello\nLine 2 clip me!";
+							const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
+							ImDrawList* draw_list = ImGui::GetWindowDrawList();
+							switch (n)
+							{
+							case 0:
+								ImGui::PushClipRect(p0, p1, true);
+								draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
+								draw_list->AddText(text_pos, IM_COL32_WHITE, text_str);
+								ImGui::PopClipRect();
+								break;
+							case 1:
+								draw_list->PushClipRect(p0, p1, true);
+								draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
+								draw_list->AddText(text_pos, IM_COL32_WHITE, text_str);
+								draw_list->PopClipRect();
+								break;
+							case 2:
+								ImVec4 clip_rect(p0.x, p0.y, p1.x, p1.y); // AddText() takes a ImVec4* here so let's convert.
+								draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
+								draw_list->AddText(ImGui::GetFont(), ImGui::GetFontSize(), text_pos, IM_COL32_WHITE, text_str, NULL, 0.0f, &clip_rect);
+								break;
+							}
+						}
+						*/
+
+						/*
+						static ImVec2 pos(10, 10);
+						static ImVec2 size(40.0f, 40.0f);
+						const ImRect bb(pos, pos + size);
+
+						ItemSize(size, style.FramePadding.y);
+
+						bool hovered, held;
+						bool pressed = ButtonBehavior(bb, 1, &hovered, &held, ImGuiButtonFlags_None);
+						*/
+
+						/*
+						h = 100;
+						w = ImGui::GetContentRegionAvail().x;
+
+						//ImRect bb(text_pos, text_pos + text_size);
+
+						ImVec2 p = ImGui::GetCursorPos();
+						static ImVec2 pos(p.x, p.y);
+						static ImVec2 size(40.0f, 40.0f);
+
+						static ImVec2 p0(pos.x, pos.y);
+						static ImVec2 p1(pos.x + size.x, pos.y + size.y);
+
+						//const ImVec2 p0 = ImGui::GetItemRectMin();
+						//const ImVec2 p1 = ImGui::GetItemRectMax();
+
+						const ImVec2 text_pos = ImVec2(p0.x + offset.x, p0.y + offset.y);
+
+						ImDrawList* draw_list = ImGui::GetWindowDrawList();
+						draw_list->AddRectFilled(p0, p1, IM_COL32(90, 90, 120, 255));
+						draw_list->AddText(text_pos, IM_COL32_WHITE, "text_pos");
+
+						ImGui::InvisibleButton("butt", ImVec2(w, h));
+						*/
+
+						//--
+					}
+					else ui->AddLabel(subsDataText[n]);
+
+					ImGui::Columns(1);
+
+					//*if (currentDialog == n) ui->AddSeparated();
+				}
+			}
 			ImGui::EndChild();
 
 			ui->EndWindow();
@@ -2037,7 +2133,7 @@ void ofxSurfingTextSubtitle::doResetFont() {
 	fAlign = 1;
 	amountLinesTargetCentered = 6;
 	bvCentered = true;
-	//fColor = ofColor(255, 255);
+	//fColorTxt = ofColor(255, 255);
 }
 
 //--------------------------------------------------------------
@@ -2102,6 +2198,17 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	if (false) {}
 
+	// modes
+	else if (name == indexModes.getName())
+	{
+		switch (indexModes)
+		{
+		case 0: bPlayExternal = true; break;
+		case 1: bPlay = true; break;
+		case 2: bPlayForced = true; break;
+		}
+	}
+
 	// set sub index
 	else if (name == currentDialog.getName())
 	{
@@ -2131,10 +2238,13 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 		//--
 
-		// get dialog
+		// Get dialog
 		if (currentDialog.get() < sub.size())
 		{
-			textCurrent = sub[currentDialog.get()]->getDialogue();
+			buildSubsData();
+
+			if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
+			else textCurrent = sub[currentDialog.get()]->getDialogue();
 
 			//TODO: fail
 			/*
@@ -2304,7 +2414,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == bEdit.getName()) {
 		box.bEdit = bEdit;
 	}
+
 	// debug
+	else if (name == bDebug.getName()) {
+		if (!bDebug) box.setBorderColor(ofColor(0, 0));
+		else box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
+	}
 
 	// theme
 	else if (name == bTheme.getName())
@@ -2315,6 +2430,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	//--
 
 	// Font Styles
+
+	else if (name == bCapitalize.getName())
+	{
+		if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
+		else textCurrent = sub[currentDialog.get()]->getDialogue();
+	}
 
 	else if (name == fSizePrc.getName())
 	{
