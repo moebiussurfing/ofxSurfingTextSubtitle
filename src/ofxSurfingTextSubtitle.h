@@ -86,7 +86,6 @@
 
 class ofxSurfingTextSubtitle
 {
-
 #ifdef USE_IM_GUI__SUBTITLES
 private:
 	ofxSurfingGui* ui;
@@ -208,6 +207,7 @@ public:
 	ofParameter<bool> bGui;
 	ofParameter<bool> bDraw;
 	ofParameter<int> durationPlayForced;
+	ofParameterGroup params_Preset; // re collect params for preset/settings
 
 private:
 
@@ -218,7 +218,6 @@ private:
 	ofParameterGroup params_Fade;
 	ofParameterGroup params_FadeIn;
 	ofParameterGroup params_FadeOut;
-	ofParameterGroup params_Preset; // re collect params for preset/settings
 
 	ofParameter<void> bOpen;
 	ofParameter<bool> bGui_SrtFull;
@@ -269,7 +268,9 @@ private:
 private:
 
 	ofParameter<bool> bFine{ "Fine", false };
+
 	vector<string> names_Align{ "IGNORE","LEFT","RIGHT","CENTER" };
+	
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
 

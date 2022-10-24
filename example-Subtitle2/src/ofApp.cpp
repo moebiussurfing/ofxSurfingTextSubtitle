@@ -64,5 +64,5 @@ void ofApp::keyPressed(int key)
 	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
-	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleIndex((int)ofRandom(subs.getNumSubtitles())); };
+	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
 }

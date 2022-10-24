@@ -381,6 +381,10 @@ void ofxSurfingTextSubtitle::buildSubsData()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::startup()
 {
+#ifdef USE_IM_GUI__SUBTITLES
+	this->setDisableGuiInternal(true);
+#endif
+
 	//return;
 	doResetFont();
 
@@ -1205,11 +1209,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	int _align;
 	int _size;
 
-	if (!bFontResponsive) 
-	{ 
-		_size = fSize.get(); 
+	if (!bFontResponsive)
+	{
+		_size = fSize.get();
 	}
-	else 
+	else
 	{
 		if (bvCentered) {};
 
@@ -1220,10 +1224,15 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		}
 		else
 		{
+			//TODO: make font bigger to fit container
+			_size = 1.25 * fSize.get();
+			
+			/*
 			diff = amountLinesTargetCentered - amountLinesDrawn;
-			_size = ofMap(diff, 0, amountLinesTargetCentered, fSize.get(), amountLinesTargetCentered * fSize.get() * (amountLinesTargetCentered - diff), true);
+			_size = ofMap(diff, 0, amountLinesTargetCentered, fSize.get(), fSize.get() * (amountLinesTargetCentered - diff), true);
+			*/
 		}
-	} 
+	}
 
 	_align = fAlign.get();
 
@@ -1764,7 +1773,16 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddSpacing();
 
 			ui->AddCombo(indexModes, names_Modes);
-			//if (!bPlayExternal) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+			string s = "Link Mode ";
+			switch (indexModes)
+			{
+			case 0: s += "EXTERNAL\nLocal time linked to parent player."; break;
+			case 1: s += "STANDALONE\nTime linked to .srt file times."; break;
+			case 2: s += "FORCED\nLocal time linked to his timer."; break;
+			}
+			ui->AddTooltip(s);
+
+			if (!bPlayExternal) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 
 			if (bPlay) {
 				//ui->Add(bPlay, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
@@ -1866,6 +1884,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			if (!bMinimize)
 			{
 				ui->AddCombo(fAlign, names_Align);
+				ui->AddTooltip("Align");
+
 				ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
 				ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
 				ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
@@ -1981,6 +2001,9 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 					if (ImGui::Button(s.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, h)))
 					{
+						//workflow
+						if (bPlayExternal) bPlayForced = true;
+
 						//currentDialog = n;
 						bDoUpdate = true;
 					}
@@ -2435,6 +2458,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
 		else textCurrent = sub[currentDialog.get()]->getDialogue();
+
+		buildSubsData();
 	}
 
 	else if (name == fSizePrc.getName())
