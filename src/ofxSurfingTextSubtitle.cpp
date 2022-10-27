@@ -28,7 +28,8 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 #endif
 
 	box.setRectConstraintMin(glm::vec2(200, 200));
-	box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
+	box.setBorderColor(ofColor(bTheme ? colorDebugLight : colorDebugDark, 64));
+
 	box.setup();
 
 #ifdef USING_OFX_TIME_CODE
@@ -148,10 +149,6 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	// Control
-	indexModes.set("Modes", 0, 0, 2);
-	bCapitalize.set("Capitalize", false);
-	bMinimize.set("Minimize", false);
-	bFontResponsive.set("FontResponsive", false);
 	bStop.set("Stop");
 	bOpen.set("Open");
 	bDraw.set("Draw", true);
@@ -159,6 +156,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bEdit.set("Edit", true);
 	bDebug.set("Debug", true);
 	bTop.set("Top", false);
+	bLeft.set("Left", false);
 #ifdef USE_WIDGET__SUBTITLES
 	bDrawWidgetInfo.set("Info", true);
 #endif
@@ -203,6 +201,13 @@ void ofxSurfingTextSubtitle::setupParams()
 	bvCentered.set("V Centered", true);
 	amountLinesTargetCentered.set("Lines", 6, 1, 10);
 
+	bCapitalize.set("Capitalize", false);
+	bMinimize.set("Minimize", false);
+	bFontResponsive.set("FontResponsive", false);
+	tSizeResponsive.set("rSize", 0, 0, 1);
+
+	indexModes.set("Modes", 0, 0, 2);
+
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
 //#ifdef USE_WIDGET__SUBTITLES
@@ -242,6 +247,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Control.add(bDebug);
 	params_Control.add(bTheme);
 	params_Control.add(bTop);
+	params_Control.add(bLeft);
 #ifdef USE_WIDGET__SUBTITLES
 	params_Control.add(bDrawWidgetInfo);
 #endif
@@ -303,6 +309,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.add(amountLinesTargetCentered);
 	params_Style.add(bCapitalize);
 	params_Style.add(bFontResponsive);
+	params_Style.add(tSizeResponsive);
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Style.add(bFine);
 #endif
@@ -894,6 +901,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 
 			// Translate
 			//if (amountLinesDrawn <= amountLinesTargetCentered)
+			if (!bFontResponsive)
 			{
 				int _offsetLines = (amountLinesTargetCentered - amountLinesDrawn) / 2.f;
 				_offset = (getOneLineHeight() + getSpacingBetweenLines()) * _offsetLines;
@@ -939,12 +947,78 @@ void ofxSurfingTextSubtitle::drawDebug()
 			//ofDrawRectangle(box.getRectangle());
 			//ofPopStyle();
 
-			//box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
 			box.drawBorderBlinking();
 		}
 
-		// debug
-			// alpha preview
+		//--
+
+		// Alpha preview
+		// Lateral Widget
+		if ((bAnimatedIn || bAnimatedOut))
+		{
+			//bool bLeft = true;
+
+			string s;
+			float x;
+			float y;
+			float pad = 15;
+			float w = 3;
+			float h = -box.getHeight();
+			float offset = 40;
+			glm::vec2 p;
+
+			s = "ALPHA";
+			if (bLeft) x = box.getRectangle().getTopLeft().x - pad- offset;
+			else x = box.getRectangle().getTopRight().x + pad;
+			y = box.getRectangle().getTopRight().y - 15;
+			ofDrawBitmapStringHighlight(s, x, y);
+
+			if (bLeft) {
+				p = box.getRectangle().getTopLeft();
+				x = p.x - pad - w - offset;
+				y = p.y + box.getHeight();
+			}
+			else {
+				p = box.getRectangle().getTopRight();
+				x = p.x + pad;
+				y = p.y + box.getHeight();
+			}
+
+			ofColor c = ofColor(fColorTxt.get(), alpha * fColorTxt.get().a * 255);
+			ofSetColor(c);
+
+			ofRectangle r(x, y, w, h * alpha);
+			ofFill();
+			ofDrawRectangle(r);
+
+			y = y + 20;
+			//s = "Alpha\n";
+			if ((bAnimatedIn && isAnimIn)) s = "IN";
+			else if (bAnimatedOut && isAnimOut) s = "OUT";
+			if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
+				if (bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
+				else ofDrawBitmapStringHighlight(s, x, y);
+		}
+
+		//--
+
+		ofPushMatrix();
+
+		// make some spacing
+		int sp = 20;
+		ofTranslate(0, bTop ? -sp : sp);
+
+		// draw main rule line
+		{
+			ofSetLineWidth(1.f);
+			ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
+			if (bTop)ofDrawLine(box.getX(), box.getY(), box.getX() + box.getWidth(), box.getY());
+			else ofDrawLine(box.getRectangle().getBottomLeft().x, box.getRectangle().getBottomLeft().y, box.getRectangle().getBottomLeft().x + box.getWidth(), box.getRectangle().getBottomLeft().y);
+		}
+
+		// Alpha preview
+		// Text Widget
+		/*
 		if (bDebug && (bAnimatedIn || bAnimatedOut) && (isAnimIn || isAnimOut))
 		{
 			bool bCenter = true;//or left
@@ -1001,6 +1075,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 			if (bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
 			else ofDrawBitmapStringHighlight(s, x, y);
 		}
+		*/
 
 		//--
 
@@ -1065,6 +1140,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 				if (xIn != -1)
 				{
 					// zero
+					/*
 					// triangle
 					if (textCurrent != "") {
 						ofFill();
@@ -1077,6 +1153,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						ofVertex(p.x + szt, p.y - o);
 						ofEndShape();
 					}
+					*/
 
 					// line
 					ofSetLineWidth(lw1);
@@ -1106,7 +1183,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 			{
 				ofSetLineWidth(lw1);
 
-				// fade out begins
+				// Fade out begins
 				float r = 0.f;
 				if (bPlayForced)
 				{
@@ -1133,7 +1210,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 				//--
 
-				// fade out ends
+				// Fade out ends
 				float pixPerMillis = 0;
 				if (bPlayForced)
 				{
@@ -1153,21 +1230,26 @@ void ofxSurfingTextSubtitle::drawDebug()
 				//ofSetLineWidth(2);
 				//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
 				ofFill();
-				ofDrawCircle(xOut2, p.y, 3);
+				ofDrawCircle(xOut2, p.y, 5);
 
 				//--
 
 				// Make fatter the line for the full opacity middle section!
 				// full alpha zone
-				int lw = 4;
-				int off = 0;
-				ofSetLineWidth(lw);
-				ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 128);
-				ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
+				if (0)
+				{
+					int lw = 4;
+					int off = 0;
+					ofSetLineWidth(lw);
+					ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 128);
+					ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
+				}
 			}
 
 			ofPopStyle();
 		}
+
+		ofPopMatrix();
 	}
 }
 
@@ -1225,12 +1307,26 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		else
 		{
 			//TODO: make font bigger to fit container
-			_size = 1.25 * fSize.get();
-			
-			/*
+			// must adapt size. a bit complex..
+			// also can be reduced to when there's too much lines..
+			//float rMax = 1.25f;
+			//_size = rMax * fSize.get();
+
+			//how much less lines that expected/targeted
 			diff = amountLinesTargetCentered - amountLinesDrawn;
+
+			float rLimit = 2.5f;
+			float rMax = ofMap(tSizeResponsive, 0, 1, 1.f, rLimit, true);
+			float r = ofMap(diff, 0, amountLinesTargetCentered, 1, rMax, true);
+
+			_size = r * fSize.get();
+
+			/*
 			_size = ofMap(diff, 0, amountLinesTargetCentered, fSize.get(), fSize.get() * (amountLinesTargetCentered - diff), true);
 			*/
+
+			//offset
+			_y += _size - fSize.get();
 		}
 	}
 
@@ -1615,12 +1711,14 @@ void ofxSurfingTextSubtitle::drawImGui()
 {
 	if (!bGui) return;
 
+	/*
 	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
 	float w = 290;
 	//float w = 250;
 	ImVec2 size_max = ImVec2(w, -1);
 	ImVec2 size_min = ImVec2(w, -1);
 	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
+	*/
 
 	if (ui->BeginWindow(bGui))
 	{
@@ -1701,10 +1799,14 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	//----
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
+	ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
+	bool b = ui->isOverInputText();
+	ui->AddToggle("Input Text", b, OFX_IM_TOGGLE_ROUNDED_MINI);
 	ui->AddSpacingSeparated();
 
 	if (!bMinimize) ui->AddLabelBig(sfile);
-	ui->AddLabelHuge(stime);
+	ui->AddLabelBig(stime);
+	//ui->AddLabelHuge(stime);
 	ui->AddSpacing();
 
 	ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
@@ -1721,7 +1823,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	if (!bMinimize) ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
 
-	if (!bLive)
+	if (!bLive && !bMinimize)
 	{
 		ui->Indent();
 		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
@@ -1730,6 +1832,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Indent();
 			ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
 			ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
 			if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
 			ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
@@ -1744,11 +1847,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	if (!bMinimize) // maximized 
 	{
-		ui->AddLabelBig("SRT FILE");
-
 		std::string n = name_Srt;
 		if (ui->BeginTree(n))
 		{
+			ui->AddLabel("SRT FILE");
+
 			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -1785,10 +1888,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			if (!bPlayExternal) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 
 			if (bPlay) {
-				//ui->Add(bPlay, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(bPlay, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
 			}
 			if (bPlayForced) {
-				//ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
 				ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 				ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 				ui->PushButtonRepeat();
@@ -1886,48 +1989,66 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->AddCombo(fAlign, names_Align);
 				ui->AddTooltip("Align");
 
-				ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
-				ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
-				ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
-				ui->AddSpacing();
-
-				ui->AddLabel("Container");
-				static float _x;
-				//if (fAlign != 2) 
+				if (ui->BeginTree("EXTRA", false, false))
 				{
-					_x = box.getX();
-					if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
-						box.setX(_x);
-					}
-				}
-				//else {
-				//	_x = ofGetWidth() - box.getX();
-				//	if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
-				//		box.setX(ofGetWidth() - _x);
-				//	}
-				//}
-				static float _y;
-				_y = box.getY();
-				if (ImGui::SliderFloat("y", &_y, 0, ofGetHeight())) {
-					box.setY(_y);
-				}
-				static float _w;
-				_w = box.getWidth();
-				if (ImGui::SliderFloat("Width", &_w, 0, ofGetWidth())) {
-					box.setWidth(_w);
-				}
-				/*
-				static float _h;
-				_h = box.getHeight();
-				if (ImGui::SliderFloat("Height", &_h, 0, ofGetHeight())) {
-					box.setHeight(_h);
-				}
-				*/
+					/*if(!bFontResponsive) */ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
+					ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
+					ui->AddSpacing();
 
-				ui->AddSpacing();
+					if (ui->BeginTree("CONTAINER", false, false))
+					{
+						//ui->AddLabel("Container");
+						static float _x;
+						//if (fAlign != 2) 
+						{
+							_x = box.getX();
+							if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+								box.setX(_x);
+							}
+						}
+						//else {
+						//	_x = ofGetWidth() - box.getX();
+						//	if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+						//		box.setX(ofGetWidth() - _x);
+						//	}
+						//}
+
+						static float _y;
+						_y = box.getY();
+						if (ImGui::SliderFloat("y", &_y, 0, ofGetHeight())) {
+							box.setY(_y);
+						}
+
+						static float _w;
+						_w = box.getWidth();
+						if (ImGui::SliderFloat("Width", &_w, 0, ofGetWidth())) {
+							box.setWidth(_w);
+						}
+
+						if (!bvCentered)
+						{
+							static float _h;
+							_h = box.getHeight();
+							if (ImGui::SliderFloat("Height", &_h, 0, ofGetHeight())) {
+								box.setHeight(_h);
+							}
+						}
+
+						ui->EndTree();
+					}
+
+					ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+					if (bFontResponsive)ui->Add(tSizeResponsive, OFX_IM_STEPPER);
+
+					ui->AddSpacing();
+					ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
+					ui->AddSpacing();
+
+					ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
+
+					ui->EndTree();
+				}
 			}
-			ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
-			ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
 
 			ui->EndTree();
 		}
@@ -2154,9 +2275,14 @@ void ofxSurfingTextSubtitle::doResetFont() {
 	fLineHeight = 0.75;
 	fSizePrc = 0.25;
 	fAlign = 1;
-	amountLinesTargetCentered = 6;
-	bvCentered = true;
 	//fColorTxt = ofColor(255, 255);
+
+	bvCentered = true;
+	amountLinesTargetCentered = 6;
+
+	bFontResponsive = false;
+	tSizeResponsive = 0.5;
+
 }
 
 //--------------------------------------------------------------
@@ -2212,7 +2338,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	if (name == progressPlaySlide.getName() ||
 		name == progressPlayFilm.getName() ||
 		name == progressIn.getName() ||
-		name == progressOut.getName())
+		name == progressOut.getName() ||
+		name == tPosition.getName())
 		return;
 
 	ofLogNotice("ofxSurfingTextSubtitle") << " Changed " << name << " : " << e;
@@ -2441,13 +2568,13 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	// debug
 	else if (name == bDebug.getName()) {
 		if (!bDebug) box.setBorderColor(ofColor(0, 0));
-		else box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
+		else box.setBorderColor(ofColor(bTheme ? colorDebugLight : colorDebugDark, 64));
 	}
 
 	// theme
 	else if (name == bTheme.getName())
 	{
-		box.setBorderColor(bTheme ? colorDebugLight : colorDebugDark);
+		box.setBorderColor(ofColor(bTheme ? colorDebugLight : colorDebugDark, 64));
 	}
 
 	//--
@@ -2514,12 +2641,27 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 }
 
-/*
+
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
 {
+	if (!bKeys || (ui->isOverInputText())) return;
+
+	if (key == 'g') { setToggleVisibleGui(); }
+	if (key == 'e') { setToggleEdit(); }
+	if (key == 'd') { setToggleDebug(); }
+	if (key == '.') { stop(); }
+
+	// Browse subs
+	if (key == OF_KEY_RETURN) { setTogglePlayForced(); }
+	if (key == OF_KEY_LEFT) { setSubtitlePrevious(); }
+	if (key == OF_KEY_RIGHT) { setSubtitleNext(); }
+	if (key == OF_KEY_BACKSPACE) { setSubtitleRandomIndex(); };
+
+	// Play both!
+	if (key == ' ') { setTogglePlay(); }
 }
-*/
+
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doOpenFile()

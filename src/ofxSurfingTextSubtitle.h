@@ -8,8 +8,13 @@
 
 	TODO:
 
+	replace in/out widget by a vertical bar on left/right border side.
+
 	fix first subtitle line hidden
 	add engine to adapt font size to amount lines/box size.
+
+	add algorithm/mode to fit exactly the box, 
+	changing font size depending of amount lines.
 
 	test video player encoding problems...
 	bad framerate on Debug compilation.
@@ -135,7 +140,8 @@ public:
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
 	// disables ofxGui. useful when using ImGui or to disable gui.
 
-	//void keyPressed(int key);
+	void keyPressed(int key);
+	ofParameter<bool> bKeys{ "Keys", true };
 
 	//--
 
@@ -225,6 +231,7 @@ private:
 	ofParameter<bool> bDebug;
 	ofParameter<bool> bLive; // hide all
 	ofParameter<bool> bTop;
+	ofParameter<bool> bLeft;
 #ifdef USE_WIDGET__SUBTITLES
 	ofParameter<bool> bDrawWidgetInfo;
 #endif
@@ -236,7 +243,7 @@ private:
 	ofParameter<bool> bPlayForced;
 
 	ofParameter<bool> bFontResponsive;
-	//int realAmountLines = 0;
+	ofParameter<float> tSizeResponsive;
 
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> tPosition;
