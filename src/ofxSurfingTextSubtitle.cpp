@@ -954,21 +954,23 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 		// Alpha preview
 		// Lateral Widget
-		if ((bAnimatedIn || bAnimatedOut))
+		if ((bDebug) && ((bAnimatedIn || bAnimatedOut)))
 		{
 			//bool bLeft = true;
 
 			string s;
 			float x;
 			float y;
-			float pad = 15;
+			float pad = 20;
+			//float pad = 15;
 			float w = 3;
 			float h = -box.getHeight();
-			float offset = 40;
+			float offset = 10;
+			//float offset = 40;
 			glm::vec2 p;
 
 			s = "ALPHA";
-			if (bLeft) x = box.getRectangle().getTopLeft().x - pad- offset;
+			if (bLeft) x = box.getRectangle().getTopLeft().x - pad - offset - 4;
 			else x = box.getRectangle().getTopRight().x + pad;
 			y = box.getRectangle().getTopRight().y - 15;
 			ofDrawBitmapStringHighlight(s, x, y);
@@ -980,7 +982,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 			}
 			else {
 				p = box.getRectangle().getTopRight();
-				x = p.x + pad;
+				x = p.x + pad + offset;
 				y = p.y + box.getHeight();
 			}
 
@@ -1804,6 +1806,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	ui->AddToggle("Input Text", b, OFX_IM_TOGGLE_ROUNDED_MINI);
 	ui->AddSpacingSeparated();
 
+	//ui->widget
+
 	if (!bMinimize) ui->AddLabelBig(sfile);
 	ui->AddLabelBig(stime);
 	//ui->AddLabelHuge(stime);
@@ -1826,18 +1830,23 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	if (!bLive && !bMinimize)
 	{
 		ui->Indent();
-		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
-		ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-		if (bDebug) {
-			ui->Indent();
-			ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-			ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-			ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-			if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+		static bool bExtra = false;
+		ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
+		if (bExtra)
+		{
+			ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+			ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if (bDebug) {
+				ui->Indent();
+				ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
-			ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
-			ui->Unindent();
+				ui->Unindent();
+			}
 		}
 		ui->Unindent();
 		ui->AddSpacing();
