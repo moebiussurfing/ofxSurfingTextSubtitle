@@ -33,12 +33,14 @@
 // OPTIONAL
 
 // 1. GUI
-#define USE_IM_GUI__SUBTITLES // -> Pick your GUI! ImGui / ofxGui
+#define USE_IM_GUI__SUBTITLES 
+// -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
 // 2. VIDEO PLAYER
-//#define USE_WIDGET__VIDEO_PLAYER // -> Could be disable to use your own video player or to use the subtitler as standalone.
+//#define USE_WIDGET__VIDEO_PLAYER 
+// -> Could be disable to use your own video player or to use the subtitler as standalone.
 // A simple video player is bundled for commodity, 
 // then can be removed just by commenting here.
 // (Probably you would want to use your own external video player) 
