@@ -1832,6 +1832,8 @@ void ofxSurfingTextSubtitle::drawImGui()
 {
 	if (!bGui) return;
 
+	bOverTextInput = ui->isOverInputText();
+
 	/*
 	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
 	float w = 290;
@@ -2820,7 +2822,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
 {
-	if (!bKeys || (ui->isOverInputText())) return;
+	if (!bKeys || bOverTextInput) return;
 
 	if (key == 'g') { setToggleVisibleGui(); }
 	if (key == 'e') { setToggleEdit(); }

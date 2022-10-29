@@ -142,6 +142,7 @@ public:
 
 	void keyPressed(int key);
 	ofParameter<bool> bKeys{ "Keys", true };
+	ofParameter<bool> bOverTextInput{ "Over Input", false};
 
 	//--
 
