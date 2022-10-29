@@ -3,7 +3,8 @@
 //--------------------------------------------------------------
 ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 	bGui.set("SUBTITLES", true);
-	bGui_SrtFull.set("SRT", false);
+	bGui_List.set("LIST", false);
+	bGui_Paragraph.set("PARAGRAPH", true);
 	bGui_Internal.set("Gui Internal", true);
 };
 
@@ -155,7 +156,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bLive.set("Live", false);
 	bEdit.set("Edit", true);
 	bDebug.set("Debug", true);
-	bTop.set("Top", false);
+	bTop.set("Top", true);
 	bLeft.set("Left", false);
 #ifdef USE_WIDGET__SUBTITLES
 	bDrawWidgetInfo.set("Info", true);
@@ -176,9 +177,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	bAutoScroll.set("Auto Scroll", true);//for ImGui only
 
 	// Fade
-	bAnimatedIn.set("Enable In", false);
+	bAnimatedIn.set("In", false);
 	speedFadeIn.set("SpeedIn", 0, 0, 1);
-	bAnimatedOut.set("Enable Out", false);
+	bAnimatedOut.set("Out", false);
 	speedFadeOut.set("SpeedOut", 0, 0, 1);
 	countDownOut.set("CountDown", 1000, 1, 1000);
 	progressIn.set("% In", 0, 0, 1);
@@ -257,7 +258,8 @@ void ofxSurfingTextSubtitle::setupParams()
 #endif
 
 #ifdef USE_IM_GUI__SUBTITLES
-	params_Control.add(bGui_SrtFull);
+	params_Control.add(bGui_List);
+	params_Control.add(bGui_Paragraph);
 	params_Control.add(bMinimize);
 #endif
 	//params_Control.add(bGui);
@@ -284,8 +286,8 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Fade.add(bAnimatedIn);
 	params_Fade.add(bAnimatedOut);
 	params_Fade.add(progressPlaySlide);
-	params_FadeIn.setName("In");
-	params_FadeOut.setName("Out");
+	params_FadeIn.setName("g In");
+	params_FadeOut.setName("g Out");
 	params_FadeIn.add(speedFadeIn);
 	params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
 	params_FadeOut.add(speedFadeOut);
@@ -315,8 +317,8 @@ void ofxSurfingTextSubtitle::setupParams()
 #endif
 	params_Style.add(bResetFont);
 
-	params.setName(bGui.getName());//TODO: BUG: crashes
-	//params.setName("TEXT SUBTITLE");
+	//params.setName(bGui.getName());//TODO: BUG: crashes
+	params.setName("SUBTITLER");
 	params.add(params_Control);
 	params.add(params_Transport);
 	params.add(params_Fade);
@@ -336,7 +338,9 @@ void ofxSurfingTextSubtitle::setupParams()
 void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	path_Srt = _pathSrt;
 
+	//ofFile file(path_Srt);
 	ofFile file(ofToDataPath(path_Srt));
+
 	name_Srt = file.getBaseName();
 
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
@@ -345,7 +349,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 
 	if (!subParserFactory) ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
 
-	//bGui_SrtFull.setName(path_Srt);
+	//bGui_List.setName(path_Srt);
 
 	parser = subParserFactory->getParser();
 	sub = parser->getSubtitles();
@@ -365,6 +369,10 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	// get duration from srt subs if is not passed by the user, 
 	// by passing the real video film duration!
 	if (tEndSubsFilm == 0) tEndSubsFilm = sub.back()->getEndTime();
+
+
+	//TODO:
+	//indexModes = indexModes.get();
 }
 
 //--------------------------------------------------------------
@@ -413,6 +421,13 @@ void ofxSurfingTextSubtitle::exit() {
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.exit();
 #endif
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::setPosition(float position)
+{
+	tPosition.set(position);
+	//update();
 }
 
 //--------------------------------------------------------------
@@ -643,22 +658,38 @@ void ofxSurfingTextSubtitle::updateEngine()
 			t = tPosition * (float)tEndSubsFilm;
 		}
 
-		// find the dialog relative to current time
-		int k = 0;
-		for (SubtitleItem* element : sub)
+		if (sub.size() > 0)
 		{
-			if (t > element->getStartTime() && t <= element->getEndTime())
+			// Pre start. 
+			// Waiting first dialog in.
+			// clear text before first dialog
+			if (t < sub[0]->getStartTime())
 			{
-				// To apply only once if currentDialog changed!
-				if (currentDialog.get() != k)
-				{
-					//changed
-					currentDialog = k;//will trig the callback!
-					doUpdateSlidePlay(element);
-				}
-				break;//done found
+				textCurrent = "";
+				isPrecoutingStart = true;
 			}
-			k++;
+			else
+			{
+				isPrecoutingStart = false;
+
+				// find the dialog relative to current time
+				int k = 0;
+				for (SubtitleItem* element : sub)
+				{
+					if (t > element->getStartTime() && t <= element->getEndTime())
+					{
+						// To apply only once if currentDialog changed!
+						if (currentDialog.get() != k)
+						{
+							//changed
+							currentDialog = k;//will trig the callback!
+							doUpdateSlidePlay(element);
+						}
+						break;//done found
+					}
+					k++;
+				}
+			}
 		}
 
 		//--
@@ -691,13 +722,17 @@ void ofxSurfingTextSubtitle::updateEngine()
 	if (bPlayExternal) {
 
 	}
-	else {
+	else
+	{
+		//TODO:
+		/*
 		if (bPlayForced) {
 			tPosition = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
 		}
 		if (bPlay) {
 			tPosition = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
 		}
+		*/
 	}
 }
 
@@ -951,6 +986,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 		}
 
 		if (!bDebug) return;
+		if (isPrecoutingStart) return;
 
 		ofPushStyle();
 
@@ -1109,13 +1145,25 @@ void ofxSurfingTextSubtitle::drawDebug()
 						}
 						*/
 
-						// line
-						ofSetLineWidth(lw1);
-						ofDrawLine(xIn + lw1 / 2, p.y - szt, xIn + lw1 / 2, p.y);
-						//ofDrawLine(xIn, p.y - szt, xIn, p.y);
-						//T
-						//ofDrawLine(xIn, p.y - szt, xIn, p.y + szt);
-						//ofDrawLine(xIn - szt / 2, p.y - szt, xIn + szt / 2, p.y - szt);
+						// triangle
+						ofFill();
+						ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+						ofBeginShape();
+						ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
+						ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+						ofVertex(xIn, p.y);
+						//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
+						//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
+						//ofVertex(xIn, p.y);
+						ofEndShape();
+
+						//// line
+						//ofSetLineWidth(lw1);
+						//ofDrawLine(xIn + lw1 / 2, p.y - szt, xIn + lw1 / 2, p.y);
+						////ofDrawLine(xIn, p.y - szt, xIn, p.y);
+						////T
+						////ofDrawLine(xIn, p.y - szt, xIn, p.y + szt);
+						////ofDrawLine(xIn - szt / 2, p.y - szt, xIn + szt / 2, p.y - szt);
 
 						////triangle
 						//ofFill();
@@ -1156,10 +1204,15 @@ void ofxSurfingTextSubtitle::drawDebug()
 					ofFill();
 					ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 					ofBeginShape();
-					float o = 0;
-					ofVertex(xOut1, p.y + o);
-					ofVertex(xOut1 - szt, p.y - szt);
-					ofVertex(xOut1 - szt, p.y + o);
+					// a
+					//float o = 0;
+					//ofVertex(xOut1, p.y + o);
+					//ofVertex(xOut1 - szt, p.y - szt);
+					//ofVertex(xOut1 - szt, p.y + o);
+					// b
+					ofVertex(xOut1 - szt / 2, p.y);
+					ofVertex(xOut1 + szt / 2, p.y);
+					ofVertex(xOut1, p.y + 0.7 * szt);
 					ofEndShape();
 
 					//--
@@ -1278,6 +1331,8 @@ void ofxSurfingTextSubtitle::draw()
 
 	if (!bGui) return;
 
+	//TODO: fix locking moving the box!
+	//it happens when moving floating preview window sometimes.
 	if (!bLive) box.draw();
 
 	drawDebug();
@@ -1306,18 +1361,25 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	{
 		_size = fSize.get();
 	}
-	else
+	else // font responsive engine
 	{
 		if (bvCentered) {};
 
-		int diff = 0;
+		// Normal mode
 		if (amountLinesDrawn >= amountLinesTargetCentered)
 		{
 			_size = fSize.get();
 		}
+		// Using Engine
 		else
 		{
-			//TODO: make font bigger to fit container
+			int diff = 0;
+
+			//TODO:
+			// it's problematic bc when changing size, 
+			// box relation changes too. 
+			// must be a kind of manual algorithm. 
+			// make font bigger to fit container
 			// must adapt size. a bit complex..
 			// also can be reduced to when there's too much lines..
 			//float rMax = 1.25f;
@@ -1326,17 +1388,65 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			//how much less lines that expected/targeted
 			diff = amountLinesTargetCentered - amountLinesDrawn;
 
+			//float sp = 0;
+			float sp = this->getOneLineHeight();
+
 			float rLimit = 2.5f;
 			float rMax = ofMap(tSizeResponsive, 0, 1, 1.f, rLimit, true);
 			float r = ofMap(diff, 0, amountLinesTargetCentered, 1, rMax, true);
+			//could use a varialbe ratio depending on the amount of lines
 
-			_size = r * fSize.get();
+			float s = 1.f;//scaler
+			float h = box.getHeight();
+			//if (amountLinesDrawn >= 1 && amountLinesDrawn < amountLinesTargetCentered)
+			//{
+			//	_size = (h / amountLinesDrawn) - sp;
+			//	//_size *= amountLinesDrawn;
+			//	_size *= 2;
+			//	// TODO:
+			//	// Improve engine
+			//	// make bigger when less num lines
+			//	/*
+			//	if (amountLinesDrawn == 1)
+			//	{
+			//		_size = box.getHeight();
+			//		_size *= s;
+			//		_size -= sp;
+			//	}
+			//	else if (amountLinesDrawn == 2)
+			//	{
+			//		_size = box.getHeight() / 2.f;
+			//		_size *= s;
+			//		_size -= sp;
+			//	}
+			//	else if (amountLinesDrawn == 3)
+			//	{
+			//		_size = box.getHeight() / 3.f;
+			//		_size *= s;
+			//		_size -= sp;
+			//	}
+			//	else if (amountLinesDrawn == 4)
+			//	{
+			//		_size = box.getHeight() / 4.f;
+			//		_size *= s;
+			//		_size -= sp;
+			//	}
+			//	*/
+			//}
+			//else
+			{
+				_size = r * fSize.get();
+			}
+
+			//_size = r * fSize.get();
 
 			/*
 			_size = ofMap(diff, 0, amountLinesTargetCentered, fSize.get(), fSize.get() * (amountLinesTargetCentered - diff), true);
 			*/
 
-			//offset
+			//--
+
+			// offset substract difference to align to top border
 			_y += _size - fSize.get();
 		}
 	}
@@ -1738,7 +1848,105 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->EndWindow();
 	}
 
-	drawImGuiSrtFull();
+	//--
+
+	if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui);
+
+	//if (ui->BeginTree("PARAGRAPH", false, false))
+	if (ui->BeginWindow(bGui_Paragraph))
+	{
+		ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
+		//ui->PushWidth(0.7f);
+		SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
+		ui->Add(fSizePrc, st);
+		ui->Add(fSpacing, st);
+		ui->Add(fLineHeight, st);
+		//ui->PopWidth();
+
+		ui->AddSpacing();
+
+		if (!bMinimize)
+		{
+			ui->AddCombo(fAlign, names_Align);
+			ui->AddTooltip("Align");
+
+			if (ui->BeginTree("EXTRA", false, false))
+			{
+				/*if(!bFontResponsive) */ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
+				ui->AddSpacing();
+
+				if (ui->BeginTree("CONTAINER", false, false))
+				{
+					ui->PushWidth(0.7f);
+
+					//ui->AddLabel("Container");
+					static float _x;
+					//if (fAlign != 2) 
+					{
+						_x = box.getX();
+						if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+							box.setX(_x);
+						}
+					}
+					//else {
+					//	_x = ofGetWidth() - box.getX();
+					//	if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
+					//		box.setX(ofGetWidth() - _x);
+					//	}
+					//}
+
+					static float _y;
+					_y = box.getY();
+					if (ImGui::SliderFloat("y", &_y, 0, ofGetHeight())) {
+						box.setY(_y);
+					}
+
+					static float _w;
+					_w = box.getWidth();
+					if (ImGui::SliderFloat("Width", &_w, 0, ofGetWidth())) {
+						box.setWidth(_w);
+					}
+
+					if (!bvCentered)
+					{
+						static float _h;
+						_h = box.getHeight();
+						if (ImGui::SliderFloat("Height", &_h, 0, ofGetHeight())) {
+							box.setHeight(_h);
+						}
+					}
+
+					ui->PopWidth();
+
+					ui->EndTree();
+				}
+
+				ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bFontResponsive)ui->Add(tSizeResponsive, OFX_IM_STEPPER);
+
+				ui->AddSpacing();
+				ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->AddSpacing();
+
+				ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
+
+				ui->EndTree();
+			}
+		}
+
+		//ui->EndTree();
+		ui->EndWindow();
+	}
+
+	//--
+
+	if (bGui_List) {
+		if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+		else  ui->setNextWindowAfterWindowNamed(bGui);
+	}
+
+	drawImGuiList();
 
 	//--
 
@@ -1763,7 +1971,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -1810,19 +2018,28 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	//----
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
+
+	/*
 	if (!bMinimize) {
 		ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
 		bool b = ui->isOverInputText();
 		ui->AddToggle("Input Text", b, OFX_IM_TOGGLE_ROUNDED_MINI);
 	}
+	*/
+
 	ui->AddSpacingSeparated();
 
 	//ui->widget
 
-	if (!bMinimize) ui->AddLabelBig(sfile);
+	if (!bMinimize) {
+		ui->AddLabelBig(sfile);
+		s = path_Srt;
+		ui->AddTooltip(s);
+	}
 
 	ui->AddLabelBig(stime);
 	//ui->AddLabelHuge(stime);
+
 	ui->AddSpacing();
 
 	ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
@@ -1835,55 +2052,64 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->AddSpacingSeparated();
 
-	ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
-	if (!bMinimize) ui->Add(bGui_SrtFull, OFX_IM_TOGGLE_ROUNDED_SMALL);
-	ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
-
-	if (!bLive && !bMinimize)
+	if (ui->BeginTree("MAIN", false, false))
 	{
-		ui->Indent();
-		static bool bExtra = false;
-		ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
-		if (bExtra)
+		ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
+		ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
+		//if (!bMinimize) 
 		{
-			ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
-			ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-			if (bDebug) {
-				ui->Indent();
-				ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-				ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-				ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-				if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#ifdef USE_WIDGET__SUBTITLES
-				ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#endif
-				ui->Unindent();
-			}
+			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 		}
-		ui->Unindent();
-		ui->AddSpacing();
-	}
+		ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
+		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 
-	ui->AddSpacingSeparated();
-
-	if (!bMinimize) // maximized 
-	{
-		std::string n = name_Srt;
-		if (ui->BeginTree(n))
+		if (!bLive && !bMinimize)
 		{
-			ui->AddLabel("SRT FILE");
-
-			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-			ui->AddSpacingSeparated();
-			ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+			ui->Indent();
+			static bool bExtra = false;
+			ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if (bExtra)
+			{
+				ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bDebug) {
+					ui->Indent();
+					ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+					ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+					ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+					if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#ifdef USE_WIDGET__SUBTITLES
+					ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
-			ui->EndTree();
+					ui->Unindent();
+				}
+			}
+			ui->Unindent();
+			ui->AddSpacing();
 		}
 
 		ui->AddSpacingSeparated();
+
+		if (!bMinimize) // maximized 
+		{
+			std::string n = name_Srt;
+			if (ui->BeginTree(n))
+			{
+				ui->AddLabel("SRT FILE");
+
+				ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+				ui->AddSpacingSeparated();
+				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
+				ui->EndTree();
+			}
+		}
+
+		ui->EndTree();
 	}
+
+	ui->AddSpacingSeparated();
 
 	//--
 
@@ -1970,7 +2196,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	{
 		if (!bMinimize)
 		{
-			if (ui->BeginTree("COLORS", false, false)) {
+			if (ui->BeginTree("COLORS", false, false))
+			{
+				ui->PushWidth(0.7);
 				static bool bShowBg = false;
 				static float _alpha;
 				_alpha = fColorTxt.get().a;
@@ -1978,110 +2206,37 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ofFloatColor c = fColorTxt.get();
 					fColorTxt.set(ofFloatColor(c.r, c.g, c.b, _alpha));
 				}
+				ui->PopWidth();
 
 				//ui->Add(fName);
 				//ui->AddSpacing();
 
-				ui->Add(fColorTxt, OFX_IM_COLOR);
+				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
+				//ui->Add(fColorTxt, OFX_IM_COLOR);
 
 				ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
-				if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
+				//if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
+				if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
 
 				ui->EndTree();
 			}
 		}
 
-		if (ui->BeginTree("PARAGRAPH", false, false))
+		if (bMinimize)
 		{
-			if (bMinimize)
-			{
-				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
-			}
-
-			ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
-			SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
-			ui->Add(fSizePrc, st);
-			ui->Add(fSpacing, st);
-			ui->Add(fLineHeight, st);
-			ui->AddSpacing();
-
-			if (!bMinimize)
-			{
-				ui->AddCombo(fAlign, names_Align);
-				ui->AddTooltip("Align");
-
-				if (ui->BeginTree("EXTRA", false, false))
-				{
-					/*if(!bFontResponsive) */ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
-					ui->Add(amountLinesTargetCentered, OFX_IM_STEPPER);
-					ui->AddSpacing();
-
-					if (ui->BeginTree("CONTAINER", false, false))
-					{
-						//ui->AddLabel("Container");
-						static float _x;
-						//if (fAlign != 2) 
-						{
-							_x = box.getX();
-							if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
-								box.setX(_x);
-							}
-						}
-						//else {
-						//	_x = ofGetWidth() - box.getX();
-						//	if (ImGui::SliderFloat("x", &_x, 0, ofGetWidth())) {
-						//		box.setX(ofGetWidth() - _x);
-						//	}
-						//}
-
-						static float _y;
-						_y = box.getY();
-						if (ImGui::SliderFloat("y", &_y, 0, ofGetHeight())) {
-							box.setY(_y);
-						}
-
-						static float _w;
-						_w = box.getWidth();
-						if (ImGui::SliderFloat("Width", &_w, 0, ofGetWidth())) {
-							box.setWidth(_w);
-						}
-
-						if (!bvCentered)
-						{
-							static float _h;
-							_h = box.getHeight();
-							if (ImGui::SliderFloat("Height", &_h, 0, ofGetHeight())) {
-								box.setHeight(_h);
-							}
-						}
-
-						ui->EndTree();
-					}
-
-					ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
-					if (bFontResponsive)ui->Add(tSizeResponsive, OFX_IM_STEPPER);
-
-					ui->AddSpacing();
-					ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
-					ui->AddSpacing();
-
-					ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
-
-					ui->EndTree();
-				}
-			}
-
-			ui->EndTree();
+			ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
 		}
 
 		ui->EndTree();
 	}
+
+	//--
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::drawImGuiSrtFull()
+void ofxSurfingTextSubtitle::drawImGuiList()
 {
-	if (bGui_SrtFull)
+	if (bGui_List)
 	{
 		//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW_MEDIUM;
 		/*
@@ -2098,7 +2253,7 @@ void ofxSurfingTextSubtitle::drawImGuiSrtFull()
 
 		//--
 
-		if (ui->BeginWindow(bGui_SrtFull, ImGuiWindowFlags_None))
+		if (ui->BeginWindow(bGui_List, ImGuiWindowFlags_None))
 		{
 			if (!bMinimize) {
 				//ui->AddLabelBig(path_Srt);
@@ -2332,8 +2487,8 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	//bAnimatedIn = true;
 	//bAnimatedOut = true;
 	durationPlayForced = 2000;
-	countDownOut = 500;
-	speedFadeIn = .15;
+	countDownOut = 250;
+	speedFadeIn = .7;
 	speedFadeOut = .5;
 }
 
@@ -2700,6 +2855,9 @@ void ofxSurfingTextSubtitle::doOpenFile()
 	else {
 		ofLogNotice("ofxSurfingTextSubtitle") << ("User hit cancel");
 	}
+
+	//TODO:
+	indexModes = indexModes.get();
 }
 
 //--------------------------------------------------------------
@@ -2724,7 +2882,7 @@ void ofxSurfingTextSubtitle::processOpenFileSelection(ofFileDialogResult openFil
 
 			//workflow
 			//bPlay = true;
-			bPlayForced = true;
+			//bPlayForced = true;
 		}
 	}
 }

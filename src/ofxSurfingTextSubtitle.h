@@ -8,21 +8,18 @@
 
 	TODO:
 
-	replace in/out widget by a vertical bar on left/right border side.
+	responsive engine
+		improve auto size engine
+		add engine to adapt font size to amount lines/box size.
+		add algorithm/mode to fit exactly the box, 
+		changing font size depending of amount lines.
 
-	fix first subtitle line hidden
-	add engine to adapt font size to amount lines/box size.
-
-	add algorithm/mode to fit exactly the box, 
-	changing font size depending of amount lines.
+	add fonts list and set custom fonts on runtime
+	
+	store srt file path to settings to be persistent too,
 
 	test video player encoding problems...
 	bad framerate on Debug compilation.
-
-	add fonts list and set custom fonts on runtime
-
-	store srt file path to settings to be persistent too,
-	like the video player.
 
 	add presets inside the addon.
 
@@ -100,7 +97,7 @@ public:
 	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
 	void drawImGui();
 	void drawImGuiWidgets();
-	void drawImGuiSrtFull();
+	void drawImGuiList();
 #endif
 
 	//--
@@ -113,6 +110,7 @@ public:
 	void setup(string _pathSrt);
 	//pass the .srt file path to load
 
+	void setPosition(float position);
 	void updatePos(float position);
 	void update();
 
@@ -169,6 +167,14 @@ public:
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
+	void load(string _pathSrt) {
+		setupSubs(_pathSrt); 
+
+		//TODO:
+		//indexModes = indexModes.get();
+		//indexModes = 0;
+	};
+
 private:
 
 	ofParameter<bool> bMinimize;
@@ -190,13 +196,13 @@ private:
 	void startup();
 	void exit();
 
-	string path_SubtitlerSettings = "Subtitler.json";
+	string path_SubtitlerSettings = "ofxSurfingTextSubtitle.json";
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
 	std::vector<SubtitleItem*> sub;
 
-	ofxSurfingBoxInteractive box;
+	ofxSurfingBoxInteractive box;//main container
 
 #ifdef USE_WIDGET__SUBTITLES
 	ofxSurfingBoxHelpText boxInfo;
@@ -228,7 +234,8 @@ private:
 	ofParameterGroup params_FadeOut;
 
 	ofParameter<void> bOpen;
-	ofParameter<bool> bGui_SrtFull;
+	ofParameter<bool> bGui_List;
+	ofParameter<bool> bGui_Paragraph;
 	ofParameter<bool> bEdit;
 	ofParameter<bool> bDebug;
 	ofParameter<bool> bLive; // hide all
@@ -303,7 +310,7 @@ private:
 
 	ofColor colorDebugDark = ofColor::black;
 	ofColor colorDebugLight = ofColor::white;
-	ofParameter<bool> bTheme{ "Theme", false };
+	ofParameter<bool> bTheme{ "Theme", true };
 
 	string textCurrent = "";
 
@@ -312,6 +319,8 @@ private:
 	ofxPanel gui;
 
 	uint64_t tPlay = 0;
+	
+	bool isPrecoutingStart = false;
 
 	void Changed(ofAbstractParameter& e);
 
