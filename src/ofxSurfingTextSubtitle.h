@@ -256,7 +256,7 @@ private:
 	ofParameter<bool> bPlay;
 	ofParameter<bool> bPlayForced;
 
-	ofParameter<bool> bFontResponsive;
+	ofParameter<bool> bResponsive;
 	ofParameter<float> resizeResponsive;
 
 	ofParameter<bool> bPlayExternal;
@@ -270,7 +270,7 @@ private:
 	ofParameter<bool> bResetFades;
 
 	ofParameter<bool> bAutoScroll;
-	ofParameter<bool> bvCentered; // move up block to center not depending of amount of lines.
+	ofParameter<bool> bCenteredV; // move up block to center not depending of amount of lines.
 	ofParameter<int> amountLinesTarget;
 
 	ofParameter<std::string> fName; // name to display only

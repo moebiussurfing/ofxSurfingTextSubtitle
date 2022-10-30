@@ -197,12 +197,12 @@ void ofxSurfingTextSubtitle::setupParams()
 	fAlign_str.set("Align ", "-1");
 	bResetFont.set("Reset Style", false);
 
-	bvCentered.set("Centered", true);
+	bCenteredV.set("Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
 
 	bCapitalize.set("Capitalize", false);
 	bMinimize.set("Minimize", false);
-	bFontResponsive.set("Responsive", false);
+	bResponsive.set("Responsive", false);
 	resizeResponsive.set("Resize", 0, 0, 1);
 
 	indexModes.set("Modes", 0, 0, 2);
@@ -306,9 +306,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.add(fLineHeight);
 	params_Style.add(fAlign);
 	params_Style.add(fAlign_str);
-	params_Style.add(bvCentered);
+	params_Style.add(bCenteredV);
 	params_Style.add(amountLinesTarget);
-	params_Style.add(bFontResponsive);
+	params_Style.add(bResponsive);
 	params_Style.add(resizeResponsive);
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Style.add(bFine);
@@ -913,7 +913,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 	//--
 
 	// Force box height
-	if (bvCentered || bFontResponsive)
+	if (bCenteredV || bResponsive)
 	{
 		float h = getOneLineHeight() + getSpacingBetweenLines();
 		int n = amountLinesTarget;
@@ -925,7 +925,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 	//--
 
 	// v centered disabled
-	if (!bvCentered)
+	if (!bCenteredV)
 	{
 		drawTextBox(textCurrent, box.getRectangle(), true);
 	}
@@ -942,7 +942,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 		{
 			// Translate
 			//if (amountLinesDrawn <= amountLinesTarget)
-			if (!bFontResponsive)
+			if (!bResponsive)
 			{
 				int _offsetLines = (amountLinesTarget - amountLinesDrawn) / 2.f;
 				_offset = (getOneLineHeight() + getSpacingBetweenLines()) * _offsetLines;
@@ -1363,11 +1363,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	int _size;
 
 	//TODO:
-	if (bvCentered) {
+	if (bCenteredV) {
 	};
 
 	// Non responsive
-	if (!bFontResponsive)
+	if (!bResponsive)
 	{
 		_size = fSize.get();
 	}
@@ -1477,7 +1477,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			//--
 
 			// Offset substract difference to align to top border.
-			_y += _size - fSize.get();
+			//_y += _size - fSize.get();
 		}
 	}
 
@@ -1638,7 +1638,7 @@ ofRectangle ofxSurfingTextSubtitle::getTextBox(std::string _str, ofRectangle r)
 }
 
 //--------------------------------------------------------------
-float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly) 
+float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 {
 	// Pre calculate line heights. without the spacing
 
@@ -1916,7 +1916,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -1945,15 +1945,16 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 			if (ui->BeginTree("EXTRA", false, false))
 			{
-				ui->Add(amountLinesTarget, OFX_IM_STEPPER);
-				ui->Add(bvCentered, OFX_IM_TOGGLE_ROUNDED_MINI);
-				ui->Add(bFontResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
-				if (bFontResponsive) {
+				ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bResponsive) {
 					ui->Add(resizeResponsive, OFX_IM_STEPPER);
 					ui->Add(resizeResponsive, OFX_IM_HSLIDER_MINI_NO_LABELS);
 				}
+				if (bCenteredV || bResponsive)
+					ui->Add(amountLinesTarget, OFX_IM_STEPPER);
 
-				ui->AddSpacing();
+				ui->AddSpacingSeparated();
 
 				if (ui->BeginTree("CONTAINER", false, false))
 				{
@@ -1987,7 +1988,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 						box.setWidth(_w);
 					}
 
-					if (!bvCentered)
+					if (!bCenteredV)
 					{
 						static float _h;
 						_h = box.getHeight();
@@ -2073,7 +2074,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-		}
+	}
 
 	//----
 
@@ -2133,11 +2134,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
 					ui->Unindent();
+				}
 			}
-		}
 			ui->Unindent();
 			ui->AddSpacing();
-	}
+		}
 
 		ui->AddSpacingSeparated();
 
@@ -2155,11 +2156,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 				ui->EndTree();
+			}
 		}
-	}
 
 		ui->EndTree();
-}
+	}
 
 	ui->AddSpacingSeparated();
 
@@ -2290,7 +2291,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	}
 
 	//--
-	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiList()
@@ -2512,10 +2513,10 @@ void ofxSurfingTextSubtitle::doResetFont() {
 	fAlign = 1;
 	//fColorTxt = ofColor(255, 255);
 
-	//bvCentered = true;
+	//bCenteredV = true;
 	amountLinesTarget = 6;
 
-	bFontResponsive = false;
+	bResponsive = false;
 	resizeResponsive = 0.5;
 
 }
@@ -2844,7 +2845,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 	}
 	//// v center
-	//else if (name == bvCentered.getName())
+	//else if (name == bCenteredV.getName())
 	//{
 	//}
 
@@ -2878,14 +2879,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	// workflow
 
-	else if (name == bFontResponsive.getName())
+	else if (name == bResponsive.getName())
 	{
-		if (bFontResponsive) bvCentered = false;
+		if (bResponsive) bCenteredV = false;
 	}
 
-	else if (name == bvCentered.getName())
+	else if (name == bCenteredV.getName())
 	{
-		if (bvCentered) bFontResponsive = false;
+		if (bCenteredV) bResponsive = false;
 	}
 }
 
