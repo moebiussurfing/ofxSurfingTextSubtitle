@@ -335,12 +335,13 @@ private:
 
 	ofxFontStash font;
 
-	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bRaw = false);
-	ofRectangle getTextBox(std::string _t, ofRectangle r);
+	ofRectangle drawTextBox(std::string _t, ofRectangle r, bool bNoDraw = false);
+	ofRectangle getTextBoxEstimate(std::string _t, ofRectangle r);
 
 	// oneOnly true is faster but false is probably more precise.
 	float getOneLineHeight(bool fast = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
+	ofRectangle boxDrawn; // to memorize last drawn container. Use with care to avoid some flicks.
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
