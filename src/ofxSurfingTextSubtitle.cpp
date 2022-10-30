@@ -914,16 +914,13 @@ void ofxSurfingTextSubtitle::drawRaw()
 
 	// Force box height
 
-	//if (bCenteredV || bResponsive)
+	if (bCenteredV || bResponsive)
 	{
 		float h = getOneLineHeight() + getSpacingBetweenLines();
 		box.setHeight(amountLinesTarget * h);
 	}
 
 	//--
-
-	// Will update amountLinesDrawn
-	ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
 
 	// Will update boxDrawn
 	drawTextBox(textCurrent, box.getRectangle(), true);//no draw
@@ -961,9 +958,13 @@ void ofxSurfingTextSubtitle::drawRaw()
 		ofPopMatrix();
 
 		// Mark Center Point
+		/*
+		// Will update amountLinesDrawn
+		ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
 		if (!bLive)
 		{
-			if (bDebug /*&& bDebug2*/)
+			if (bDebug)
+			//if (bDebug2)
 			{
 				float _x = box.getX();
 				float _y = box.getY();
@@ -975,6 +976,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 				drawInsertionPoint(_x, _y, 8, 8);
 			}
 		}
+		*/
 	}
 }
 
@@ -1901,7 +1903,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
