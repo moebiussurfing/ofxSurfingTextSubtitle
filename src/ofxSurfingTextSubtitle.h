@@ -11,12 +11,12 @@
 	responsive engine
 		improve auto size engine
 		add engine to adapt font size to amount lines/box size.
-		add algorithm/mode to fit exactly the box, 
+		add algorithm/mode to fit exactly the box,
 		changing font size depending of amount lines.
 
 	add fonts list and set custom fonts on runtime
-	
-	bPlay workflow is a bit messy, 
+
+	bPlay workflow is a bit messy,
 		bc mode index selector forces play.
 
 	store srt file path to settings to be persistent too,
@@ -142,6 +142,9 @@ private:
 	//letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
+	string sEngine;
+	int diff;
+
 public:
 
 	void drawGui();
@@ -159,6 +162,7 @@ public:
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setToggleDebug() { bDebug = !bDebug; }
 	void setDebug(bool b) { bDebug = b; }
+	void setToggleAlign() { fAlign++; if (fAlign.get() > 3) fAlign = 1; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
 	void setSubtitlePrevious() { bPrev = true; }
@@ -173,7 +177,7 @@ public:
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
 	void load(string _pathSrt) {
-		setupSubs(_pathSrt); 
+		setupSubs(_pathSrt);
 
 		//TODO:
 		//indexModes = indexModes.get();
@@ -291,7 +295,7 @@ private:
 	ofParameter<bool> bFine{ "Fine", false };
 
 	vector<string> names_Align{ "IGNORE","LEFT","RIGHT","CENTER" };
-	
+
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
 
@@ -324,7 +328,7 @@ private:
 	ofxPanel gui;
 
 	uint64_t tPlay = 0;
-	
+
 	bool isPrecoutingStart = false;
 
 	void Changed(ofAbstractParameter& e);
@@ -335,7 +339,7 @@ private:
 	ofRectangle getTextBox(std::string _t, ofRectangle r);
 
 	// oneOnly true is faster but false is probably more precise.
-	float getOneLineHeight(bool oneOnly = true); // get real letter height to correct anchor offset...
+	float getOneLineHeight(bool fast = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
