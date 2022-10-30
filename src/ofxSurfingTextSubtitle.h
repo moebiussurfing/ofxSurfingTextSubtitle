@@ -288,7 +288,7 @@ private:
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bCapitalize;
-	ofParameter<bool> bResetFont;
+	ofParameter<bool> bReset;
 
 private:
 
@@ -349,7 +349,7 @@ private:
 	string path_Srt;//.srt filename
 	string name_Srt;//.srt name
 
-	void doResetFont();
+	void doReset();
 	std::string getAlignNameFromIndex(int index) const;
 
 	void doResetFades();

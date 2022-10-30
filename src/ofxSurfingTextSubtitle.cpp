@@ -195,7 +195,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	fColorTxt.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 1, 1, 3);
 	fAlign_str.set("Align ", "-1");
-	bResetFont.set("Reset Style", false);
+	bReset.set("Reset", false);
 
 	bCenteredV.set("Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
@@ -222,7 +222,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	fName.setSerializable(false);
 	fPath.setSerializable(false);
 	fAlign_str.setSerializable(false);
-	bResetFont.setSerializable(false);
+	bReset.setSerializable(false);
 	bResetFades.setSerializable(false);
 	bNext.setSerializable(false);
 	bPrev.setSerializable(false);
@@ -313,7 +313,7 @@ void ofxSurfingTextSubtitle::setupParams()
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Style.add(bFine);
 #endif
-	params_Style.add(bResetFont);
+	params_Style.add(bReset);
 
 	//params.setName(bGui.getName());//TODO: BUG: crashes
 	params.setName("SUBTITLER");
@@ -399,7 +399,7 @@ void ofxSurfingTextSubtitle::startup()
 #endif
 
 	//return;
-	doResetFont();
+	doReset();
 
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 	ofxSurfingHelpers::loadGroup(params, path_SubtitlerSettings);
@@ -1903,7 +1903,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 }
 
@@ -1925,6 +1925,20 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 		ui->AddSpacing();
 
+		if (bMinimize)
+		{
+			ui->AddCombo(fAlign, names_Align);
+			ui->AddTooltip("Align");
+			ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if (bResponsive)ui->Add(resizeResponsive, OFX_IM_HSLIDER_MINI_NO_LABELS);
+			if (bCenteredV || bResponsive) ui->Add(amountLinesTarget, OFX_IM_STEPPER);
+
+			ui->AddSpacingSeparated();
+
+			ui->Add(bReset, OFX_IM_BUTTON_SMALL);
+		}
+
 		if (!bMinimize)
 		{
 			ui->AddCombo(fAlign, names_Align);
@@ -1943,11 +1957,9 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 				if (bCenteredV || bResponsive)
 					ui->Add(amountLinesTarget, OFX_IM_STEPPER);
 
-				if (ui->AddButton("Reset", OFX_IM_BUTTON_SMALL))
-				{
-					resizeResponsive = 0.5;
-					amountLinesTarget = 6;
-				}
+				ui->AddSpacingSeparated();
+
+				ui->Add(bReset, OFX_IM_BUTTON_SMALL);
 
 				ui->AddSpacingSeparated();
 
@@ -1999,7 +2011,8 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 				//--
 
-				if (1)
+				//if (0)
+				if (!bMinimize)
 				{
 					ui->AddSpacingSeparated();
 
@@ -2083,7 +2096,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+		}
 
 	//----
 
@@ -2165,10 +2178,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 				ui->EndTree();
 			}
-		}
+	}
 
 		ui->EndTree();
-	}
+}
 
 	ui->AddSpacingSeparated();
 
@@ -2293,10 +2306,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
 		}
-
-		ui->AddSpacingSeparated();
-
-		ui->Add(bResetFont, OFX_IM_BUTTON_SMALL);
 
 		ui->EndTree();
 	}
@@ -2512,7 +2521,7 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 #endif
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::doResetFont() {
+void ofxSurfingTextSubtitle::doReset() {
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 
 	//TODO BUG: crash
@@ -2528,6 +2537,9 @@ void ofxSurfingTextSubtitle::doResetFont() {
 	//bCenteredV = true;
 	bResponsive = false;
 	resizeResponsive = 0.5;
+
+	resizeResponsive = 0.5;
+	amountLinesTarget = 6;
 }
 
 //--------------------------------------------------------------
@@ -2855,10 +2867,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 
 	// reset style
-	else if (name == bResetFont.getName() && bResetFont.get())
+	else if (name == bReset.getName() && bReset.get())
 	{
-		bResetFont = false;
-		doResetFont();
+		bReset = false;
+		doReset();
 	}
 	// reset fades
 	else if (name == bResetFades.getName() && bResetFades.get())
