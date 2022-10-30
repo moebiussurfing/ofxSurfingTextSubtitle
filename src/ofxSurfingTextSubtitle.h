@@ -16,6 +16,9 @@
 
 	add fonts list and set custom fonts on runtime
 	
+	bPlay workflow is a bit messy, 
+		bc mode index selector forces play.
+
 	store srt file path to settings to be persistent too,
 
 	test video player encoding problems...
@@ -90,13 +93,19 @@
 
 class ofxSurfingTextSubtitle
 {
+	//--
+
 #ifdef USE_IM_GUI__SUBTITLES
 private:
 	ofxSurfingGui* ui;
+
 public:
 	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
 	void drawImGui();
+
+private:
 	void drawImGuiWidgets();
+	void drawImGuiWindowParagraph();
 	void drawImGuiList();
 #endif
 
@@ -111,7 +120,7 @@ public:
 	//pass the .srt file path to load
 
 	void setPosition(float position);
-	void updatePos(float position);
+	void updatePosition(float position);
 	void update();
 
 private:
@@ -142,7 +151,6 @@ public:
 
 	void keyPressed(int key);
 	ofParameter<bool> bKeys{ "Keys", true };
-	ofParameter<bool> bOverTextInput{ "Over Input", false};
 
 	//--
 
@@ -153,12 +161,8 @@ public:
 	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
-
 	void setSubtitlePrevious() { bPrev = true; }
 	void setSubtitleNext() { bNext = true; }
-	//void setSubtitlePrevious() { currentDialog--; }
-	//void setSubtitleNext() { currentDialog++; }
-
 	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
 
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
@@ -253,7 +257,7 @@ private:
 	ofParameter<bool> bPlayForced;
 
 	ofParameter<bool> bFontResponsive;
-	ofParameter<float> tSizeResponsive;
+	ofParameter<float> resizeResponsive;
 
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> tPosition;
@@ -267,7 +271,7 @@ private:
 
 	ofParameter<bool> bAutoScroll;
 	ofParameter<bool> bvCentered; // move up block to center not depending of amount of lines.
-	ofParameter<int> amountLinesTargetCentered;
+	ofParameter<int> amountLinesTarget;
 
 	ofParameter<std::string> fName; // name to display only
 	ofParameter<std::string> fPath; // hardcoded file fonts paths
