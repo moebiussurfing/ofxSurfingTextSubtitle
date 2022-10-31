@@ -6,13 +6,18 @@
 
 /*
 
+	BUG:
+
+	fix Forced mode broken
+
+	--
+
 	TODO:
 
-	responsive engine
-		improve auto size engine
-		add engine to adapt font size to amount lines/box size.
-		add algorithm/mode to fit exactly the box,
-		changing font size depending of amount lines.
+	fix counDown direct to dt fadeoput speed. 
+		Deprecate dt usages. go for ms for duration!
+
+	fix responsive engine a bit. calibration. jumps when enable.
 
 	add fonts list and set custom fonts on runtime
 
@@ -89,6 +94,10 @@
 
 #define MAX_FONT_SIZE 400
 
+#define DT_RATIO_MIN 0.4f
+#define DT_RATIO_MAX 6.0f
+//#define DT_RATIO_MAX 7.0f
+
 //----
 
 class ofxSurfingTextSubtitle
@@ -120,6 +129,8 @@ public:
 	//pass the .srt file path to load
 
 	void setPosition(float position);
+
+	// call only one of both update methods
 	void updatePosition(float position);
 	void update();
 
@@ -159,10 +170,11 @@ public:
 
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
+	void setToggleLive() { bLive = !bLive; }
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setToggleDebug() { bDebug = !bDebug; }
 	void setDebug(bool b) { bDebug = b; }
-	void setToggleAlign() { fAlign++; if (fAlign.get() > 3) fAlign = 1; }
+	void setToggleAlign() { fAlign++; if (fAlign.get() > 2) fAlign = 0; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
 	void setSubtitlePrevious() { bPrev = true; }
@@ -221,11 +233,12 @@ private:
 	ofxTimecode timecode;
 #endif
 
-	float fps = 60;
-
 public:
 
-	void setFps(float _fps) { fps = _fps; }
+	void setFps(float _fps) { 
+		fps = _fps; 
+		dt = 1 / fps;
+	}
 
 	ofParameter<bool> bGui;
 	ofParameter<bool> bDraw;
@@ -294,7 +307,7 @@ private:
 
 	ofParameter<bool> bFine{ "Fine", false };
 
-	vector<string> names_Align{ "IGNORE","LEFT","RIGHT","CENTER" };
+	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
@@ -302,9 +315,12 @@ private:
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
 	float alpha = 1.f;
-	float dtAnim = 1.f;
+	float dtAnimIn = 1.f;
+	float dtAnimOut = 1.f;
 	bool isAnimIn = false;
 	bool isAnimOut = false;
+	float fps = 60.f;
+	float dt = 1.f / (float)fps;
 
 	ofParameter<float> progressPlayFilm;//measured in subs dialogs not in time
 	ofParameter<float> progressPlaySlide;
