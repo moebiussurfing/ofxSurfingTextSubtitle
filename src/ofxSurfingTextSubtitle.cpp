@@ -1458,14 +1458,16 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 				//--
 				
+				//TODO:
 				// Extra stuff
 				if (amountLinesDrawn == 1) {
 					_size *= 2.0f;
-					_y -= fSize.get()*0.5;
+					//if(bCenteredV) _y -= fSize.get() * 0.2;
+					_y -= fSize.get() * 0.2;
 				}
 				else if (amountLinesDrawn == 2) {
 					_size *= 1.25f;
-					_y -= fSize.get()*0.5;
+					if (bCenteredV) _y -= fSize.get()*0.5;
 				}
 
 				//--
