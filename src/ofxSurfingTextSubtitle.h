@@ -18,6 +18,7 @@
 		Deprecate dt usages. go for ms for duration!
 
 	fix responsive engine a bit. calibration. jumps when enable.
+		should measure how much lines are being drawn.
 
 	add fonts list and set custom fonts on runtime
 

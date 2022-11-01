@@ -1457,6 +1457,18 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 				_size = r * fSize.get();
 
 				//--
+				
+				// Extra stuff
+				if (amountLinesDrawn == 1) {
+					_size *= 2.0f;
+					_y -= fSize.get()*0.5;
+				}
+				else if (amountLinesDrawn == 2) {
+					_size *= 1.25f;
+					_y -= fSize.get()*0.5;
+				}
+
+				//--
 
 				// Offset substract difference to align to top border.
 				//_y -= fSize.get()- _size;
@@ -1490,7 +1502,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 		int _numLines = 20;
 		bool _wordsWereCropped = false;
-		bool _bCenter = ((_align == 3) ? true : false);//centered
+		bool _bCenter = ((_align == 2) ? true : false);//centered
 
 		/*get the final text formatting (by adding \n's) in the supplied string;
 		BE ARWARE that using TRUE in here will modify your supplied string! */
