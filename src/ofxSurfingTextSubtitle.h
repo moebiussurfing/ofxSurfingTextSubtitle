@@ -132,7 +132,7 @@ public:
 	void setPosition(float position);
 
 	// call only one of both update methods
-	void updatePosition(float position);
+	void updatePosition(float position);//to be used by the external mode
 	void update();
 
 private:
