@@ -4,7 +4,7 @@
 void ofApp::setup()
 {
 	ofSetWindowPosition(-1920, 25);
-	ofSetFrameRate(30);
+	ofSetFrameRate(60);
 
 	subs.setUiPtr(&ui);
 	subs.setDisableGuiInternal(true);

@@ -14,7 +14,8 @@
 
 	TODO:
 
-	fix counDown direct to dt fadeoput speed. 
+	Remove dt controllers for speed.
+	fix counDown direct to dt fadeout speed. 
 		Deprecate dt usages. go for ms for duration!
 
 	fix responsive engine a bit. calibration. jumps when enable.
