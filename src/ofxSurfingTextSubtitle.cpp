@@ -106,42 +106,57 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::loadFont(string path)
+{
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path;
+
+	if (fPath.get() != path) fPath.setWithoutEventNotifications(path);
+
+	bool b = font.setup(fPath, 1.0, _textDimension, _mipmaps, 8, _dpiScale);
+	if (!b) ofLogError("ofxSurfingTextSubtitle") << "Font file not found: " << fPath;
+
+	if (b)
+	{
+		auto ss = ofSplitString(fPath, "/");
+		if (ss.size() >= 2) fName = ss[1];
+	}
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setupFont()
 {
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
-
-	float _dpiScale = 2.0;
-	bool _mipmaps = true;
-	int _textDimension = 2048;
 
 	fName = "-1";
 	//fName = "ExtendedBold";
 
 	// search some fonts alternatives
-	fPath = "fonts/GTAmerica-ExtendedBlack.ttf";
-	if (!ofFile::doesFileExist(fPath.get())) {
-		fPath = FONT_FILES_PATH + ofToString(FONT_FILE_BIG);
-		if (!ofFile::doesFileExist(fPath.get())) {
-			fPath = FONT_FILES_PATH + ofToString(FONT_FILE_SMALL);
-			if (!ofFile::doesFileExist(fPath.get())) {
-				fPath = FONT_FILES_PATH + ofToString(FONT_FILE_ALT1);
-				if (!ofFile::doesFileExist(fPath.get())) {
-					fPath = FONT_FILES_PATH + ofToString(FONT_FILE_ALT2);
-					if (!ofFile::doesFileExist(fPath.get())) {
-						fPath = OF_TTF_SANS;
+	string _fPath = "fonts/GTAmerica-ExtendedBlack.ttf";
+	if (!ofFile::doesFileExist(_fPath)) {
+		_fPath = FONT_FILES_PATH + ofToString(FONT_FILE_BIG);
+		if (!ofFile::doesFileExist(_fPath)) {
+			_fPath = FONT_FILES_PATH + ofToString(FONT_FILE_SMALL);
+			if (!ofFile::doesFileExist(_fPath)) {
+				_fPath = FONT_FILES_PATH + ofToString(FONT_FILE_ALT1);
+				if (!ofFile::doesFileExist(_fPath)) {
+					_fPath = FONT_FILES_PATH + ofToString(FONT_FILE_ALT2);
+					if (!ofFile::doesFileExist(_fPath)) {
+						_fPath = OF_TTF_SANS;
 					}
 				}
 			}
 		}
 	}
 
-	bool b = font.setup(fPath, 1.0, _textDimension, _mipmaps, 8, _dpiScale);
-	if (!b) ofLogError("ofxSurfingTextSubtitle") << "Font file not found: " << fPath;
+	loadFont(_fPath);
 
-	if (b) {
-		auto ss = ofSplitString(fPath, "/");
-		if (ss.size() >= 2) fName = ss[1];
-	}
+	//bool b = font.setup(fPath, 1.0, _textDimension, _mipmaps, 8, _dpiScale);
+	//if (!b) ofLogError("ofxSurfingTextSubtitle") << "Font file not found: " << fPath;
+
+	//if (b) {
+	//	auto ss = ofSplitString(fPath, "/");
+	//	if (ss.size() >= 2) fName = ss[1];
+	//}
 }
 
 //--------------------------------------------------------------
@@ -149,6 +164,7 @@ void ofxSurfingTextSubtitle::setupParams()
 {
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 
+	// force load default font
 	setupFont();
 
 	//--
@@ -195,8 +211,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	fSizePrc.set("Size", 0.2, 0.1, 1.0f);
 	fSpacing.set("Spacing", 0, -20, 50);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
-	fColorBg.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fColorTxt.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	fColorShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
+	fColorBg.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset", false);
@@ -225,7 +243,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	//bPlayForced.setSerializable(false);
 
 	fName.setSerializable(false);
-	fPath.setSerializable(false);
+	//fPath.setSerializable(false);
 	fAlign_str.setSerializable(false);
 	bReset.setSerializable(false);
 	bResetFades.setSerializable(false);
@@ -293,8 +311,8 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Fade.add(bAnimatedIn);
 	params_Fade.add(bAnimatedOut);
 	params_Fade.add(progressPlaySlide);
-	params_FadeIn.setName("g In");
-	params_FadeOut.setName("g Out");
+	params_FadeIn.setName("F In");
+	params_FadeOut.setName("F Out");
 	params_FadeIn.add(speedFadeIn);
 	params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
 	params_FadeOut.add(speedFadeOut);
@@ -306,9 +324,14 @@ void ofxSurfingTextSubtitle::setupParams()
 	//params_Transport.add(params_Fade);
 
 	params_Style.setName("Style");
-	params_Style.add(fName);
-	params_Style.add(fColorBg);
+	//params_Style.add(fName);
+	params_Style.add(fPath);
 	params_Style.add(fColorTxt);
+#ifdef USE_SHADOW
+	params_Style.add(fColorShadow);
+	params_Style.add(offsetShadow);
+#endif
+	params_Style.add(fColorBg);
 	params_Style.add(bCapitalize);
 	params_Style.add(fSizePrc);
 	params_Style.add(fSpacing);
@@ -832,11 +855,11 @@ void ofxSurfingTextSubtitle::updateDebug()
 				}
 				else {//stopped
 					t = tPlay;
-				}
+		}
 #else
 				t = ofGetElapsedTimeMillis() - tPlay;
 #endif
-			}
+	}
 
 			//--
 
@@ -849,7 +872,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 				}
 				else {//stopped
 					t = tPlayForceFilm;
-				}
+}
 #else
 				t = ofGetElapsedTimeMillis() - tPlayForceFilm;
 #endif
@@ -1041,6 +1064,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 				ofTranslate(0, bTop ? -sp : sp);
 
 				// 1. Draw main rule line
+				if (bAnimatedIn || bAnimatedOut)
 				{
 					ofSetLineWidth(1.f);
 					ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
@@ -1294,6 +1318,39 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 					ofPopStyle();
 				}
+
+
+				//--
+				 
+				// Draw debug
+				/*
+				{
+					if (!bLive)
+					{
+						if (bGui && bDebug)
+						{
+							ofPushStyle();
+
+							// 1. Prepare
+							ofColor c;
+							c = bTheme ? colorDebugLight : colorDebugDark;
+							int _period = 60; // one second
+							bool b = ofGetFrameNum() % _period > _period / 2;
+							ofSetColor(ofColor(c, (b ? 48 : 24)));
+							ofNoFill();
+							ofSetLineWidth(1.0f);
+
+							// 2. Blink box
+							ofDrawRectangle(boxDrawn);
+
+							// 3. Anchor
+							//drawInsertionPoint(_x, _y, 15); // useful to debug ofxFontStash
+
+							ofPopStyle();
+						}
+					}
+				}
+				*/
 			}
 			ofPopMatrix();
 
@@ -1392,6 +1449,10 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	int _size = 1.f;
 	int _align = fAlign.get();
 	ofColor _color = fColorTxt.get();
+	ofColor _color2 = fColorShadow.get();
+
+	float _x2 = _x + offsetShadow.get().x;
+	float _y2 = _y + offsetShadow.get().y;
 
 	// how much less or more lines that expected/targeted
 	diff = amountLinesDrawn - amountLinesTarget;
@@ -1502,6 +1563,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		if ((bAnimatedIn) || (bAnimatedOut))
 		{
 			_color = ofColor(_color, alpha * _color.a);
+			_color2 = ofColor(_color2, alpha * _color2.a);
 		}
 	}
 
@@ -1513,115 +1575,158 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	//------
 
-	//ofRectangle boxDrawn;
-
 	if (!bNoDraw) ofPushStyle();
 	{
-		if (!bNoDraw) ofSetColor(_color); // don't do nothing. only applies the style
+		int iPasses = 0;
 
-		int _numLines = 20;
-		bool _wordsWereCropped = false;
-		bool _bCenter = ((_align == 2) ? true : false);//centered
-
-		/*get the final text formatting (by adding \n's) in the supplied string;
-		BE ARWARE that using TRUE in here will modify your supplied string! */
-		//bool _br = false;
-		bool _br = bForceAddBreakLines;
-
-		if (fAlign != 1) // left or center align
+#ifdef USE_SHADOW
+		while (iPasses < 2)
+#endif
 		{
-			boxDrawn = font.drawMultiLineColumn(
-				_str,					/*string*/
-				_size,					/*size*/
-				_x, _y,					/*where*/
-				MAX(10, _w),			/*column width*/
-				_numLines,				/*get back the number of lines*/
-				bNoDraw,				/* if true, we wont draw (just get bbox back) */
-				20,						/* max number of lines to draw, crop after that */
-				_br,					/*get the final text formatting (by adding \n's) in the supplied string;
-										BE ARWARE that using TRUE in here will modify your supplied string! */
-				&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
-				_bCenter				/*centered*/
-			);
-		}
-		else // right align
-		{
-			//TODO: WIP trying to make work right align
-			if (bForceAddBreakLines)
+			if (!bNoDraw)
 			{
-				auto __bbox = font.drawMultiLineColumn(
+
+#ifdef USE_SHADOW
+				if (iPasses == 1) ofSetColor(_color);
+				else if (iPasses == 0) ofSetColor(_color2);
+#else
+				ofSetColor(_color);
+#endif
+		}
+
+			float __x = _x;
+			float __y = _y;
+
+#ifdef USE_SHADOW
+			if (iPasses == 0) // shadow
+			{
+				__x = _x2;
+				__y = _y2;
+			}
+			//else // regular
+			//{
+			//	__x = _x;
+			//	__y = _y;
+			//}
+#endif
+
+			int _numLines = 20;
+			bool _wordsWereCropped = false;
+			bool _bCenter = ((_align == 2) ? true : false);//centered
+
+			/*get the final text formatting (by adding \n's) in the supplied string;
+			BE ARWARE that using TRUE in here will modify your supplied string! */
+			//bool _br = false;
+			bool _br = bForceAddBreakLines;
+
+			if (fAlign != 1) // left or center align
+			{
+				//TODO:
+				//if(bNoDraw)
+				boxDrawn = font.drawMultiLineColumn(
 					_str,					/*string*/
 					_size,					/*size*/
-					_x, _y,					/*where*/
+					//_x, _y,					/*where*/
+					__x, __y,					/*where*/
 					MAX(10, _w),			/*column width*/
 					_numLines,				/*get back the number of lines*/
-					true,					/* if true, we wont draw (just get bbox back) */
+					bNoDraw,				/* if true, we wont draw (just get bbox back) */
 					20,						/* max number of lines to draw, crop after that */
 					_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 											BE ARWARE that using TRUE in here will modify your supplied string! */
 					&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
 					_bCenter				/*centered*/
 				);
-
-				_str = _str + " ";//fix last char
-				//textCurrent = _str;
 			}
-
-			if (!bNoDraw)
+			else // right align
 			{
-				boxDrawn = font.drawMultiLine(
-					_str,					/*string*/
-					_size,					/*size*/
-					_x, _y,					/*where*/
-					OF_ALIGN_HORZ_RIGHT,
-					MAX(10, _w)				/*column width*/
-				);
+				//TODO: 
+				//WIP trying to make work right align
+				if (bForceAddBreakLines)
+				{
+					auto __bbox = font.drawMultiLineColumn(
+						_str,					/*string*/
+						_size,					/*size*/
+						//_x, _y,					/*where*/
+						__x, __y,					/*where*/
+						MAX(10, _w),			/*column width*/
+						_numLines,				/*get back the number of lines*/
+						true,					/* if true, we wont draw (just get bbox back) */
+						20,						/* max number of lines to draw, crop after that */
+						_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+												BE ARWARE that using TRUE in here will modify your supplied string! */
+						&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+						_bCenter				/*centered*/
+					);
+
+					_str = _str + " ";//fix last char
+					//textCurrent = _str;
+				}
+
+				if (!bNoDraw)
+				{
+					boxDrawn = font.drawMultiLine(
+						_str,					/*string*/
+						_size,					/*size*/
+						_x, _y,					/*where*/
+						OF_ALIGN_HORZ_RIGHT,
+						MAX(10, _w)				/*column width*/
+					);
+				}
+				//TODO: workaround
+				else
+				{
+					if (iPasses == 0)
+					{
+						boxDrawn = font.getBBox(
+							_str,					/*string*/
+							_size,					/*size*/
+							//_x, _y,					/*where*/
+							__x, __y,					/*where*/
+							OF_ALIGN_HORZ_RIGHT,
+							MAX(10, _w)				/*column width*/
+						);
+					}
+				}
 			}
-			//TODO: workaround
-			else
-			{
-				boxDrawn = font.getBBox(
-					_str,					/*string*/
-					_size,					/*size*/
-					_x, _y,					/*where*/
-					OF_ALIGN_HORZ_RIGHT,
-					MAX(10, _w)				/*column width*/
-				);
+
+#ifdef USE_SHADOW
+			iPasses++;
+#endif
 			}
-		}
 	}
 	if (!bNoDraw) ofPopStyle();
 
 	//------
 
-	// Draw debug
-	if (!bNoDraw)
-	{
-		if (!bLive)
-		{
-			if (bGui && bDebug /*&& bDebug2*/)
-			{
-				ofPushStyle();
+	//// Draw debug
+	//if (!bNoDraw)
+	//{
+	//	if (!bLive)
+	//	{
+	//		if (bGui && bDebug /*&& bDebug2*/)
+	//		{
+	//			ofPushStyle();
 
-				// 1. Prepare
-				ofColor c;
-				c = bTheme ? colorDebugLight : colorDebugDark;
-				int _period = 60; // one second
-				bool b = ofGetFrameNum() % _period > _period / 2;
-				ofSetColor(ofColor(c, (b ? 48 : 24)));
-				ofNoFill();
-				ofSetLineWidth(1.0f);
+	//			// 1. Prepare
+	//			ofColor c;
+	//			c = bTheme ? colorDebugLight : colorDebugDark;
+	//			int _period = 60; // one second
+	//			bool b = ofGetFrameNum() % _period > _period / 2;
+	//			ofSetColor(ofColor(c, (b ? 48 : 24)));
+	//			ofNoFill();
+	//			ofSetLineWidth(1.0f);
 
-				// 2. Blink box
-				ofDrawRectangle(boxDrawn);
+	//			// 2. Blink box
+	//			ofDrawRectangle(boxDrawn);
 
-				// 3. Anchor
-				//drawInsertionPoint(_x, _y, 15);//useful to debug ofxFontStash
+	//			// 3. Anchor
+	//			//drawInsertionPoint(_x, _y, 15); // useful to debug ofxFontStash
 
-				ofPopStyle();
-			}
-		}
-	}
+	//			ofPopStyle();
+	//		}
+	//	}
+	//}
 
 	return boxDrawn;
 }
@@ -2753,7 +2858,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			progressPlaySlide = 0;
 
 			//workflow
-			if (indexModes != 0) indexModes.setWithoutEventNotifications(0);
+			//if (indexModes != 0) indexModes.setWithoutEventNotifications(0);
+			if (indexModes != 0) indexModes.set(0);
 		}
 		else {
 		}
@@ -2772,9 +2878,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 			progressPlaySlide = 0;
 			bPlayExternal = false;
-			
+
 			//workflow
-			if (indexModes != 1) indexModes.setWithoutEventNotifications(1);
+			//if (indexModes != 1) indexModes.setWithoutEventNotifications(1);
+			if (indexModes != 1) indexModes.set(1);
 
 		}
 		else
@@ -2805,7 +2912,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			bPlayExternal = false;
 
 			//workflow
-			if (indexModes != 2) indexModes.setWithoutEventNotifications(0);
+			if (indexModes != 2) indexModes.set(2);
+			//if (indexModes != 2) indexModes.setWithoutEventNotifications(2);
 
 		}
 		else
@@ -2957,6 +3065,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == bOpen.getName())
 	{
 		doOpenFile();
+	}
+
+	// Font
+	else if (name == fPath.getName())
+	{
+		loadFont(fPath.get());
 	}
 
 	//--

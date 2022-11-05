@@ -64,6 +64,9 @@
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time convertions. Can be removed.
 
+//TODO: WIP
+//#define USE_SHADOW
+
 //----
 
 #include "ofMain.h"
@@ -208,6 +211,11 @@ private:
 	bool isSlidePlaying = false;
 
 	void setupFont();
+	void loadFont(string path);
+
+	float _dpiScale = 2.0;
+	bool _mipmaps = true;
+	int _textDimension = 2048;
 
 	void setupParams();
 	void setupSubs(string _pathSrt);
@@ -299,6 +307,8 @@ private:
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
 	ofParameter<ofFloatColor> fColorTxt;
+	ofParameter<ofFloatColor> fColorShadow;
+	ofParameter<glm::vec2> offsetShadow;
 	ofParameter<ofFloatColor> fColorBg;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
@@ -314,9 +324,9 @@ private:
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
-	ofParameterGroup params_External{"EXTERNAL"};
-	ofParameterGroup params_Standalone{"STANDALONE"};
-	ofParameterGroup params_Forced{"FORCED"};
+	ofParameterGroup params_External{"MODE EXTERNAL"};
+	ofParameterGroup params_Standalone{"MODE STANDALONE"};
+	ofParameterGroup params_Forced{"MODE FORCED"};
 
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
