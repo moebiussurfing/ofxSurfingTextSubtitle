@@ -48,7 +48,11 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 	//gui.minimize();
 	gui.getGroup(params_Control.getName()).minimize();
-	gui.getGroup(params_Transport.getName()).minimize();
+	auto& gt = gui.getGroup(params_Transport.getName());
+	gt.minimize();
+	gt.getGroup(params_External.getName()).minimize();
+	gt.getGroup(params_Forced.getName()).minimize();
+	gt.getGroup(params_Standalone.getName()).minimize();
 	auto& gf = gui.getGroup(params_Fade.getName());
 	gf.minimize();
 	gf.getGroup(params_FadeIn.getName()).minimize();
@@ -162,14 +166,14 @@ void ofxSurfingTextSubtitle::setupParams()
 	bDrawWidgetInfo.set("Info", true);
 #endif
 	currentDialog.set("Dialog", 0, 0, 0);
-	bPrev.set("<", false);
-	bNext.set(">", false);
-	bPlay.set("Play", false);
+	bPlayStandalone.set("Play Standalone", false);
 	bPlayForced.set("Play Forced", false);
 	durationPlayForced.set("Duration Forced", 2000, 1, 4000);
+	bPrev.set("<", false);
+	bNext.set(">", false);
 	//speedPlayForce.set("Speed", 0, 0, 1);
 	bPlayExternal.set("Play External", false);
-	tPosition.set("Position", 0, 0, 1);
+	tPositionExternal.set("Position", 0, 0, 1);
 
 	progressPlayFilm.set("% Film", 0, 0, 1);//full length progress
 	progressPlaySlide.set("% Slide", 0, 0, 1);//slide progress
@@ -206,6 +210,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	resizeResponsive.set("Resize", 0, 0, 1);
 
 	indexModes.set("Modes", 0, 0, 2);
+	indexModes_Name.set("Name", "");
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
@@ -216,7 +221,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	//TODO: crashes when loading settings if uncommented!
-	//bPlay.setSerializable(false);//!
+	//bPlayStandalone.setSerializable(false);//!
 	//bPlayForced.setSerializable(false);
 
 	fName.setSerializable(false);
@@ -232,7 +237,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	progressPlaySlide.setSerializable(false);
 
 	//we use index mode
-	bPlay.setSerializable(false);
+	bPlayStandalone.setSerializable(false);
 	bPlayExternal.setSerializable(false);
 	bPlayForced.setSerializable(false);
 
@@ -264,17 +269,21 @@ void ofxSurfingTextSubtitle::setupParams()
 	//params_Control.add(box.bEdit);
 
 	params_Transport.setName("Transport");
+	params_Transport.add(bStop);
 	params_Transport.add(currentDialog);
 	params_Transport.add(progressPlaySlide);
-	params_Transport.add(bStop);
 	params_Transport.add(indexModes);
-	params_Transport.add(bPlay);
-	params_Transport.add(bPlayForced);
-	params_Transport.add(durationPlayForced);
-	params_Transport.add(bPrev);
-	params_Transport.add(bNext);
-	params_Transport.add(bPlayExternal);
-	params_Transport.add(tPosition);
+	params_Transport.add(indexModes_Name);
+	params_Standalone.add(bPlayStandalone);
+	params_Transport.add(params_Standalone);
+	params_Forced.add(bPlayForced);
+	params_Forced.add(durationPlayForced);
+	params_Forced.add(bPrev);
+	params_Forced.add(bNext);
+	params_Transport.add(params_Forced);
+	params_External.add(bPlayExternal);
+	params_External.add(tPositionExternal);
+	params_Transport.add(params_External);
 
 	//params_Transport.add(progressPlayFilm);
 	//params_Transport.add(speedPlayForce);
@@ -424,13 +433,13 @@ void ofxSurfingTextSubtitle::exit() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setPosition(float position)
 {
-	if (indexModes == 0) tPosition.set(position);
+	if (indexModes == 0) tPositionExternal.set(position);
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updatePosition(float position)
 {
-	if (indexModes == 0) tPosition.set(position);
+	if (indexModes == 0) tPositionExternal.set(position);
 	update();
 }
 
@@ -445,9 +454,9 @@ void ofxSurfingTextSubtitle::updateFrame(uint64_t frame)
 	uint64_t t = timecode.millisForFrame(frame);
 
 	// Force sync mode
-	//if (!bPlay) bPlay = true;
+	//if (!bPlayStandalone) bPlayStandalone = true;
 
-	if (bPlay)
+	if (bPlayStandalone)
 	{
 		//tPlay = t;
 
@@ -490,7 +499,7 @@ void ofxSurfingTextSubtitle::updateFades()
 
 	// Calculate Fade In
 
-	if (bPlay || bPlayForced || bPlayExternal)
+	if (bPlayStandalone || bPlayForced || bPlayExternal)
 	{
 		if (bAnimatedIn && isAnimIn)
 		{
@@ -504,7 +513,7 @@ void ofxSurfingTextSubtitle::updateFades()
 				/*
 				uint64_t tSlide;
 				if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
-				else if (bPlay || bPlayExternal) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
+				else if (bPlayStandalone || bPlayExternal) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 				*/
 
 				//TODO:
@@ -513,7 +522,7 @@ void ofxSurfingTextSubtitle::updateFades()
 					progressIn = ofClamp(alpha, 0, 1);//workaround to avoid deep calculations..
 					//progressIn = ofMap(tSlide, 0, durationPlayForced, 0, 1, true);
 				}
-				else if (bPlay || bPlayExternal)
+				else if (bPlayStandalone || bPlayExternal)
 				{
 					progressIn = ofClamp(alpha, 0, 1);
 					//progressIn = ofMap(tSlide, 0, durationPlaySlide, 0, 1, true);
@@ -542,12 +551,12 @@ void ofxSurfingTextSubtitle::updateFades()
 
 	if (bAnimatedOut)
 	{
-		if (bPlay || bPlayForced || bPlayExternal)
+		if (bPlayStandalone || bPlayForced || bPlayExternal)
 		{
 			uint64_t tSlide = 0;
 
 			if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
-			else if (bPlay || bPlayExternal) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
+			else if (bPlayStandalone || bPlayExternal) tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 
 			if (!isAnimOut) // checking if requires trig fade out
 			{
@@ -561,7 +570,7 @@ void ofxSurfingTextSubtitle::updateFades()
 						isSlidePlaying = true;
 					}
 				}
-				else if (bPlay || bPlayExternal)
+				else if (bPlayStandalone || bPlayExternal)
 				{
 					if (tSlide > durationPlaySlide - countDownOut)
 					{
@@ -582,7 +591,7 @@ void ofxSurfingTextSubtitle::updateFades()
 					progressOut = ofClamp(alpha, 0, 1);
 					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
 				}
-				else if (bPlay || bPlayExternal)
+				else if (bPlayStandalone || bPlayExternal)
 				{
 					progressOut = ofClamp(alpha, 0, 1);
 					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
@@ -647,69 +656,69 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	// Calculate progress
 
+	uint64_t t = 0;
+
+	if (indexModes == 0)
 	{
-		uint64_t t = 0;
-
-		if (indexModes == 0)
+		if (bPlayExternal) t = tPositionExternal * (float)tEndSubsFilm;
+	}
+	else if (indexModes == 1)
+	{
+		//if (!bPlayExternal)
+		if (bPlayStandalone)
 		{
-			if (bPlayExternal) t = tPosition * (float)tEndSubsFilm;
+			t = ofGetElapsedTimeMillis() - tPlay;
 		}
-		else if (indexModes == 1)
+	}
+
+	//--
+
+	if (sub.size() > 0)
+	{
+		// Pre start. 
+		// Waiting first dialog in.
+		// clear text before first dialog
+		if (t < sub[0]->getStartTime())
 		{
-			//if (!bPlayExternal)
-			if (bPlay)
-			{
-				t = ofGetElapsedTimeMillis() - tPlay;
-			}
+			textCurrent = "";
+			isPrecoutingStart = true;
 		}
-
-		if (sub.size() > 0)
+		else
 		{
-			// Pre start. 
-			// Waiting first dialog in.
-			// clear text before first dialog
-			if (t < sub[0]->getStartTime())
-			{
-				textCurrent = "";
-				isPrecoutingStart = true;
-			}
-			else
-			{
-				isPrecoutingStart = false;
+			isPrecoutingStart = false;
 
-				// find the dialog relative to current time
-				int k = 0;
-				for (SubtitleItem* element : sub)
+			// find the dialog relative to current time
+			int k = 0;
+			for (SubtitleItem* element : sub)
+			{
+				if (t > element->getStartTime() && t <= element->getEndTime())
 				{
-					if (t > element->getStartTime() && t <= element->getEndTime())
+					// To apply only once if currentDialog changed!
+					if (currentDialog.get() != k)
 					{
-						// To apply only once if currentDialog changed!
-						if (currentDialog.get() != k)
-						{
-							//changed
-							currentDialog = k;//will trig the callback!
-							doUpdateSlidePlay(element);
-						}
-						break;//done found
+						//changed
+						currentDialog = k;//will trig the callback!
+						doUpdateSlidePlay(element);
 					}
-					k++;
+					break;//done found
 				}
+				k++;
 			}
 		}
+	}
 
-		//--
+	//--
 
-		if (indexModes == 0 || indexModes == 1)
+	if (indexModes == 0 || indexModes == 1)
+	{
+		if (isSlidePlaying && (bPlayStandalone || bPlayExternal))
 		{
-			if (isSlidePlaying && (bPlay || bPlayExternal))
-			{
-				uint64_t tp = ofGetElapsedTimeMillis() - tPlayStartSlide;
-				progressPlaySlide = ofMap(tp, 0, durationPlaySlide, 0, 1);
-			}
-			else
-			{
-				progressPlaySlide = 0;
-			}
+			uint64_t tp = ofGetElapsedTimeMillis() - tPlayStartSlide;
+			progressPlaySlide = ofMap(tp, 0, durationPlaySlide, 0, 1);
+		}
+		else
+		{
+			progressPlaySlide = 0;
 		}
 	}
 
@@ -725,7 +734,9 @@ void ofxSurfingTextSubtitle::updateEngine()
 	}
 	else if (indexModes == 1)
 	{
-		//if(bPlay) tPosition = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
+		//if(bPlayStandalone) {
+		//tPositionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
+		//}
 	}
 	else if (indexModes == 2)
 	{
@@ -738,9 +749,11 @@ void ofxSurfingTextSubtitle::updateEngine()
 			}
 			progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1);
 
-			//tPosition = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
+			//tPositionExternal = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
 		}
 	}
+
+	//--
 }
 
 //--------------------------------------------------------------
@@ -757,7 +770,8 @@ void ofxSurfingTextSubtitle::updateDebug()
 	}
 	else
 	{
-		if (indexModes == 1 && bPlay) // progress related to the elapsed player time
+		// Progress related to the elapsed player time
+		if (indexModes == 1 && bPlayStandalone)
 		{
 			uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 
@@ -779,7 +793,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			progressPlayFilm = ofMap(t, 0, tEndSubsFilm, 0, 1);
 		}
 
-		//else if (bPlayForced || !bPlay)
+		//else if (bPlayForced || !bPlayStandalone)
 		// for any other modes
 		else if (indexModes == 0 || indexModes == 2)
 		{
@@ -800,7 +814,16 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 			uint64_t t = 0;
 
-			if (bPlay)
+			//--
+
+			if (indexModes == 0 && bPlayExternal)
+			{
+				t = tPositionExternal * (float)tEndSubsFilm;
+			}
+
+			//--
+
+			else if (indexModes == 1 && bPlayStandalone)
 			{
 #ifdef USE_WIDGET__VIDEO_PLAYER
 				if (player.playback.play)
@@ -817,7 +840,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 			//--
 
-			if (bPlayForced)
+			else if (indexModes == 2 && bPlayForced)
 			{
 #ifdef USE_WIDGET__VIDEO_PLAYER
 				if (player.playback.play)
@@ -834,14 +857,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 			//--
 
-			if (bPlayExternal)
-			{
-				t = tPosition * (float)tEndSubsFilm;
-			}
-
-			//--
-
-			// convert formatting
+			// Convert formatting
 #ifdef USING_OFX_TIME_CODE
 			s += timecode.timecodeForMillis(t);
 #else
@@ -857,7 +873,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 			//--
 
-			// display begin/end subs times
+			// Display begin/end subs times
 			if (bDebug)
 			{
 				s += "\n";
@@ -876,7 +892,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-}
+		}
 #endif
 	}
 }
@@ -1098,7 +1114,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 				// 2. Timeline: 
 
 				// thin line
-				if (bPlay || bPlayForced || bPlayExternal)
+				if (bPlayStandalone || bPlayForced || bPlayExternal)
 				{
 					ofPushStyle();
 
@@ -1145,7 +1161,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						{
 							r = (t / (float)durationPlayForced);//ratio
 						}
-						if (bPlay || bPlayExternal)
+						if (bPlayStandalone || bPlayExternal)
 						{
 							r = (t / (float)durationPlaySlide);//ratio
 						}
@@ -1215,7 +1231,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						{
 							r = 1.f - (countDownOut / (float)durationPlayForced);//ratio
 						}
-						if (bPlay || bPlayExternal)
+						if (bPlayStandalone || bPlayExternal)
 						{
 							r = 1.f - (countDownOut / (float)durationPlaySlide);//ratio
 						}
@@ -1247,7 +1263,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						{
 							pixPerMillis = w / (float)durationPlayForced;//ratio
 						}
-						if (bPlay || bPlayExternal)
+						if (bPlayStandalone || bPlayExternal)
 						{
 							pixPerMillis = w / (float)durationPlaySlide;//ratio
 						}
@@ -1931,7 +1947,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 }
 
@@ -2104,17 +2120,17 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			if (bPlayExternal)
 			{
-				auto t = tPosition * (float)tEndSubsFilm;
+				auto t = tPositionExternal * (float)tEndSubsFilm;
 #ifdef USING_OFX_TIME_CODE
 				stime = timecode.timecodeForMillis(t);
 #else
 				stime = t / 1000.f + "''";
 #endif
+			}
 		}
-	}
 		else if (indexModes == 1)
 		{
-			if (bPlay)
+			if (bPlayStandalone)
 			{
 				uint64_t t = ofGetElapsedTimeMillis() - tPlay;
 
@@ -2123,8 +2139,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #else
 				stime += t / 1000.f;
 #endif
+			}
 		}
-}
 		else if (indexModes == 2)
 		{
 			if (bPlayForced)
@@ -2133,7 +2149,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 		}
 
-		if (!bPlay && !bPlayForced && !bPlayExternal)
+		if (!bPlayStandalone && !bPlayForced && !bPlayExternal)
 		{
 			stime = sub[currentDialog]->getStartTimeString();
 			//stime = timecode.timecodeForMillis(0);
@@ -2200,11 +2216,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
 					ui->Unindent();
+				}
 			}
-		}
 			ui->Unindent();
 			ui->AddSpacing();
-	}
+		}
 
 		if (!bMinimize) // maximized 
 		{
@@ -2222,7 +2238,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 				ui->EndTree();
-		}
+			}
 		}
 
 		ui->EndTree();
@@ -2253,11 +2269,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			if (indexModes == 0) // external
 			{
-				ui->Add(tPosition, OFX_IM_HSLIDER_MINI);
+				ui->Add(tPositionExternal, OFX_IM_HSLIDER_MINI);
 			}
 			else if (indexModes == 1) // standalone
 			{
-				ui->Add(bPlay, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(bPlayStandalone, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
 				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 			}
 			else if (indexModes == 2) // forced
@@ -2595,7 +2611,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		name == progressPlayFilm.getName() ||
 		name == progressIn.getName() ||
 		name == progressOut.getName() ||
-		name == tPosition.getName())
+		name == tPositionExternal.getName())
 		return;
 
 	ofLogNotice("ofxSurfingTextSubtitle") << " Changed " << name << " : " << e;
@@ -2607,13 +2623,38 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	// modes
 	else if (name == indexModes.getName())
 	{
+		auto& gt = gui.getGroup(params_Transport.getName());
+		gt.getGroup(params_External.getName()).minimize();
+		gt.getGroup(params_Forced.getName()).minimize();
+		gt.getGroup(params_Standalone.getName()).minimize();
+
 		//workflow
-		//switch (indexModes)
-		//{
-		//case 0: bPlayExternal = true; break;
-		//case 1: bPlay = true; break;
-		//case 2: bPlayForced = true; break;
-		//}
+		switch (indexModes)
+		{
+			//case 0: bPlayExternal = true; break;
+			//case 1: bPlayStandalone = true; break;
+			//case 2: bPlayForced = true; break;
+
+			//workflow
+		case 0:
+		{
+			indexModes_Name = "EXTERNAL";
+			gt.getGroup(params_External.getName()).maximize();
+		}
+		break;
+		case 1:
+		{
+			indexModes_Name = "STANDALONE";
+			gt.getGroup(params_Standalone.getName()).maximize();
+		}
+		break;
+		case 2: {
+			indexModes_Name = "FORCED";
+			gt.getGroup(params_Forced.getName()).maximize();
+		}
+			  break;
+
+		}
 	}
 
 	// Dialog index
@@ -2659,8 +2700,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 				// get the position normalized
 				auto t = sub[currentDialog.get()]->getStartTime();
 				auto pos = t / (float)tEndSubsFilm;
-				if (pos != tPosition) tPosition = pos;
-				//tPosition.setWithoutEventNotifications(pos);
+				if (pos != tPositionExternal) tPositionExternal = pos;
+				//tPositionExternal.setWithoutEventNotifications(pos);
 			}
 			*/
 		}
@@ -2679,7 +2720,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		{
 			isAnimIn = true;
 			alpha = 0.f;
-			//if (bPlay || bPlayForced) alpha = 1.f;//should force play
+			//if (bPlayStandalone || bPlayForced) alpha = 1.f;//should force play
 		}
 		else if (!bAnimatedIn && bAnimatedOut) {
 			alpha = 1.f;
@@ -2706,33 +2747,21 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlayExternal)
 		{
-			if (bPlay)bPlay = false;
+			if (bPlayStandalone)bPlayStandalone = false;
 			if (bPlayForced)bPlayForced = false;
 
 			progressPlaySlide = 0;
+
+			//workflow
+			if (indexModes != 0) indexModes.setWithoutEventNotifications(0);
 		}
 		else {
 		}
 	}
 
-	// dt
-	else if (name == speedFadeIn.getName())
+	else if (name == bPlayStandalone.getName())
 	{
-		dtAnimIn = ofMap(speedFadeIn, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
-	}
-	else if (name == speedFadeOut.getName())
-	{
-		dtAnimOut = ofMap(speedFadeOut, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
-	}
-
-	else if (name == bStop.getName())
-	{
-		this->stop();
-	}
-
-	else if (name == bPlay.getName())
-	{
-		if (bPlay)
+		if (bPlayStandalone)
 		{
 			//bPlayExternal.setWithoutEventNotifications(false);
 			bPlayForced.set(false);
@@ -2743,6 +2772,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 			progressPlaySlide = 0;
 			bPlayExternal = false;
+			
+			//workflow
+			if (indexModes != 1) indexModes.setWithoutEventNotifications(1);
+
 		}
 		else
 		{
@@ -2762,14 +2795,18 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlayForced)
 		{
-			bPlay.set(false);
-			//bPlay.setWithoutEventNotifications(false);
+			bPlayStandalone.set(false);
+			//bPlayStandalone.setWithoutEventNotifications(false);
 			//bPlayExternal.setWithoutEventNotifications(false);
 
 			tPlayForce = ofGetElapsedTimeMillis();
 			tPlayForceFilm = ofGetElapsedTimeMillis();
 			progressPlaySlide = 0;
 			bPlayExternal = false;
+
+			//workflow
+			if (indexModes != 2) indexModes.setWithoutEventNotifications(0);
+
 		}
 		else
 		{
@@ -2785,6 +2822,21 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 
 	//--
+
+	// dt
+	else if (name == speedFadeIn.getName())
+	{
+		dtAnimIn = ofMap(speedFadeIn, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
+	}
+	else if (name == speedFadeOut.getName())
+	{
+		dtAnimOut = ofMap(speedFadeOut, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
+	}
+
+	else if (name == bStop.getName())
+	{
+		this->stop();
+	}
 
 	else if (name == bAnimatedIn.getName())
 	{
@@ -2802,6 +2854,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		}
 	}
 
+	//--
+
 	// next
 	else if (name == bNext.getName() && bNext)
 	{
@@ -2816,8 +2870,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			// get the position normalized
 			auto t = sub[currentDialog.get()]->getStartTime();
 			auto pos = t / (float)tEndSubsFilm;
-			if (pos != tPosition) tPosition = pos;
-			//tPosition.setWithoutEventNotifications(pos);
+			if (pos != tPositionExternal) tPositionExternal = pos;
+			//tPositionExternal.setWithoutEventNotifications(pos);
 		}
 		*/
 		//}
@@ -2921,11 +2975,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	*/
 }
 
-
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
 {
-	if (!bKeys || ui->bOverInputText) return;
+	if (!bKeys) return;
+
+#ifdef USE_IM_GUI__SUBTITLES
+	if (ui->bOverInputText) return;
+#endif
 
 	if (key == 'l') { setToggleLive(); }
 	if (key == 'g') { setToggleVisibleGui(); }
@@ -2988,7 +3045,7 @@ void ofxSurfingTextSubtitle::processOpenFileSelection(ofFileDialogResult openFil
 			setupSubs(path);
 
 			//workflow
-			//bPlay = true;
+			//bPlayStandalone = true;
 			//bPlayForced = true;
 		}
 	}
@@ -3001,7 +3058,7 @@ void ofxSurfingTextSubtitle::setTogglePlayForced() { bPlayForced = !bPlayForced;
 
 //--------------------------------------------------------------
 bool ofxSurfingTextSubtitle::isPlaying() const {
-	return bPlay.get();
+	return bPlayStandalone.get();
 }
 
 //--------------------------------------------------------------
@@ -3010,26 +3067,26 @@ void ofxSurfingTextSubtitle::setTogglePlay()
 	if (indexModes == 0) {
 	}
 	else if (indexModes == 1) {
-		bPlay = !bPlay;
+		bPlayStandalone = !bPlayStandalone;
 	}
 	else if (indexModes == 2) {
 		bPlayForced = !bPlayForced;
 	}
 
 	//#ifdef USE_WIDGET__VIDEO_PLAYER
-	//	if (bPlay) player.play();
+	//	if (bPlayStandalone) player.play();
 	//	else player.stop();
 	//#endif
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::play() {
-	bPlay = true;
+	bPlayStandalone = true;
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::stop() {
-	if (bPlay) bPlay = false;
+	if (bPlayStandalone) bPlayStandalone = false;
 	if (bPlayForced) bPlayForced = false;
 
 	if (isAnimIn) isAnimIn = false;
@@ -3037,7 +3094,7 @@ void ofxSurfingTextSubtitle::stop() {
 
 	textCurrent = "";
 	currentDialog = 0;
-	tPosition = 0;
+	tPositionExternal = 0;
 	progressPlaySlide = 0;
 	progressPlayFilm = 0;
 }

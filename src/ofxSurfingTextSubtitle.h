@@ -40,7 +40,7 @@
 // OPTIONAL
 
 // 1. GUI
-#define USE_IM_GUI__SUBTITLES 
+//#define USE_IM_GUI__SUBTITLES 
 // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
@@ -272,14 +272,14 @@ private:
 	ofParameter<bool> bPrev;
 
 	ofParameter<void> bStop;
-	ofParameter<bool> bPlay;
+	ofParameter<bool> bPlayStandalone;
 	ofParameter<bool> bPlayForced;
 
 	ofParameter<bool> bResponsive;
 	ofParameter<float> resizeResponsive;
 
 	ofParameter<bool> bPlayExternal;
-	ofParameter<float> tPosition;
+	ofParameter<float> tPositionExternal;
 
 	ofParameter<bool> bAnimatedIn;
 	ofParameter<float> speedFadeIn;
@@ -313,6 +313,10 @@ private:
 
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
+	ofParameter<string> indexModes_Name;
+	ofParameterGroup params_External{"EXTERNAL"};
+	ofParameterGroup params_Standalone{"STANDALONE"};
+	ofParameterGroup params_Forced{"FORCED"};
 
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
