@@ -287,13 +287,13 @@ private:
 	ofParameter<float> resizeResponsive;
 
 	ofParameter<bool> bPlayExternal;
-	ofParameter<float> tPositionExternal;
+	ofParameter<float> positionExternal;
 
 	ofParameter<bool> bAnimatedIn;
-	ofParameter<float> speedFadeIn;
+	ofParameter<int> durationIn; // time before the end to start fadeout from. in ms 
+	//ofParameter<float> speedFadeIn;
 	ofParameter<bool> bAnimatedOut;
-	ofParameter<float> speedFadeOut;
-	ofParameter<int> countDownOut; // time before the end to start fadeout from. in ms 
+	ofParameter<int> durationOut; // time before the end to start fadeout from. in ms 
 	ofParameter<bool> bResetFades;
 
 	ofParameter<bool> bAutoScroll;

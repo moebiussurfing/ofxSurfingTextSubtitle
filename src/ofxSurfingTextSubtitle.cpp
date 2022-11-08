@@ -189,7 +189,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bNext.set(">", false);
 	//speedPlayForce.set("Speed", 0, 0, 1);
 	bPlayExternal.set("Play External", false);
-	tPositionExternal.set("Position", 0, 0, 1);
+	positionExternal.set("Position", 0, 0, 1);
 
 	progressPlayFilm.set("% Film", 0, 0, 1);//full length progress
 	progressPlaySlide.set("% Slide", 0, 0, 1);//slide progress
@@ -198,10 +198,9 @@ void ofxSurfingTextSubtitle::setupParams()
 
 	// Fade
 	bAnimatedIn.set("In", false);
-	speedFadeIn.set("SpeedIn", 0, 0, 1);
 	bAnimatedOut.set("Out", false);
-	speedFadeOut.set("SpeedOut", 0, 0, 1);
-	countDownOut.set("CountDown", 1000, 1, 1000);
+	durationIn.set("Duration In", 1000, 1, 1000);
+	durationOut.set("Duration Out", 1000, 1, 1000);
 	progressIn.set("% In", 0, 0, 1);
 	progressOut.set("% Out", 0, 0, 1);
 	bResetFades.set("Reset Fades", false);
@@ -290,8 +289,8 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Transport.add(bStop);
 	params_Transport.add(currentDialog);
 	params_Transport.add(progressPlaySlide);
-	params_Transport.add(indexModes);
 	params_Transport.add(indexModes_Name);
+	params_Transport.add(indexModes);
 	params_Standalone.add(bPlayStandalone);
 	params_Transport.add(params_Standalone);
 	params_Forced.add(bPlayForced);
@@ -300,7 +299,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Forced.add(bNext);
 	params_Transport.add(params_Forced);
 	params_External.add(bPlayExternal);
-	params_External.add(tPositionExternal);
+	params_External.add(positionExternal);
 	params_Transport.add(params_External);
 
 	//params_Transport.add(progressPlayFilm);
@@ -313,11 +312,12 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Fade.add(progressPlaySlide);
 	params_FadeIn.setName("F In");
 	params_FadeOut.setName("F Out");
-	params_FadeIn.add(speedFadeIn);
+	//params_FadeIn.add(speedFadeIn);
 	params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
-	params_FadeOut.add(speedFadeOut);
+	params_FadeIn.add(durationIn);
+	//params_FadeOut.add(speedFadeOut);
 	params_FadeOut.add(progressOut);
-	params_FadeOut.add(countDownOut);
+	params_FadeOut.add(durationOut);
 	params_Fade.add(params_FadeIn);
 	params_Fade.add(params_FadeOut);
 	params_Fade.add(bResetFades);
@@ -456,13 +456,13 @@ void ofxSurfingTextSubtitle::exit() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setPosition(float position)
 {
-	if (indexModes == 0) tPositionExternal.set(position);
+	if (indexModes == 0) positionExternal.set(position);
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updatePosition(float position)
 {
-	if (indexModes == 0) tPositionExternal.set(position);
+	if (indexModes == 0) positionExternal.set(position);
 	update();
 }
 
@@ -509,12 +509,14 @@ void ofxSurfingTextSubtitle::updateFrame(uint64_t frame)
 void ofxSurfingTextSubtitle::updateFades()
 {
 	//TODO:
+	// Fades are disabled
 	if (!bAnimatedIn && !bAnimatedOut) {
 		alpha = 1.f;
 		progressIn = 1;
 		progressOut = 1;
 		isAnimIn = false;
 		isAnimOut = false;
+
 		return;
 	}
 
@@ -522,7 +524,7 @@ void ofxSurfingTextSubtitle::updateFades()
 
 	// Calculate Fade In
 
-	if (bPlayStandalone || bPlayForced || bPlayExternal)
+	//if (bPlayStandalone || bPlayForced || bPlayExternal)
 	{
 		if (bAnimatedIn && isAnimIn)
 		{
@@ -530,6 +532,7 @@ void ofxSurfingTextSubtitle::updateFades()
 			if (alpha < 1.f)
 			{
 				alpha += dtAnimIn;
+				//cout << alpha << endl;
 
 				//--
 
@@ -574,7 +577,7 @@ void ofxSurfingTextSubtitle::updateFades()
 
 	if (bAnimatedOut)
 	{
-		if (bPlayStandalone || bPlayForced || bPlayExternal)
+		//if (bPlayStandalone || bPlayForced || bPlayExternal)
 		{
 			uint64_t tSlide = 0;
 
@@ -587,7 +590,7 @@ void ofxSurfingTextSubtitle::updateFades()
 
 				if (bPlayForced)
 				{
-					if (tSlide > durationPlayForced - countDownOut)
+					if (tSlide > durationPlayForced - durationOut)
 					{
 						isAnimOut = true;
 						isSlidePlaying = true;
@@ -595,7 +598,7 @@ void ofxSurfingTextSubtitle::updateFades()
 				}
 				else if (bPlayStandalone || bPlayExternal)
 				{
-					if (tSlide > durationPlaySlide - countDownOut)
+					if (tSlide > durationPlaySlide - durationOut)
 					{
 						isAnimOut = true;
 						isSlidePlaying = true;
@@ -607,17 +610,17 @@ void ofxSurfingTextSubtitle::updateFades()
 			//else // fading out
 			if (isAnimOut) // fading out
 			{
-				uint64_t t = tSlide - countDownOut;
+				uint64_t t = tSlide - durationOut;
 
 				if (bPlayForced)
 				{
 					progressOut = ofClamp(alpha, 0, 1);
-					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
+					//progressOut = ofMap(t, 0, durationOut, 1, 0, true);
 				}
 				else if (bPlayStandalone || bPlayExternal)
 				{
 					progressOut = ofClamp(alpha, 0, 1);
-					//progressOut = ofMap(t, 0, countDownOut, 1, 0, true);
+					//progressOut = ofMap(t, 0, durationOut, 1, 0, true);
 				}
 				//else progressOut = 1;
 
@@ -683,15 +686,13 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	if (indexModes == 0)
 	{
-		if (bPlayExternal) t = tPositionExternal * (float)tEndSubsFilm;
+		//if (bPlayExternal) t = positionExternal * (float)tEndSubsFilm;
+		t = positionExternal * (float)tEndSubsFilm;
 	}
 	else if (indexModes == 1)
 	{
-		//if (!bPlayExternal)
-		if (bPlayStandalone)
-		{
-			t = ofGetElapsedTimeMillis() - tPlay;
-		}
+		//if (bPlayStandalone) t = ofGetElapsedTimeMillis() - tPlay;
+		t = ofGetElapsedTimeMillis() - tPlay;
 	}
 
 	//--
@@ -758,7 +759,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 	else if (indexModes == 1)
 	{
 		//if(bPlayStandalone) {
-		//tPositionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
+		//positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
 		//}
 	}
 	else if (indexModes == 2)
@@ -766,17 +767,16 @@ void ofxSurfingTextSubtitle::updateEngine()
 		if (bPlayForced)
 		{
 			uint64_t tf = ofGetElapsedTimeMillis() - tPlayForce;
-			if (tf > durationPlayForced) {
+			if (tf > durationPlayForced)
+			{
 				tPlayForce = ofGetElapsedTimeMillis();//restart timer. next slide
 				currentDialog++;
 			}
 			progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1);
 
-			//tPositionExternal = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
+			//positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
 		}
 	}
-
-	//--
 }
 
 //--------------------------------------------------------------
@@ -841,7 +841,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 			if (indexModes == 0 && bPlayExternal)
 			{
-				t = tPositionExternal * (float)tEndSubsFilm;
+				t = positionExternal * (float)tEndSubsFilm;
 			}
 
 			//--
@@ -855,11 +855,11 @@ void ofxSurfingTextSubtitle::updateDebug()
 				}
 				else {//stopped
 					t = tPlay;
-		}
+				}
 #else
 				t = ofGetElapsedTimeMillis() - tPlay;
 #endif
-	}
+			}
 
 			//--
 
@@ -872,7 +872,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 				}
 				else {//stopped
 					t = tPlayForceFilm;
-}
+				}
 #else
 				t = ofGetElapsedTimeMillis() - tPlayForceFilm;
 #endif
@@ -970,14 +970,15 @@ void ofxSurfingTextSubtitle::drawRaw()
 	}
 
 	//TODO:
-	// Will update amountLinesDrawn 
-	// amount lines of the last current drawn 
+	// 1st pass. Expected aprox amount lines of the last current drawn 
+	// Will update amountLinesDrawn! 
 	ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
 
 	//--
 
 	// Will update boxDrawn
-	drawTextBox(textCurrent, box.getRectangle(), true); // No drawing! Just calculate and spaciate lines!
+	// True. No drawing! Just calculate and spaciate lines!
+	drawTextBox(textCurrent, box.getRectangle(), true);
 
 	//--
 
@@ -1053,10 +1054,10 @@ void ofxSurfingTextSubtitle::drawDebug()
 		if (!bDebug) return;
 		if (isPrecoutingStart) return;
 
+		//--
+
 		ofPushStyle();
 		{
-			//--
-
 			ofPushMatrix();
 			{
 				// make some spacing
@@ -1073,6 +1074,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 				}
 
 				// Alpha preview
+				// Old layout
 				// Text Widget
 				/*
 				if ((bAnimatedIn || bAnimatedOut) && (isAnimIn || isAnimOut))
@@ -1213,9 +1215,15 @@ void ofxSurfingTextSubtitle::drawDebug()
 							ofFill();
 							ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 							ofBeginShape();
-							ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
-							ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+							// a
+							//ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
+							//ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+							//ofVertex(xIn, p.y);
+							// b
+							ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
+							ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
 							ofVertex(xIn, p.y);
+							// c
 							//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
 							//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
 							//ofVertex(xIn, p.y);
@@ -1253,11 +1261,11 @@ void ofxSurfingTextSubtitle::drawDebug()
 						float r = 0.f;
 						if (bPlayForced)
 						{
-							r = 1.f - (countDownOut / (float)durationPlayForced);//ratio
+							r = 1.f - (durationOut / (float)durationPlayForced);//ratio
 						}
 						if (bPlayStandalone || bPlayExternal)
 						{
-							r = 1.f - (countDownOut / (float)durationPlaySlide);//ratio
+							r = 1.f - (durationOut / (float)durationPlaySlide);//ratio
 						}
 						xOut1 = p.x + w * r;
 
@@ -1281,7 +1289,9 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 						//--
 
+						/*
 						// Fade out ends
+						// Circle Point
 						float pixPerMillis = 0;
 						if (bPlayForced)
 						{
@@ -1314,6 +1324,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 							ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 128);
 							ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
 						}
+						*/
 					}
 
 					ofPopStyle();
@@ -1321,7 +1332,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 
 				//--
-				 
+
 				// Draw debug
 				/*
 				{
@@ -1375,7 +1386,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 				s = "ALPHA";
 				if (bLeft) x = box.getRectangle().getTopLeft().x - pad - offset - 4 - 18;
-				else x = box.getRectangle().getTopRight().x + pad;
+				else x = box.getRectangle().getTopRight().x + pad + offset;
+				//else x = box.getRectangle().getTopRight().x + pad;
 				y = box.getRectangle().getTopRight().y - 15;
 				//y -= 20;
 
@@ -1436,10 +1448,14 @@ void ofxSurfingTextSubtitle::draw()
 	drawDebug();
 }
 
+//--
+
+#ifdef USE_SHADOW
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw)
 {
-	// NOTE that uses only the rectangle width! not the height!
+	// NOTE that uses only the rectangle width! 
+	// Not the height!
 
 	float _x = box.getX();
 	float _y = box.getY();
@@ -1454,7 +1470,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	float _x2 = _x + offsetShadow.get().x;
 	float _y2 = _y + offsetShadow.get().y;
 
-	// how much less or more lines that expected/targeted
+	// How much less or more lines that expected/targeted
 	diff = amountLinesDrawn - amountLinesTarget;
 
 	// Non responsive
@@ -1570,7 +1586,8 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	// here upper border is aligned to the center horizontal
 	_y += getOneLineHeight();
 
-	// fix. workaround to hard code calibrate.
+	// Fix. 
+	// workaround to hard code calibrate.
 	//_y += 2; 
 
 	//------
@@ -1592,7 +1609,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 #else
 				ofSetColor(_color);
 #endif
-		}
+			}
 
 			float __x = _x;
 			float __y = _y;
@@ -1676,7 +1693,9 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 				//TODO: workaround
 				else
 				{
+#ifdef USE_SHADOW
 					if (iPasses == 0)
+#endif
 					{
 						boxDrawn = font.getBBox(
 							_str,					/*string*/
@@ -1693,43 +1712,260 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 #ifdef USE_SHADOW
 			iPasses++;
 #endif
-			}
+		}
 	}
 	if (!bNoDraw) ofPopStyle();
 
-	//------
-
-	//// Draw debug
-	//if (!bNoDraw)
-	//{
-	//	if (!bLive)
-	//	{
-	//		if (bGui && bDebug /*&& bDebug2*/)
-	//		{
-	//			ofPushStyle();
-
-	//			// 1. Prepare
-	//			ofColor c;
-	//			c = bTheme ? colorDebugLight : colorDebugDark;
-	//			int _period = 60; // one second
-	//			bool b = ofGetFrameNum() % _period > _period / 2;
-	//			ofSetColor(ofColor(c, (b ? 48 : 24)));
-	//			ofNoFill();
-	//			ofSetLineWidth(1.0f);
-
-	//			// 2. Blink box
-	//			ofDrawRectangle(boxDrawn);
-
-	//			// 3. Anchor
-	//			//drawInsertionPoint(_x, _y, 15); // useful to debug ofxFontStash
-
-	//			ofPopStyle();
-	//		}
-	//	}
-	//}
+	//--
 
 	return boxDrawn;
 }
+#endif
+
+#ifndef USE_SHADOW
+//--------------------------------------------------------------
+ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw)
+{
+	// NOTE that uses only the rectangle width! 
+	// Not the height!
+
+	float _x = box.getX();
+	float _y = box.getY();
+	float _w = box.getWidth();
+	float _h = box.getHeight();
+
+	int _size = 1.f;
+	int _align = fAlign.get();
+	ofColor _color = fColorTxt.get();
+	ofColor _color2 = fColorShadow.get();
+
+	float _x2 = _x + offsetShadow.get().x;
+	float _y2 = _y + offsetShadow.get().y;
+
+	// How much less or more lines that expected/targeted
+	diff = amountLinesDrawn - amountLinesTarget;
+
+	// Non responsive
+	if (!bResponsive)
+	{
+		_size = fSize.get();
+	}
+	// Responsive
+	else
+	{
+		// Using Engine
+		{
+			//TODO:
+			// it's problematic bc when changing size, 
+			// box relation changes too. 
+			// must be a kind of manual algorithm. 
+			// make font bigger to fit container
+			// must adapt size. a bit complex..
+			// also can be reduced to when there's too much lines..
+			//float rMax = 1.25f;
+			//_size = rMax * fSize.get();
+
+			float ho = getOneLineHeight();
+			float hb = box.getHeight();
+
+			float rLimit;
+			float rMax;
+			float rMin;
+
+			float r; // ratio
+			// could use a variable ratio depending on the amount of lines
+
+			float s = 1.f;//scaler
+
+			//Default
+			//_size = r * fSize.get();
+
+			// A. Same lines than expected
+			if (diff == 0)
+			{
+				sEngine = "A";
+
+				// do nothing
+				_size = fSize.get();
+			}
+
+			// B. More lines than expected
+			else if (diff > 0)
+			{
+				sEngine = "B";
+
+				rLimit = 0.5f;
+				rMin = ofMap(resizeResponsive, 0, 1, 1.f, rLimit, true);
+				r = ofMap(diff, 1, amountLinesTarget - 1, 1, rMin, true);
+
+				//--
+
+				_size = r * fSize.get();
+
+				//--
+
+				// Offset substract difference to align to top border.
+				_y += _size - fSize.get();
+			}
+
+			// C. Less lines than expected
+			else if (diff < 0)
+			{
+				sEngine = "C";
+
+				//rLimit = 1.3f;
+				rLimit = 2.5f;
+				rMax = ofMap(resizeResponsive, 0, 1, 1.f, rLimit, true);
+				r = ofMap(abs(diff), 0, amountLinesTarget - 1, 1, rMax, true);
+
+				//--
+
+				_size = r * fSize.get();
+
+				//--
+
+				//TODO:
+				// Extra stuff
+				if (amountLinesDrawn == 1)
+				{
+					_size *= 2.0f;
+					//if(bCenteredV) _y -= fSize.get() * 0.2;
+					_y -= fSize.get() * 0.2;
+				}
+				else if (amountLinesDrawn == 2)
+				{
+					_size *= 1.25f;
+					if (bCenteredV) _y -= fSize.get() * 0.5;
+				}
+
+				//--
+
+				// Offset substract difference to align to top border.
+				//_y -= fSize.get()- _size;
+				_y += _size - fSize.get();
+
+				//if (diff < -1) _y -= getSpacingBetweenLines();
+			}
+		}
+	}
+	if (!bNoDraw)
+	{
+		if ((bAnimatedIn) || (bAnimatedOut))
+		{
+			_color = ofColor(_color, alpha * _color.a);
+			_color2 = ofColor(_color2, alpha * _color2.a);
+		}
+	}
+
+	// here upper border is aligned to the center horizontal
+	_y += getOneLineHeight();
+
+	// Fix. 
+	// workaround to hard code calibrate.
+	//_y += 2; 
+
+	//------
+
+	if (!bNoDraw) ofPushStyle();
+	{
+		int iPasses = 0;
+
+		{
+			if (!bNoDraw)
+			{
+				ofSetColor(_color);
+			}
+
+			float __x = _x;
+			float __y = _y;
+
+			int _numLines = 20;
+			bool _wordsWereCropped = false;
+			bool _bCenter = ((_align == 2) ? true : false);//centered
+
+			/*get the final text formatting (by adding \n's) in the supplied string;
+			BE ARWARE that using TRUE in here will modify your supplied string! */
+			//bool _br = false;
+			bool _br = bForceAddBreakLines;
+
+			if (fAlign != 1) // left or center align
+			{
+				//TODO:
+				//if(bNoDraw)
+				boxDrawn = font.drawMultiLineColumn(
+					_str,					/*string*/
+					_size,					/*size*/
+					//_x, _y,					/*where*/
+					__x, __y,					/*where*/
+					MAX(10, _w),			/*column width*/
+					_numLines,				/*get back the number of lines*/
+					bNoDraw,				/* if true, we wont draw (just get bbox back) */
+					20,						/* max number of lines to draw, crop after that */
+					_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+											BE ARWARE that using TRUE in here will modify your supplied string! */
+					&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+					_bCenter				/*centered*/
+				);
+			}
+			else // right align
+			{
+				//TODO: 
+				//WIP trying to make work right align
+				if (bForceAddBreakLines)
+				{
+					auto __bbox = font.drawMultiLineColumn(
+						_str,					/*string*/
+						_size,					/*size*/
+						//_x, _y,					/*where*/
+						__x, __y,					/*where*/
+						MAX(10, _w),			/*column width*/
+						_numLines,				/*get back the number of lines*/
+						true,					/* if true, we wont draw (just get bbox back) */
+						20,						/* max number of lines to draw, crop after that */
+						_br,					/*get the final text formatting (by adding \n's) in the supplied string;
+												BE ARWARE that using TRUE in here will modify your supplied string! */
+						&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
+						_bCenter				/*centered*/
+					);
+
+					_str = _str + " ";//fix last char
+					//textCurrent = _str;
+				}
+
+				if (!bNoDraw)
+				{
+					boxDrawn = font.drawMultiLine(
+						_str,					/*string*/
+						_size,					/*size*/
+						_x, _y,					/*where*/
+						OF_ALIGN_HORZ_RIGHT,
+						MAX(10, _w)				/*column width*/
+					);
+				}
+				//TODO: workaround
+				else
+				{
+					{
+						boxDrawn = font.getBBox(
+							_str,					/*string*/
+							_size,					/*size*/
+							//_x, _y,					/*where*/
+							__x, __y,					/*where*/
+							OF_ALIGN_HORZ_RIGHT,
+							MAX(10, _w)				/*column width*/
+						);
+					}
+				}
+			}
+		}
+	}
+	if (!bNoDraw) ofPopStyle();
+
+	//--
+
+	return boxDrawn;
+}
+#endif
 
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRectangle r)
@@ -2225,7 +2461,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			if (bPlayExternal)
 			{
-				auto t = tPositionExternal * (float)tEndSubsFilm;
+				auto t = positionExternal * (float)tEndSubsFilm;
 #ifdef USING_OFX_TIME_CODE
 				stime = timecode.timecodeForMillis(t);
 #else
@@ -2374,16 +2610,23 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			if (indexModes == 0) // external
 			{
-				ui->Add(tPositionExternal, OFX_IM_HSLIDER_MINI);
+				ui->Add(positionExternal, OFX_IM_HSLIDER_MINI);
+				s = "Local time linked to parent player.";
+				ui->AddTooltip(s);
 			}
 			else if (indexModes == 1) // standalone
 			{
 				ui->Add(bPlayStandalone, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				s = "Time linked to .srt file times.";
+				ui->AddTooltip(s);
+
 				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 			}
 			else if (indexModes == 2) // forced
 			{
 				ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				s = "Local time linked to his timer.";
+				ui->AddTooltip(s);
 				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 				ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 				ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
@@ -2403,41 +2646,26 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	if (ui->BeginTree("FADES", false, false))
 	{
-		//TODO: fix formula..
-		// convert dt to ms duration of each fade.
-		// fade out must be related to countDown ms setting and to the fps.
-		// fade in starts at zero so is directly related only to fps.
-		//https://www.construct.net/en/tutorials/delta-time-framerate-71
-
-		auto _tIn = ofToString(dtAnimIn * (float)fps, 0);
-		auto _tOut = ofToString(dtAnimOut * (float)fps, 0);
-		//auto _tIn = ofToString((dt / dtAnimIn) * (float)fps, 0);
-		//auto _tOut = ofToString((dt / dtAnimOut) * (float)fps, 0);
-		//auto _tIn = ofToString((dtAnimIn / dt) * (float)fps, 0);
-		//auto _tOut = ofToString((dtAnimOut / dt) * (float)fps, 0);
-
 		string s;
 
 		if (bMinimize)
 		{
 			// in
 			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-			//s = _tIn + " ms";
-			//ui->AddTooltip(s);
 
 			// out
 			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
-			//s = _tOut + " ms";
-			//ui->AddTooltip(s);
 
 			if (bAnimatedIn) {
 				ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = _tIn + " ms";
+				s = ofToString(durationIn.get(), 0);
+				s += " ms";
 				ui->AddTooltip(s);
 			}
 			if (bAnimatedOut) {
 				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = _tOut + " ms";
+				s = ofToString(durationOut.get(), 0);
+				s += " ms";
 				ui->AddTooltip(s);
 			}
 		}
@@ -2445,31 +2673,21 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			// in
 			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-			ui->Add(speedFadeIn, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
-			s = speedFadeIn.getName() + "\n";
-			s += ofToString(speedFadeIn.get(), 2) + "\n";
-			s += _tIn + " ms";
-			ui->AddTooltip(s);
-			if (bAnimatedIn) {
+			if (bAnimatedIn) 
+			{
 				ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = _tIn + " ms";
+				ui->Add(durationIn, OFX_IM_HSLIDER_MINI_NO_LABELS);
+				ui->AddTooltip(durationIn);
 			}
-			ui->AddTooltip(s);
 			ui->AddSpacing();
 
 			// out
 			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2, true);
-			ui->Add(speedFadeOut, OFX_IM_HSLIDER_MINI_NO_LABELS, 2);
-			s = speedFadeOut.getName() + "\n";
-			s += ofToString(speedFadeOut.get(), 2) + "\n";
-			s += _tOut + " ms";
-			ui->AddTooltip(s);
-			if (bAnimatedOut) {
+			if (bAnimatedOut) 
+			{
 				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = _tOut + " ms";
-				ui->AddTooltip(s);
-				ui->Add(countDownOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
-				ui->AddTooltip(countDownOut);
+				ui->Add(durationOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
+				ui->AddTooltip(durationOut);
 			}
 			ui->AddSpacing();
 
@@ -2688,9 +2906,8 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	//bAnimatedIn = true;
 	//bAnimatedOut = true;
 	durationPlayForced = 2000;
-	countDownOut = 250;
-	speedFadeIn = .7;
-	speedFadeOut = .5;
+	durationOut = 250;
+	durationIn = 250;
 }
 
 //--------------------------------------------------------------
@@ -2716,7 +2933,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		name == progressPlayFilm.getName() ||
 		name == progressIn.getName() ||
 		name == progressOut.getName() ||
-		name == tPositionExternal.getName())
+		name == positionExternal.getName())
 		return;
 
 	ofLogNotice("ofxSurfingTextSubtitle") << " Changed " << name << " : " << e;
@@ -2725,7 +2942,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	if (false) {}
 
-	// modes
+	// Modes
 	else if (name == indexModes.getName())
 	{
 		auto& gt = gui.getGroup(params_Transport.getName());
@@ -2767,7 +2984,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		//return;//bypass
 
-		// clamp errors
+		// Avoid / clamp errors
 		if (sub.size() == 0)
 		{
 			currentDialog.setWithoutEventNotifications(0);
@@ -2800,13 +3017,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 			//TODO: fail
 			/*
-			if (bPlayExternal)
+			if (indexModes==0)
+			//if (bPlayExternal)
 			{
 				// get the position normalized
 				auto t = sub[currentDialog.get()]->getStartTime();
 				auto pos = t / (float)tEndSubsFilm;
-				if (pos != tPositionExternal) tPositionExternal = pos;
-				//tPositionExternal.setWithoutEventNotifications(pos);
+				if (pos != positionExternal) positionExternal = pos;
+				//positionExternal.setWithoutEventNotifications(pos);
 			}
 			*/
 		}
@@ -2852,8 +3070,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlayExternal)
 		{
-			if (bPlayStandalone)bPlayStandalone = false;
-			if (bPlayForced)bPlayForced = false;
+			if (bPlayStandalone) bPlayStandalone = false;
+			if (bPlayForced) bPlayForced = false;
 
 			progressPlaySlide = 0;
 
@@ -2929,21 +3147,30 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		}
 	}
 
-	//--
-
-	// dt
-	else if (name == speedFadeIn.getName())
-	{
-		dtAnimIn = ofMap(speedFadeIn, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
-	}
-	else if (name == speedFadeOut.getName())
-	{
-		dtAnimOut = ofMap(speedFadeOut, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
-	}
-
 	else if (name == bStop.getName())
 	{
 		this->stop();
+	}
+
+	//--
+
+	// dt
+
+	//else if (name == speedFadeIn.getName())
+	//{
+	//	dtAnimIn = ofMap(speedFadeIn, 0, 1, dt * DT_RATIO_MIN, dt * DT_RATIO_MAX, true);
+	//}
+	else if (name == durationIn.getName())
+	{
+		auto _numframes = durationIn / (float)(dt * 1000);
+		float _margin = 1.f; // fade in increment per frame. from 0 to 1 or vice versa.
+		dtAnimIn = _margin / (float)_numframes;
+	}
+	else if (name == durationOut.getName())
+	{
+		auto _numframes = durationOut / (float)(dt * 1000);
+		float _margin = 1.f; // fade out increment per frame. from 0 to 1 or vice versa.
+		dtAnimOut = _margin / (float)_numframes;
 	}
 
 	else if (name == bAnimatedIn.getName())
@@ -2978,8 +3205,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			// get the position normalized
 			auto t = sub[currentDialog.get()]->getStartTime();
 			auto pos = t / (float)tEndSubsFilm;
-			if (pos != tPositionExternal) tPositionExternal = pos;
-			//tPositionExternal.setWithoutEventNotifications(pos);
+			if (pos != positionExternal) positionExternal = pos;
+			//positionExternal.setWithoutEventNotifications(pos);
 		}
 		*/
 		//}
@@ -3106,8 +3333,8 @@ void ofxSurfingTextSubtitle::keyPressed(int key)
 	if (key == OF_KEY_TAB) { setToggleAlign(); }
 
 	// Browse subs
-	if (key == OF_KEY_LEFT) { setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { setSubtitleNext(); }
+	if (key == OF_KEY_LEFT) { setSubtitlePrevious(); }
 	if (key == OF_KEY_BACKSPACE) { setSubtitleRandomIndex(); };
 
 	// Play both!
@@ -3179,6 +3406,7 @@ bool ofxSurfingTextSubtitle::isPlaying() const {
 void ofxSurfingTextSubtitle::setTogglePlay()
 {
 	if (indexModes == 0) {
+		// external
 	}
 	else if (indexModes == 1) {
 		bPlayStandalone = !bPlayStandalone;
@@ -3208,7 +3436,7 @@ void ofxSurfingTextSubtitle::stop() {
 
 	textCurrent = "";
 	currentDialog = 0;
-	tPositionExternal = 0;
+	positionExternal = 0;
 	progressPlaySlide = 0;
 	progressPlayFilm = 0;
 }
