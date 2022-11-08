@@ -1220,13 +1220,17 @@ void ofxSurfingTextSubtitle::drawDebug()
 							//ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
 							//ofVertex(xIn, p.y);
 							// b
-							ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
-							ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
-							ofVertex(xIn, p.y);
+							//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn, p.y);
 							// c
 							//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
 							//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
 							//ofVertex(xIn, p.y);
+							// d
+							ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
+							ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+							ofVertex(xIn, p.y );
 							ofEndShape();
 
 							//// line
@@ -2288,7 +2292,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -2407,7 +2411,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 				{
 					ui->AddSpacingSeparated();
 
-					static bool bDebug3 = true;
+					static bool bDebug3 = false;
 					ui->AddToggle("Debug", bDebug3, OFX_IM_TOGGLE_ROUNDED_MINI);
 					ui->AddSpacing();
 
@@ -2467,8 +2471,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #else
 				stime = t / 1000.f + "''";
 #endif
-			}
 		}
+	}
 		else if (indexModes == 1)
 		{
 			if (bPlayStandalone)
@@ -2498,7 +2502,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+}
 
 	//----
 
@@ -2507,14 +2511,14 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->AddSpacingSeparated();
 
-	if (!bMinimize) {
+	if (!bMinimize)
+	{
 		ui->AddLabelBig(sfile);
 		s = path_Srt;
 		ui->AddTooltip(s);
 	}
 
 	ui->AddLabelBig(stime);
-	//ui->AddLabelHuge(stime);
 
 	ui->AddSpacing();
 
@@ -2532,34 +2536,37 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	{
 		ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
 		ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
-		//if (!bMinimize) 
-		{
-			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
-		}
+		ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 		ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
 		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
 
 		if (!bLive && !bMinimize)
 		{
 			ui->Indent();
-			static bool bExtra = false;
-			ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
-			if (bExtra)
 			{
-				ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-				if (bDebug) {
-					ui->Indent();
-					ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-					ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-					ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-					if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				static bool bExtra = false;
+				ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
+				if (bExtra)
+				{
+					ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+					if (bDebug)
+					{
+						ui->Indent();
+						{
+							ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+							if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
-					ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+							ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
-					ui->Unindent();
+						}
+						ui->Unindent();
+					}
 				}
 			}
 			ui->Unindent();
+
 			ui->AddSpacing();
 		}
 
@@ -2583,6 +2590,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		}
 
 		ui->EndTree();
+
+		//fix?
+		ui->Indent();
 	}
 
 	//--
@@ -2630,6 +2640,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 				ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 				ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
+				ui->AddTooltip(currentDialog);
 				ui->PushButtonRepeat();
 				ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
 				ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
@@ -2673,7 +2684,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			// in
 			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-			if (bAnimatedIn) 
+			if (bAnimatedIn)
 			{
 				ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
 				ui->Add(durationIn, OFX_IM_HSLIDER_MINI_NO_LABELS);
@@ -2683,7 +2694,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			// out
 			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2, true);
-			if (bAnimatedOut) 
+			if (bAnimatedOut)
 			{
 				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
 				ui->Add(durationOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
