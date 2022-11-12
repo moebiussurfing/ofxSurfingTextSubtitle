@@ -15,7 +15,7 @@
 	TODO:
 
 	Remove dt controllers for speed.
-	fix counDown direct to dt fadeout speed. 
+	fix counDown direct to dt fadeout speed.
 		Deprecate dt usages. go for ms for duration!
 
 	fix responsive engine a bit. calibration. jumps when enable.
@@ -173,13 +173,13 @@ public:
 
 	//--
 
-	void setToggleEdit() { bEdit = !bEdit; }
 	void setEdit(bool b) { bEdit = b; }
+	void setToggleEdit() { bEdit = !bEdit; }
 	void setToggleLive() { bLive = !bLive; }
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setToggleDebug() { bDebug = !bDebug; }
-	void setDebug(bool b) { bDebug = b; }
 	void setToggleAlign() { fAlign++; if (fAlign.get() > 2) fAlign = 0; }
+	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
 	void setSubtitlePrevious() { bPrev = true; }
@@ -200,6 +200,37 @@ public:
 		//indexModes = indexModes.get();
 		//indexModes = 0;
 	};
+
+	//--
+
+	// Helpers
+
+	string getCurrentDialogue() {
+		return textCurrent;
+	};
+
+	inline std::vector<std::string> getIndividualWords(int _index)
+	{
+		return sub[_index]->getIndividualWords();
+	}
+	inline int getWordCount(int _index) const
+	{
+		return sub[_index]->getWordCount();
+	}
+	inline string getDialogue(int _index) const
+	{
+		return sub[_index]->getDialogue();
+	}
+	inline int getSubNo(int _index) const
+	{
+		return sub[_index]->getSubNo();
+	}
+	inline int getSize() const
+	{
+		return sub.size();
+	}
+
+	//--
 
 private:
 
@@ -245,8 +276,8 @@ private:
 
 public:
 
-	void setFps(float _fps) { 
-		fps = _fps; 
+	void setFps(float _fps) {
+		fps = _fps;
 		dt = 1 / fps;
 	}
 
@@ -254,6 +285,8 @@ public:
 	ofParameter<bool> bDraw;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
+
+	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 private:
 
@@ -324,9 +357,9 @@ private:
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
-	ofParameterGroup params_External{"MODE EXTERNAL"};
-	ofParameterGroup params_Standalone{"MODE STANDALONE"};
-	ofParameterGroup params_Forced{"MODE FORCED"};
+	ofParameterGroup params_External{ "MODE EXTERNAL" };
+	ofParameterGroup params_Standalone{ "MODE STANDALONE" };
+	ofParameterGroup params_Forced{ "MODE FORCED" };
 
 	int amountLinesDrawn = 0; // amount lines of the last current drawn 
 
@@ -354,8 +387,6 @@ private:
 	ofParameter<bool> bTheme{ "Theme", true };
 
 	string textCurrent = "";
-
-	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 	ofxPanel gui;
 

@@ -759,7 +759,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 	else if (indexModes == 1)
 	{
 		//if(bPlayStandalone) {
-		//positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
+		//	positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
 		//}
 	}
 	else if (indexModes == 2)
@@ -1065,7 +1065,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 				ofTranslate(0, bTop ? -sp : sp);
 
 				// 1. Draw main rule line
-				if (bAnimatedIn || bAnimatedOut)
+				if ((bAnimatedIn) || (bAnimatedOut))
+					//if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
 				{
 					ofSetLineWidth(1.f);
 					ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
@@ -1140,7 +1141,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 				// 2. Timeline: 
 
 				// thin line
-				if (bPlayStandalone || bPlayForced || bPlayExternal)
+				//if (bPlayStandalone || bPlayForced || bPlayExternal)
 				{
 					ofPushStyle();
 
@@ -1182,7 +1183,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						// dt on every single frame!
 						int t = (d / fps) * 1000;
 
-						float r;
+						float r=0;
 						if (bPlayForced)
 						{
 							r = (t / (float)durationPlayForced);//ratio
@@ -1230,7 +1231,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 							// d
 							ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
 							ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
-							ofVertex(xIn, p.y );
+							ofVertex(xIn, p.y);
 							ofEndShape();
 
 							//// line
@@ -2471,8 +2472,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #else
 				stime = t / 1000.f + "''";
 #endif
+			}
 		}
-	}
 		else if (indexModes == 1)
 		{
 			if (bPlayStandalone)
@@ -2502,7 +2503,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-}
+	}
 
 	//----
 
@@ -2886,7 +2887,7 @@ void ofxSurfingTextSubtitle::doReset() {
 	fSpacing = 0;
 	fLineHeight = 0.75;
 	fSizePrc = 0.25;
-	fAlign = 0;
+	//fAlign = 0;
 
 	amountLinesTarget = 6;
 	bCenteredV = true;
