@@ -16,10 +16,11 @@
 - Custom `Paragraph Styles`.
 - Scalable and `draggable container`.
 - `Persistent` settings.
-- `Presets` Engine (Optional). Look `example-Subtitle2`. Requires ImGui.
-- Animated `Fade In/Out`.
-- Transport `player` and full file browser.
-	- 3 modes: standalone player, forced and custom times and external video player link. 
+- Full file browser for exploring dialogs.
+- `Presets` Engine (Optional). (Look `example-Subtitle2`. Requires ImGui.)
+- Animated `Fade In/Out` transparency.
+- Transport `Player` with 3 Modes: 
+	- Standalone player, forced with custom dialogs time and external video player link. 
 
 ## Usage
 #### ofApp.h
