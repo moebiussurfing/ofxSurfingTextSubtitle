@@ -2,28 +2,33 @@
 
 Ready to use customizable `.SRT` text subtitle player for `openFrameworks`. 
 
-## Features
+## FEATURES
 - Fast `FontStash` render.
 - Custom `Paragraph Styles`.
-- Scalable and `draggable container`.
+- Scalable and draggable `container`.
 - `Persistent` settings.
-- Full file browser for exploring dialogs.
-- `Presets` Engine for styles (Optional). 
-	(Look `example-Subtitle2`. Requires ImGui.)
+- Full `srt` file browser for exploring the dialogs.
 - Animated `Fade In/Out` for transparency.
 - Transport `Player` with 3 Modes: 
-	- Standalone player, forced with custom dialogs time and external video player link. 
-
-## Screencast Video
+	- Standalone: dialogs following the original `srt` times and durations.
+	- Forced: customizable dialogs duration. Ignoring `srt` times.
+	- External: time is controlled by a video player or linked to an external control. 
+- `Presets` Engine for styles (Optional). 
+	(Look `example-Subtitle2`. Requires ImGui.)
+	
+## SCREENCAST VIDEO
 
 [![](https://markdown-videos.deta.dev/youtube/kcObeooL3Pc)](https://youtu.be/kcObeooL3Pc)
 <!-- [![](https://img.youtube.com/vi/kcObeooL3Pc/maxresdefault.jpg)](https://www.youtube.com/watch?v=kcObeooL3Pc) -->
 
-## Examples Screenshots
+## SCREENSHOTS
+
 ### Example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
+
 ### Example-Subtitle2 / ImGui (Optional) 
 ![Screenshot](example-Subtitle2/Capture.PNG)
+
 ### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
@@ -54,7 +59,7 @@ void ofApp::draw() {
 - [ofxFontStash](https://github.com/armadillu/ofxFontStash)
 - [ofxSurfingBox](https://github.com/moebiussurfing/ofxSurfingBox)
 - [ofxSurfingHelpers](https://github.com/moebiussurfing/ofxSurfingHelpers)
-- ofxGui / oF Core
+- ofxGui / oF core
 
 #### OPTIONAL
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
