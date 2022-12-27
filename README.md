@@ -3,7 +3,7 @@
 [![](https://markdown-videos.deta.dev/youtube/kcObeooL3Pc)](https://youtu.be/kcObeooL3Pc)
 <!-- [![](https://img.youtube.com/vi/kcObeooL3Pc/maxresdefault.jpg)](https://www.youtube.com/watch?v=kcObeooL3Pc) -->
 
-## Screenshots
+## Examples Screenshots
 #### example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
 #### example-Subtitle2 / ImGui (Optional) 
@@ -53,9 +53,7 @@ void ofApp::draw() {
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
-- Pass time/frame to improve link with an external video player. 
-	- Allow time scrub and playback pause.
-- Load render fonts and .srt files on runtime.
+- Load render fonts on runtime.
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**
