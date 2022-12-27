@@ -66,10 +66,10 @@ void ofApp::draw() {
 * **Windows 10** / **VS 2017** / **OF ~0.11**
 
 ## Thanks
-* File `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
+* SRT parser: file `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
 Thanks `@Jonathhhan`.  
 Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
-* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. 
+* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using ofxGui as GUI. (Can be removed when using ofxSurfingImGui.)
 
 ## License
 **MIT License**
