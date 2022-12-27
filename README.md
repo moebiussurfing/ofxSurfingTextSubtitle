@@ -1,6 +1,6 @@
 ## OVERVIEW
 
-Ready to use `.SRT` customizable text subtitle player for `openFrameworks`. 
+Ready to use customizable `.SRT` text subtitle player for `openFrameworks`. 
 
 ## Features
 - Fast `FontStash` render.
