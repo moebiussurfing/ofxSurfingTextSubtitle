@@ -4,11 +4,11 @@
 <!-- [![](https://img.youtube.com/vi/kcObeooL3Pc/maxresdefault.jpg)](https://www.youtube.com/watch?v=kcObeooL3Pc) -->
 
 ## Examples Screenshots
-#### example-Subtitle / ofxGui 
+### Example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
-#### example-Subtitle2 / ImGui (Optional) 
+### Example-Subtitle2 / ImGui (Optional) 
 ![Screenshot](example-Subtitle2/Capture.PNG)
-#### example-Subtitle3 / ofxGui (Video Player) 
+### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
 ## Features
@@ -20,7 +20,7 @@
 - `Presets` Engine (Optional). Look `example-Subtitle2`. Requires ImGui.
 - Animated `Fade In/Out`.
 
-## Example example-Subtitle / ofxGui
+## Usage
 #### ofApp.h
 ```.cpp
 #include "ofxSurfingTextSubtitle.h"
