@@ -62,7 +62,7 @@
 // A floating widget to display some info
 
 #define USE_TIME_CODE__SUBTITLES
-// Only to help in some time convertions. Can be removed.
+// Only to help in some time conversions. Can be removed.
 
 //TODO: WIP
 //#define USE_SHADOW
@@ -173,10 +173,13 @@ public:
 
 	//--
 
+	void setToggleVisibleGui() { bGui = !bGui; }
+	void setVisibleGui(bool b) { bGui = b; }
+	bool getVisibleGui() { return bGui; }
+
 	void setEdit(bool b) { bEdit = b; }
 	void setToggleEdit() { bEdit = !bEdit; }
 	void setToggleLive() { bLive = !bLive; }
-	void setToggleVisibleGui() { bGui = !bGui; }
 	void setToggleDebug() { bDebug = !bDebug; }
 	void setToggleAlign() { fAlign++; if (fAlign.get() > 2) fAlign = 0; }
 	void setDebug(bool b) { bDebug = b; }

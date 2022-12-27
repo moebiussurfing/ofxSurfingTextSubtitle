@@ -59,6 +59,14 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
+	if (key == 'g') { 
+		subs.setToggleVisibleGui(); 
+#ifdef USE_PRESETS
+		presets.setVisibleGui(subs.getVisibleGui());
+#endif
+	}
+	
+	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	if (key == ' ') { subs.setTogglePlay(); }
 	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }

@@ -99,6 +99,12 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 		}));
 #endif	
+	
+	//--
+
+#ifdef USE_IM_GUI__SUBTITLES
+	bMinimize.makeReferenceTo(ui->bMinimize);
+#endif
 
 	//--
 
@@ -257,6 +263,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	bPlayStandalone.setSerializable(false);
 	bPlayExternal.setSerializable(false);
 	bPlayForced.setSerializable(false);
+
+	progressIn.setSerializable(false);
+	progressOut.setSerializable(false);
 
 	//--
 
@@ -2627,7 +2636,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 			else if (indexModes == 1) // standalone
 			{
-				ui->Add(bPlayStandalone, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 				s = "Time linked to .srt file times.";
 				ui->AddTooltip(s);
 
@@ -2635,7 +2644,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 			else if (indexModes == 2) // forced
 			{
-				ui->Add(bPlayForced, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+				ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 				s = "Local time linked to his timer.";
 				ui->AddTooltip(s);
 				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
