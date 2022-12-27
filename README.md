@@ -3,6 +3,7 @@
 Ready to use customizable `.SRT` text subtitle player for `openFrameworks`. 
 
 ## FEATURES
+
 - Fast `FontStash` render.
 - Custom `Paragraph Styles`.
 - Scalable and draggable `container`.
@@ -10,9 +11,9 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 - Full `srt` file browser for exploring the dialogs.
 - Animated `Fade In/Out` for transparency.
 - Transport `Player` with 3 Modes: 
-	- Standalone: dialogs following the original `srt` times and durations.
-	- Forced: customizable dialogs duration. Ignoring `srt` times.
-	- External: time is controlled by a video player or linked to an external control. 
+	- Standalone: Dialogs following the original `srt` times and durations.
+	- Forced: Customizable dialogs duration. Ignoring `srt` times.
+	- External: Time is controlled by a video player or linked to an external control. 
 - `Presets` Engine for styles (Optional). 
 	(Look `example-Subtitle2`. Requires ImGui.)
 	
@@ -32,7 +33,8 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 ### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
-## Usage
+## USAGE
+
 #### ofApp.h
 ```.cpp
 #include "ofxSurfingTextSubtitle.h"
@@ -41,6 +43,7 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 
 ofxSurfingTextSubtitle subs;
 ```
+
 #### ofApp.cpp
 ```.cpp
 void ofApp::setup() {
@@ -55,26 +58,26 @@ void ofApp::draw() {
 }
 ```
 
-## Dependencies
+## DEPENDENCIES
 - [ofxFontStash](https://github.com/armadillu/ofxFontStash)
 - [ofxSurfingBox](https://github.com/moebiussurfing/ofxSurfingBox)
 - [ofxSurfingHelpers](https://github.com/moebiussurfing/ofxSurfingHelpers)
 - ofxGui / oF core
 
-#### OPTIONAL
+### OPTIONAL
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
 - Load render fonts on runtime.
 
-## Tested Systems
+## TESTED SYSTEM
 * **Windows 10** / **VS 2017** / **OF ~0.11**
 
-## Thanks
+## THANKS
 * SRT parser: file `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
 Thanks `@Jonathhhan`.  
 Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using ofxGui as GUI. (Can be removed when using ofxSurfingImGui.)
 
-## License
+## LICENSE
 **MIT License**
