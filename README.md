@@ -53,9 +53,7 @@ void ofApp::draw() {
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
-- Pass time/frame to improve link with an external video player. 
-	- Allow time scrub and playback pause.
-- Load render fonts and .srt files on runtime.
+- Load render fonts files on runtime.
 
 ## Tested Systems
 * **Windows 10** / **VS 2017** / **OF ~0.11**

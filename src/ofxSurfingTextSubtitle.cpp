@@ -88,23 +88,24 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 	listeners.push(player.playback.play.newListener([&](bool& b) {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
-		if (b) play();
-		else stop();
+	if (b) play();
+	else stop();
 		}));
 
 	listeners.push(player.playback.stop.newListener([&]() {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Stop pressed\n";
-		stop();
+	stop();
 
 
 		}));
 #endif	
-	
+
 	//--
 
-#ifdef USE_IM_GUI__SUBTITLES
-	bMinimize.makeReferenceTo(ui->bMinimize);
-#endif
+//	//crash
+//#ifdef USE_IM_GUI__SUBTITLES
+//	bMinimize.makeReferenceTo(ui->bMinimize);
+//#endif
 
 	//--
 
@@ -114,7 +115,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::loadFont(string path)
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path;
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path;
 
 	if (fPath.get() != path) fPath.setWithoutEventNotifications(path);
 
@@ -382,17 +383,40 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 
 	name_Srt = file.getBaseName();
 
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path_Srt;
+
+	//bLoaded = ofFile::doesFileExist(path_Srt);
+	//if (!bLoaded) {
+	//	ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
+	//}
 
 	subParserFactory = new SubtitleParserFactory(ofToDataPath(path_Srt));
-
-	if (!subParserFactory) ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
 
 	//bGui_List.setName(path_Srt);
 
 	parser = subParserFactory->getParser();
 	sub = parser->getSubtitles();
-	if (sub.size() == 0) ofLogError("ofxSurfingTextSubtitle") << "SUB object empty!";
+	if (sub.size() == 0) {
+		ofLogError("ofxSurfingTextSubtitle") << "SUB object empty!";
+	}
+
+	//--
+
+	if (!subParserFactory || sub.size() == 0) {
+		bLoaded = false;
+		ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
+	}
+	else {
+		bLoaded = true;
+		ofLogNotice("ofxSurfingTextSubtitle") << "Successfully loaded .srt file: " << path_Srt;
+	}
+
+	if (!bLoaded) {
+		ofLogError("ofxSurfingTextSubtitle") << "Incomplete initialization!";
+		return;
+	}
+
+	//--
 
 	currentDialog.setMax(sub.size() - 1);
 
@@ -417,7 +441,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::buildSubsData()
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << path_Srt;
+	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path_Srt;
 
 	//not used yet
 	int i = 0;
@@ -1192,7 +1216,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 						// dt on every single frame!
 						int t = (d / fps) * 1000;
 
-						float r=0;
+						float r = 0;
 						if (bPlayForced)
 						{
 							r = (t / (float)durationPlayForced);//ratio
@@ -2249,6 +2273,11 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 void ofxSurfingTextSubtitle::drawImGui()
 {
 	if (!bGui) return;
+	if (ui == NULL) {
+		ofLogError("ofxSurfingTextSubtitle") << " ofxImGui is not instantiate. You should setted the parent ui instance as reference!";
+		ofLogError("ofxSurfingTextSubtitle") << " Usually: 	subs.setUiPtr(&ui);";
+		return;
+	}
 
 	/*
 	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
@@ -2302,7 +2331,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 }
 
@@ -2466,6 +2495,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	string sdialog = "";
 	string stime = "";
 	string s;
+
+	if (bLoaded)
 	{
 		// filename
 		sfile = name_Srt;
@@ -2521,247 +2552,261 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->AddSpacingSeparated();
 
-	if (!bMinimize)
+	if (bLoaded)
 	{
-		ui->AddLabelBig(sfile);
-		s = path_Srt;
+		if (!bMinimize)
+		{
+			ui->AddLabelBig(sfile);
+			s = path_Srt;
+			ui->AddTooltip(s);
+		}
+
+		ui->AddLabelBig(stime);
+
+		ui->AddSpacing();
+
+		ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+		s = "Total Duration";
+		ui->AddTooltip(s);
+
+		ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
+		s = "Dialog Duration";
 		ui->AddTooltip(s);
 	}
-
-	ui->AddLabelBig(stime);
-
-	ui->AddSpacing();
-
-	ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
-	s = "Total Duration";
-	ui->AddTooltip(s);
-
-	ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-	s = "Dialog Duration";
-	ui->AddTooltip(s);
-
-	ui->AddSpacingSeparated();
-
-	if (ui->BeginTree("MAIN", false, false))
+	else {
+		ui->BeginBlinkText();
+		ui->AddLabelBig("SRT FILE NOT LOADED!");
+		ui->EndBlinkText();
+		ui->AddSpacing();
+		ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+	}
+	if (bLoaded)
 	{
-		ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
-		ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
-		ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
-		ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
-		ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+		ui->AddSpacingSeparated();
 
-		if (!bLive && !bMinimize)
+		//--
+
+		if (ui->BeginTree("MAIN", false, false))
 		{
-			ui->Indent();
+			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
+			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
+			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
+			ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
+			ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+
+			if (!bLive && !bMinimize)
 			{
-				static bool bExtra = false;
-				ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
-				if (bExtra)
+				ui->Indent();
 				{
-					ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-					if (bDebug)
+					static bool bExtra = false;
+					ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
+					if (bExtra)
 					{
-						ui->Indent();
+						ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+						if (bDebug)
 						{
-							ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-							ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-							ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-							if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+							ui->Indent();
+							{
+								ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+								ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+								ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+								if (bEdit) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
-							ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+								ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
+							}
+							ui->Unindent();
 						}
-						ui->Unindent();
 					}
 				}
+				ui->Unindent();
+
+				ui->AddSpacing();
 			}
-			ui->Unindent();
 
-			ui->AddSpacing();
-		}
-
-		if (!bMinimize) // maximized 
-		{
-			ui->AddSpacingSeparated();
-
-			std::string n = name_Srt;
-			if (ui->BeginTree(n))
+			if (!bMinimize) // maximized 
 			{
-				ui->AddLabel("SRT FILE");
+				ui->AddSpacingSeparated();
 
-				ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+				std::string n = name_Srt;
+				if (ui->BeginTree(n))
+				{
+					ui->AddLabel("SRT FILE");
+
+					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
-				ui->AddSpacingSeparated();
-				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+					ui->AddSpacingSeparated();
+					ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
-				ui->EndTree();
+					ui->EndTree();
+				}
 			}
+
+			ui->EndTree();
+
+			//fix?
+			ui->Indent();
 		}
 
-		ui->EndTree();
+		//--
 
-		//fix?
-		ui->Indent();
-	}
+		ui->AddSpacingSeparated();
 
-	//--
+		// maximized 
 
-	ui->AddSpacingSeparated();
-
-	// maximized 
-
-	if (!bMinimize)
-	{
-		if (ui->BeginTree("TRANSPORT", false, false))
+		if (!bMinimize)
 		{
-			//ui->AddLabelBig("TRANSPORT");
-			ui->AddSpacing();
+			if (ui->BeginTree("TRANSPORT", false, false))
+			{
+				//ui->AddLabelBig("TRANSPORT");
+				ui->AddSpacing();
 
-			ui->AddCombo(indexModes, names_Modes);
-			string s = "Link Mode ";
-			switch (indexModes)
-			{
-			case 0: s += "EXTERNAL\nLocal time linked to parent player."; break;
-			case 1: s += "STANDALONE\nTime linked to .srt file times."; break;
-			case 2: s += "FORCED\nLocal time linked to his timer."; break;
-			}
-			ui->AddTooltip(s);
-
-			if (indexModes == 0) // external
-			{
-				ui->Add(positionExternal, OFX_IM_HSLIDER_MINI);
-				s = "Local time linked to parent player.";
-				ui->AddTooltip(s);
-			}
-			else if (indexModes == 1) // standalone
-			{
-				ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
-				s = "Time linked to .srt file times.";
+				ui->AddCombo(indexModes, names_Modes);
+				string s = "Link Mode ";
+				switch (indexModes)
+				{
+				case 0: s += "EXTERNAL\nLocal time linked to parent player."; break;
+				case 1: s += "STANDALONE\nTime linked to .srt file times."; break;
+				case 2: s += "FORCED\nLocal time linked to his timer."; break;
+				}
 				ui->AddTooltip(s);
 
-				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
-			}
-			else if (indexModes == 2) // forced
-			{
-				ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
-				s = "Local time linked to his timer.";
-				ui->AddTooltip(s);
-				ui->Add(bStop, OFX_IM_BUTTON_SMALL);
-				ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
-				ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
-				ui->AddTooltip(currentDialog);
-				ui->PushButtonRepeat();
-				ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
-				ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
-				ui->PopButtonRepeat();
+				if (indexModes == 0) // external
+				{
+					ui->Add(positionExternal, OFX_IM_HSLIDER_MINI);
+					s = "Local time linked to parent player.";
+					ui->AddTooltip(s);
+				}
+				else if (indexModes == 1) // standalone
+				{
+					ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					s = "Time linked to .srt file times.";
+					ui->AddTooltip(s);
+
+					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+				}
+				else if (indexModes == 2) // forced
+				{
+					ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					s = "Local time linked to his timer.";
+					ui->AddTooltip(s);
+					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
+					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
+					ui->AddTooltip(currentDialog);
+					ui->PushButtonRepeat();
+					ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
+					ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
+					ui->PopButtonRepeat();
+				}
+
+				//if (!bPlayExternal || indexModes != 2) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+
+				ui->EndTree();
 			}
 
-			//if (!bPlayExternal || indexModes != 2) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+			ui->AddSpacingSeparated();
+		}
+
+		if (ui->BeginTree("FADES", false, false))
+		{
+			string s;
+
+			if (bMinimize)
+			{
+				// in
+				ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+
+				// out
+				ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
+
+				if (bAnimatedIn) {
+					ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
+					s = ofToString(durationIn.get(), 0);
+					s += " ms";
+					ui->AddTooltip(s);
+				}
+				if (bAnimatedOut) {
+					ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
+					s = ofToString(durationOut.get(), 0);
+					s += " ms";
+					ui->AddTooltip(s);
+				}
+			}
+			else
+			{
+				// in
+				ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+				if (bAnimatedIn)
+				{
+					ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
+					ui->Add(durationIn, OFX_IM_HSLIDER_MINI_NO_LABELS);
+					ui->AddTooltip(durationIn);
+				}
+				ui->AddSpacing();
+
+				// out
+				ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2, true);
+				if (bAnimatedOut)
+				{
+					ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
+					ui->Add(durationOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
+					ui->AddTooltip(durationOut);
+				}
+				ui->AddSpacing();
+
+				ui->Add(bResetFades, OFX_IM_BUTTON_SMALL);
+			}
 
 			ui->EndTree();
 		}
 
 		ui->AddSpacingSeparated();
-	}
 
-	if (ui->BeginTree("FADES", false, false))
-	{
-		string s;
-
-		if (bMinimize)
+		if (ui->BeginTree("STYLE", false, false))
 		{
-			// in
-			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-
-			// out
-			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
-
-			if (bAnimatedIn) {
-				ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = ofToString(durationIn.get(), 0);
-				s += " ms";
-				ui->AddTooltip(s);
-			}
-			if (bAnimatedOut) {
-				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				s = ofToString(durationOut.get(), 0);
-				s += " ms";
-				ui->AddTooltip(s);
-			}
-		}
-		else
-		{
-			// in
-			ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
-			if (bAnimatedIn)
+			if (!bMinimize)
 			{
-				ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				ui->Add(durationIn, OFX_IM_HSLIDER_MINI_NO_LABELS);
-				ui->AddTooltip(durationIn);
-			}
-			ui->AddSpacing();
+				ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->AddSpacing();
 
-			// out
-			ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2, true);
-			if (bAnimatedOut)
-			{
-				ui->Add(progressOut, OFX_IM_PROGRESS_BAR_NO_TEXT);
-				ui->Add(durationOut, OFX_IM_HSLIDER_MINI_NO_LABELS);
-				ui->AddTooltip(durationOut);
-			}
-			ui->AddSpacing();
+				if (ui->BeginTree("COLORS", false, false))
+				{
+					ui->PushWidth(0.7);
+					static bool bShowBg = false;
+					static float _alpha;
+					_alpha = fColorTxt.get().a;
+					if (ImGui::SliderFloat("Alpha", &_alpha, 0, 1)) {
+						ofFloatColor c = fColorTxt.get();
+						fColorTxt.set(ofFloatColor(c.r, c.g, c.b, _alpha));
+					}
+					ui->PopWidth();
 
-			ui->Add(bResetFades, OFX_IM_BUTTON_SMALL);
-		}
+					//ui->Add(fName);
+					//ui->AddSpacing();
 
-		ui->EndTree();
-	}
+					ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
+					//ui->Add(fColorTxt, OFX_IM_COLOR);
 
-	ui->AddSpacingSeparated();
+					ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
+					//if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
+					if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
 
-	if (ui->BeginTree("STYLE", false, false))
-	{
-		if (!bMinimize)
-		{
-			ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
-			ui->AddSpacing();
-
-			if (ui->BeginTree("COLORS", false, false))
-			{
-				ui->PushWidth(0.7);
-				static bool bShowBg = false;
-				static float _alpha;
-				_alpha = fColorTxt.get().a;
-				if (ImGui::SliderFloat("Alpha", &_alpha, 0, 1)) {
-					ofFloatColor c = fColorTxt.get();
-					fColorTxt.set(ofFloatColor(c.r, c.g, c.b, _alpha));
+					ui->EndTree();
 				}
-				ui->PopWidth();
-
-				//ui->Add(fName);
-				//ui->AddSpacing();
-
-				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
-				//ui->Add(fColorTxt, OFX_IM_COLOR);
-
-				ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
-				//if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
-				if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
-
-				ui->EndTree();
 			}
+
+			if (bMinimize)
+			{
+				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
+			}
+
+			ui->EndTree();
 		}
 
-		if (bMinimize)
-		{
-			ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
-		}
-
-		ui->EndTree();
+		//--
 	}
-
-	//--
 }
 
 //--------------------------------------------------------------

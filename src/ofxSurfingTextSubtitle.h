@@ -9,7 +9,7 @@
 	BUG:
 
 	fix Forced mode broken
-
+		fails if external video is playing. should ignore setPos when forcing!
 	--
 
 	TODO:
@@ -160,6 +160,8 @@ private:
 
 	string sEngine;
 	int diff;
+
+	bool bLoaded = false;
 
 public:
 
