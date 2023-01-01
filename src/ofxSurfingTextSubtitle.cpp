@@ -2275,7 +2275,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 	if (!bGui) return;
 	if (ui == NULL) {
 		ofLogError("ofxSurfingTextSubtitle") << " ofxImGui is not instantiated. You should set the parent ui instance as reference!";
-		ofLogError("ofxSurfingTextSubtitle") << " Usually: 	subs.setUiPtr(&ui);";
+		ofLogError("ofxSurfingTextSubtitle") << " Usually: subs.setUiPtr(&ui);";
 		return;
 	}
 
