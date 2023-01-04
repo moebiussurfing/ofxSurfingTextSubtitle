@@ -14,9 +14,10 @@
 
 	TODO:
 
-	Remove dt controllers for speed.
-	fix counDown direct to dt fadeout speed.
-		Deprecate dt usages. go for ms for duration!
+	fix overlap paths for different instances
+
+	add bDoingNew workflow to allow populate presets faster
+		by doing new+new+new..
 
 	fix responsive engine a bit. calibration. jumps when enable.
 		should measure how much lines are being drawn.
@@ -29,7 +30,7 @@
 	store srt file path to settings to be persistent too,
 
 	test video player encoding problems...
-	bad framerate on Debug compilation.
+	bad frame rate on Debug compilation.
 
 	add presets inside the addon.
 
@@ -122,8 +123,12 @@ public:
 	void setUiPtr(ofxSurfingGui* _ui) { 
 		ui = _ui;
 
+#ifdef USE_PRESETS__SUBTITLES
 		presets.setUiPtr(_ui);
+		presets.setPathGlobal("ofxSurfingTextSubtitle");
+		presets.setPath("ofxSurfingTextSubtitle");
 		presets.AddGroup(params_Preset);
+#endif
 	}
 
 	void drawImGui();

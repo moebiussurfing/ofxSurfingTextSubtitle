@@ -236,7 +236,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	resizeResponsive.set("Resize", 0, 0, 1);
 
 	indexModes.set("Modes", 0, 0, 2);
+	
 	indexModes_Name.set("Name", "");
+	indexModes_Name.setSerializable(false);
 
 	box.bGui.makeReferenceTo(bEdit);
 	//box.bEdit.makeReferenceTo(bEdit);
@@ -262,10 +264,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	progressPlayFilm.setSerializable(false);
 	progressPlaySlide.setSerializable(false);
 
-	//we use index mode
-	bPlayStandalone.setSerializable(false);
-	bPlayExternal.setSerializable(false);
-	bPlayForced.setSerializable(false);
+	////we use index mode
+	//bPlayStandalone.setSerializable(false);
+	//bPlayExternal.setSerializable(false);
+	//bPlayForced.setSerializable(false);
 
 	progressIn.setSerializable(false);
 	progressOut.setSerializable(false);
@@ -704,7 +706,8 @@ void ofxSurfingTextSubtitle::update()
 
 	//TODO:
 	// Delayed startup to avoid crashes
-	if (ofGetFrameNum() == 1) startup();
+	if (ofGetFrameNum() == 0) startup();
+	//if (ofGetFrameNum() == 1) startup();
 
 	//--
 
@@ -2744,7 +2747,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		if (presets.bGui) 
 		{
 			presets.drawImGui(false, false, true);
-			ui->AddSeparated();
+			//ui->AddSpacingSeparated();
+			ImGui::Separator();//fix
+			ImGui::Spacing();
 		}
 #endif
 
