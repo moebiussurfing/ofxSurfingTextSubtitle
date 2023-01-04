@@ -67,12 +67,17 @@
 //TODO: WIP
 //#define USE_SHADOW
 
+#define USE_PRESETS__SUBTITLES
+ 
 //----
 
 #include "ofMain.h"
 
 #ifdef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingImGui.h"
+#ifdef USE_PRESETS__SUBTITLES
+#include "ofxSurfingPresetsLite.h"
+#endif
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -114,13 +119,23 @@ private:
 	ofxSurfingGui* ui;
 
 public:
-	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
+	void setUiPtr(ofxSurfingGui* _ui) { 
+		ui = _ui;
+
+		presets.setUiPtr(_ui);
+		presets.AddGroup(params_Preset);
+	}
+
 	void drawImGui();
 
 private:
 	void drawImGuiWidgets();
 	void drawImGuiWindowParagraph();
 	void drawImGuiList();
+#ifdef USE_PRESETS__SUBTITLES
+private:
+	ofxSurfingPresetsLite presets;
+#endif
 #endif
 
 	//--
@@ -290,7 +305,8 @@ public:
 	ofParameter<bool> bDraw;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
-
+	ofParameterGroup params_AppSettings;
+	
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 private:
@@ -360,6 +376,7 @@ private:
 	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
+
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
 	ofParameterGroup params_External{ "MODE EXTERNAL" };

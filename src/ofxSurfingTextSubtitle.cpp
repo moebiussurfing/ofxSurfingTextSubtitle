@@ -228,8 +228,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	bCenteredV.set("Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
 
+	//bMinimize.set("Minimize", false);
+	bMinimize.makeReferenceTo(ui->bMinimize);
+
 	bCapitalize.set("Capitalize", false);
-	bMinimize.set("Minimize", false);
 	bResponsive.set("Responsive", false);
 	resizeResponsive.set("Resize", 0, 0, 1);
 
@@ -372,6 +374,11 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Preset.setName("Subtitler");
 	params_Preset.add(params_Style);
 	params_Preset.add(params_Fade);
+
+	// App Settings / session
+	params_AppSettings.setName("AppSettings");
+	params_AppSettings.add(params_Control);
+	params_AppSettings.add(params_Transport);
 }
 
 //--------------------------------------------------------------
@@ -467,7 +474,12 @@ void ofxSurfingTextSubtitle::startup()
 	doReset();
 
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
+
+#ifdef USE_PRESETS__SUBTITLES
+	ofxSurfingHelpers::loadGroup(params_AppSettings, path_SubtitlerSettings);
+#else
 	ofxSurfingHelpers::loadGroup(params, path_SubtitlerSettings);
+#endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.startup();
@@ -479,7 +491,11 @@ void ofxSurfingTextSubtitle::exit() {
 	ofLogNotice("ofxSurfingTextSubtitle") << "exit";
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
+#ifdef USE_PRESETS__SUBTITLES
+	ofxSurfingHelpers::saveGroup(params_AppSettings, path_SubtitlerSettings);
+#else
 	ofxSurfingHelpers::saveGroup(params, path_SubtitlerSettings);
+#endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.exit();
@@ -495,7 +511,10 @@ void ofxSurfingTextSubtitle::setPosition(float position)
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updatePosition(float position)
 {
-	if (indexModes == 0) positionExternal.set(position);
+	if (indexModes == 0) {
+		positionExternal.set(position);
+	}
+
 	update();
 }
 
@@ -948,7 +967,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-		}
+}
 #endif
 	}
 }
@@ -2296,6 +2315,12 @@ void ofxSurfingTextSubtitle::drawImGui()
 	}
 
 	//--
+	
+//#ifdef USE_PRESETS__SUBTITLES
+	//presets.drawImGui(true);
+//#endif
+
+	//--
 
 	drawImGuiWindowParagraph();
 
@@ -2331,7 +2356,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -2589,6 +2614,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		if (ui->BeginTree("MAIN", false, false))
 		{
 			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED);
+
+#ifdef USE_PRESETS__SUBTITLES
+			ui->Add(presets.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+#endif
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
@@ -2708,6 +2737,16 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			ui->AddSpacingSeparated();
 		}
+
+		//ui->AddSpacingSeparated();
+
+#ifdef USE_PRESETS__SUBTITLES
+		if (presets.bGui) 
+		{
+			presets.drawImGui(false, false, true);
+			ui->AddSeparated();
+		}
+#endif
 
 		if (ui->BeginTree("FADES", false, false))
 		{
@@ -3388,7 +3427,7 @@ void ofxSurfingTextSubtitle::keyPressed(int key)
 	if (!bKeys) return;
 
 #ifdef USE_IM_GUI__SUBTITLES
-	if (ui->bOverInputText) return;
+	if (ui->bOverInputText.get()) return;
 #endif
 
 	if (key == 'l') { setToggleLive(); }
