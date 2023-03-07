@@ -973,7 +973,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-}
+		}
 #endif
 	}
 }
@@ -1439,6 +1439,10 @@ void ofxSurfingTextSubtitle::drawDebug()
 				string s;
 				float x;
 				float y;
+				float x1;
+				float y1;
+				float x2;
+				float y2;
 				float pad = 20;
 				//float pad = 15;
 				float w = 3;
@@ -1454,7 +1458,11 @@ void ofxSurfingTextSubtitle::drawDebug()
 				y = box.getRectangle().getTopRight().y - 15;
 				//y -= 20;
 
-				if (bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
+				static ofBitmapFont f;
+
+				auto bb1 = f.getBoundingBox(s, 0, 0);
+				x1 = bb1.getWidth() / 2 - 4;
+				if (bTheme) ofDrawBitmapStringHighlight(s, x - x1, y, 255, 0);
 				else ofDrawBitmapStringHighlight(s, x, y);
 
 				if (bLeft) {
@@ -1477,12 +1485,17 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 				y = y + 20;
 				//s = "Alpha\n";
+
 				if ((bAnimatedIn && isAnimIn)) s = "IN";
 				else if (bAnimatedOut && isAnimOut) s = "OUT";
+
+				auto bb2 = f.getBoundingBox(s, 0, 0);
+				x2 = bb2.getWidth() / 2 - 4;
+
 				if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
 				{
-					if (bTheme) ofDrawBitmapStringHighlight(s, x, y, 255, 0);
-					else ofDrawBitmapStringHighlight(s, x, y);
+					if (bTheme) ofDrawBitmapStringHighlight(s, x - x2, y, 255, 0);
+					else ofDrawBitmapStringHighlight(s, x - x2, y);
 				}
 			}
 		}
@@ -2362,7 +2375,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 }
 
@@ -2626,17 +2639,21 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
-			ui->Add(bLive, OFX_IM_TOGGLE_ROUNDED_SMALL);
-			ui->Add(bEdit, OFX_IM_TOGGLE_ROUNDED_SMALL);
+			ui->AddSpacing();
+			ui->Add(bLive, OFX_IM_TOGGLE_SMALL);
+			ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
+			ui->AddSpacingSeparated();
+			ui->AddSpacing();
 
 			if (!bLive && !bMinimize)
 			{
 				ui->Indent();
 				{
 					static bool bExtra = false;
-					ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED_MINI);
+					ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED);
 					if (bExtra)
 					{
+						ui->AddSpacing();
 						ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
 						if (bDebug)
 						{
@@ -2751,6 +2768,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			presets.drawImGui(false, false, true);
 			//ui->AddSpacingSeparated();
+			ImGui::Spacing();
 			ImGui::Separator();//fix
 			ImGui::Spacing();
 		}
