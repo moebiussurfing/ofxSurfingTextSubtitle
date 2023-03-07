@@ -179,7 +179,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	// Control
 	bStop.set("Stop");
 	bOpen.set("Open");
-	bDraw.set("Draw", true);
+	bDraw.set("DRAW", true);
 	bLive.set("Live", false);
 	bEdit.set("Edit", true);
 	bDebug.set("Debug", true);
@@ -1025,6 +1025,11 @@ void ofxSurfingTextSubtitle::drawRaw()
 	{
 		float h = getOneLineHeight() + getSpacingBetweenLines();
 		box.setHeight(amountLinesTarget * h);
+		box.setLockH();
+	}
+	else
+	{
+		box.setLockH(false);
 	}
 
 	//TODO:
@@ -2640,8 +2645,14 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			ui->AddSpacing();
-			ui->Add(bLive, OFX_IM_TOGGLE_SMALL);
-			ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
+			ui->Add(bLive, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+			s = "Live Mode hides some stuff";
+			ui->AddTooltip(s);
+			if (!bLive) {
+				ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
+				s = "Makes container draggeble";
+				ui->AddTooltip(s);
+			}
 			ui->AddSpacingSeparated();
 			ui->AddSpacing();
 
@@ -2673,12 +2684,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				}
 				ui->Unindent();
 
-				ui->AddSpacing();
+				//ui->AddSpacing();
 			}
 
 			if (!bMinimize) // maximized 
 			{
-				ui->AddSpacingSeparated();
+				if (!bLive) ui->AddSpacingSeparated();
 
 				std::string n = name_Srt;
 				if (ui->BeginTree(n))
@@ -2706,8 +2717,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		ui->AddSpacingSeparated();
 
 		// maximized 
-
-		if (!bMinimize)
+		//if (!bMinimize)
 		{
 			if (ui->BeginTree("TRANSPORT", false, false))
 			{
