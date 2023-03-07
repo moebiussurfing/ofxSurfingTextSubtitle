@@ -91,8 +91,9 @@
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfing_ofxGui.h"
 
+// easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
-#include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
+#include "ofxTimecode.h" 
 #endif
 
 // disable widget when using ImGui bc could be redundant.
@@ -151,12 +152,12 @@ public:
 	~ofxSurfingTextSubtitle();
 
 	void setup(string _pathSrt);
-	//pass the .srt file path to load
+	// pass the .srt file path to load
 
 	void setPosition(float position);
 
 	// call only one of both update methods
-	void updatePosition(float position);//to be used by the external mode
+	void updatePosition(float position); // to be used by the external mode
 	void update();
 
 private:
@@ -175,7 +176,7 @@ public:
 private:
 
 	void drawDebug();
-	//letters only. without boxes, interaction nor gui
+	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
 	string sEngine;

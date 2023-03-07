@@ -2691,10 +2691,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			{
 				if (!bLive) ui->AddSpacingSeparated();
 
-				std::string n = name_Srt;
+				std::string n = "SRT FILE";
+				//std::string n = name_Srt;
 				if (ui->BeginTree(n))
 				{
-					ui->AddLabel("SRT FILE");
+					ui->AddLabel(name_Srt + ".srt");
+					//ui->AddLabel("SRT FILE");
 
 					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
 
@@ -2708,6 +2710,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			ui->EndTree();
 
+			//TODO:
 			//fix?
 			ui->Indent();
 		}

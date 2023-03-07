@@ -3,9 +3,6 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	//ofSetWindowPosition(-1920, 25);
-	//ofSetFrameRate(60);
-
 	subs.setUiPtr(&ui);
 	subs.setDisableGuiInternal(true);
 
@@ -14,11 +11,6 @@ void ofApp::setup()
 	//path = "subs/spanish.srt";
 
 	subs.setup(path);
-
-// #ifdef USE_PRESETS
-// 	presets.setUiPtr(&ui);
-// 	presets.AddGroup(subs.params_Preset);
-// #endif
 
 #ifdef USE_WHISPER
 	whisper.setup();
@@ -49,18 +41,11 @@ void ofApp::draw() {
 	{
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-
-// #ifdef USE_PRESETS
-// 			ui.Add(presets.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-// #endif
+		
 			ui.EndWindow();
 		}
 
 		subs.drawImGui();
-
-// #ifdef USE_PRESETS
-// 		presets.drawImGui(true);
-// #endif
 	}
 	ui.End();
 
@@ -72,19 +57,11 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	if (key == 'g') {
-		subs.setToggleVisibleGui();
-#ifdef USE_PRESETS
-		presets.setVisibleGui(subs.getVisibleGui());
-#endif
-	}
-
+	if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }
-
 	if (key == ' ') { subs.setTogglePlay(); }
 	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
-
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
