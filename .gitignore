@@ -570,3 +570,4 @@ MigrationBackup/
 .ionide/
 example-Subtitle/bin/data/ofApp
 example-Subtitle3/bin/data/ofApp
+example-Whisper/bin/data/models/ggml-base.en.bin

@@ -236,7 +236,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	resizeResponsive.set("Resize", 0, 0, 1);
 
 	indexModes.set("Modes", 0, 0, 2);
-	
+
 	indexModes_Name.set("Name", "");
 	indexModes_Name.setSerializable(false);
 
@@ -477,6 +477,9 @@ void ofxSurfingTextSubtitle::startup()
 
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 
+	//TODO:
+	//crash
+	//return;
 #ifdef USE_PRESETS__SUBTITLES
 	ofxSurfingHelpers::loadGroup(params_AppSettings, path_SubtitlerSettings);
 #else
@@ -2318,7 +2321,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 	}
 
 	//--
-	
+
 //#ifdef USE_PRESETS__SUBTITLES
 	//presets.drawImGui(true);
 //#endif
@@ -2744,7 +2747,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		//ui->AddSpacingSeparated();
 
 #ifdef USE_PRESETS__SUBTITLES
-		if (presets.bGui) 
+		if (presets.bGui)
 		{
 			presets.drawImGui(false, false, true);
 			//ui->AddSpacingSeparated();
@@ -3050,15 +3053,42 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	//--
 
-	if (false) {}
+	if (0) {}
 
 	// Modes
+
+	//TODO: fix crash
+	//else if (name == indexModes.getName()) return;
+	//else if (name == indexModes_Name.getName()) return;
+
 	else if (name == indexModes.getName())
 	{
-		auto& gt = gui.getGroup(params_Transport.getName());
-		gt.getGroup(params_External.getName()).minimize();
-		gt.getGroup(params_Forced.getName()).minimize();
-		gt.getGroup(params_Standalone.getName()).minimize();
+		if (bGui_Internal)
+		{
+			auto& gt = gui.getGroup(params_Transport.getName());
+			gt.getGroup(params_External.getName()).minimize();
+			gt.getGroup(params_Forced.getName()).minimize();
+			gt.getGroup(params_Standalone.getName()).minimize();
+
+			//workflow
+			switch (indexModes)
+			{
+			case 0:
+			{
+				gt.getGroup(params_External.getName()).maximize();
+			}
+			break;
+			case 1:
+			{
+				gt.getGroup(params_Standalone.getName()).maximize();
+			}
+			break;
+			case 2: {
+				gt.getGroup(params_Forced.getName()).maximize();
+			}
+				  break;
+			}
+		}
 
 		//workflow
 		switch (indexModes)
@@ -3070,19 +3100,16 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			//workflow
 		case 0:
 		{
-			indexModes_Name = "EXTERNAL";
-			gt.getGroup(params_External.getName()).maximize();
+			indexModes_Name.setWithoutEventNotifications("EXTERNAL");
 		}
 		break;
 		case 1:
 		{
-			indexModes_Name = "STANDALONE";
-			gt.getGroup(params_Standalone.getName()).maximize();
+			indexModes_Name.setWithoutEventNotifications("STANDALONE");
 		}
 		break;
 		case 2: {
-			indexModes_Name = "FORCED";
-			gt.getGroup(params_Forced.getName()).maximize();
+			indexModes_Name.setWithoutEventNotifications("FORCED");
 		}
 			  break;
 
