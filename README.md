@@ -68,7 +68,11 @@ void ofApp::draw() {
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
+<<<<<<< HEAD
 - Load render fonts on runtime.
+=======
+- Load render fonts files on runtime.
+>>>>>>> develop
 
 ## TESTED SYSTEM
 * **Windows 10** / **VS 2017** / **OF ~0.11**

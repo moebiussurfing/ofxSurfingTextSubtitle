@@ -9,14 +9,17 @@
 	BUG:
 
 	fix Forced mode broken
-
+		fails if external video is playing. 
+		should ignore setPos when forcing!
+	
 	--
 
 	TODO:
 
-	Remove dt controllers for speed.
-	fix counDown direct to dt fadeout speed.
-		Deprecate dt usages. go for ms for duration!
+	fix overlap paths for different instances
+
+	add bDoingNew workflow to allow populate presets faster
+		by doing new+new+new..
 
 	fix responsive engine a bit. calibration. jumps when enable.
 		should measure how much lines are being drawn.
@@ -29,9 +32,7 @@
 	store srt file path to settings to be persistent too,
 
 	test video player encoding problems...
-	bad framerate on Debug compilation.
-
-	add presets inside the addon.
+	bad frame rate on Debug compilation.
 
 */
 
@@ -67,12 +68,17 @@
 //TODO: WIP
 //#define USE_SHADOW
 
+#define USE_PRESETS__SUBTITLES
+
 //----
 
 #include "ofMain.h"
 
 #ifdef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingImGui.h"
+#ifdef USE_PRESETS__SUBTITLES
+#include "ofxSurfingPresetsLite.h"
+#endif
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -85,8 +91,9 @@
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfing_ofxGui.h"
 
+// easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
-#include "ofxTimecode.h"//easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
+#include "ofxTimecode.h" 
 #endif
 
 // disable widget when using ImGui bc could be redundant.
@@ -114,13 +121,27 @@ private:
 	ofxSurfingGui* ui;
 
 public:
-	void setUiPtr(ofxSurfingGui* _ui) { ui = _ui; }
+	void setUiPtr(ofxSurfingGui* _ui) {
+		ui = _ui;
+
+#ifdef USE_PRESETS__SUBTITLES
+		presets.setUiPtr(_ui);
+		presets.setPathGlobal("ofxSurfingTextSubtitle");
+		presets.setPath("ofxSurfingTextSubtitle");
+		presets.AddGroup(params_Preset);
+#endif
+	}
+
 	void drawImGui();
 
 private:
 	void drawImGuiWidgets();
 	void drawImGuiWindowParagraph();
 	void drawImGuiList();
+#ifdef USE_PRESETS__SUBTITLES
+private:
+	ofxSurfingPresetsLite presets;
+#endif
 #endif
 
 	//--
@@ -131,12 +152,12 @@ public:
 	~ofxSurfingTextSubtitle();
 
 	void setup(string _pathSrt);
-	//pass the .srt file path to load
+	// pass the .srt file path to load
 
 	void setPosition(float position);
 
 	// call only one of both update methods
-	void updatePosition(float position);//to be used by the external mode
+	void updatePosition(float position); // to be used by the external mode
 	void update();
 
 private:
@@ -155,18 +176,23 @@ public:
 private:
 
 	void drawDebug();
-	//letters only. without boxes, interaction nor gui
+	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
 	string sEngine;
 	int diff;
 
+	bool bLoaded = false;
+
 public:
 
 	void drawGui();
 
-	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
-	// disables ofxGui. useful when using ImGui or to disable gui.
+	void setDisableGuiInternal(bool b) {
+		bGui_InternalAllowed = !b;
+		bGui_Internal = !b;
+	}
+	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
 	void keyPressed(int key);
 	ofParameter<bool> bKeys{ "Keys", true };
@@ -190,7 +216,7 @@ public:
 	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
 
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
-	ofColor getColorBg() const { return fColorBg.get(); };
+	ofColor getColorBg() const { return colorBgFloat.get(); };
 
 	// Call before setup. Set duration in ms to be used with play external mode
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
@@ -239,6 +265,7 @@ private:
 
 	ofParameter<bool> bMinimize;
 	ofParameter<bool> bGui_Internal;
+	bool bGui_InternalAllowed = true;
 
 	uint64_t tEndSubsFilm = 0;
 	bool bForceAddBreakLines = true;
@@ -288,6 +315,7 @@ public:
 	ofParameter<bool> bDraw;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
+	ofParameterGroup params_AppSettings;
 
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
@@ -324,6 +352,7 @@ private:
 
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> positionExternal;
+	ofParameter<bool> bPlayManual;
 
 	ofParameter<bool> bAnimatedIn;
 	ofParameter<int> durationIn; // time before the end to start fadeout from. in ms 
@@ -342,10 +371,10 @@ private:
 	ofParameter<float> fSize; // real font raw size in px
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
-	ofParameter<ofFloatColor> fColorTxt;
+	ofParameter<ofFloatColor> colorTextFloat;
 	ofParameter<ofFloatColor> fColorShadow;
 	ofParameter<glm::vec2> offsetShadow;
-	ofParameter<ofFloatColor> fColorBg;
+	ofParameter<ofFloatColor> colorBgFloat;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bCapitalize;
@@ -357,7 +386,8 @@ private:
 
 	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
-	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
+	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
+
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
 	ofParameterGroup params_External{ "MODE EXTERNAL" };
@@ -407,7 +437,12 @@ private:
 	// oneOnly true is faster but false is probably more precise.
 	float getOneLineHeight(bool fast = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
-	ofRectangle boxDrawn; // to memorize last drawn container. Use with care to avoid some flicks.
+
+	// Useful to memorize last drawn container.
+	// Use with care to avoid some flicks.
+	ofRectangle boxDrawn;
+	//TODO:
+	ofRectangle boxDrawnReal;
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
@@ -434,6 +469,8 @@ public:
 	void stop();
 	void pause();
 
+	void doSetTextSlide(string s);
+
 	//--
 
 private:
@@ -444,7 +481,7 @@ private:
 	ofEventListeners listeners;
 #endif
 
-	// extra info
+	// Extra debug info
 	bool bDebug2 = false;
 };
 

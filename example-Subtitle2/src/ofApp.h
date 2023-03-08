@@ -7,8 +7,8 @@
 
 */
 
-// Optional
-#define USE_PRESETS // Uses ofxSurfingHelpers
+// // Optional
+// #define USE_PRESETS // Uses ofxSurfingHelpers
 
 //-
 
@@ -19,9 +19,9 @@
 #include "ofxSurfingTextSubtitle.h"
 #include "ofxSurfingImGui.h"
 
-#ifdef USE_PRESETS
-#include "ofxSurfingPresetsLite.h"
-#endif
+// #ifdef USE_PRESETS
+// #include "ofxSurfingPresetsLite.h"
+// #endif
 
 class ofApp : public ofBaseApp 
 {
@@ -37,7 +37,7 @@ public:
 
 	ofxSurfingGui ui;
 
-#ifdef USE_PRESETS
-	ofxSurfingPresetsLite presets;
-#endif
+// #ifdef USE_PRESETS
+// 	ofxSurfingPresetsLite presets;
+// #endif
 };
