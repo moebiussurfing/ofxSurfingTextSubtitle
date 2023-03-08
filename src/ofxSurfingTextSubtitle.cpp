@@ -644,7 +644,7 @@ void ofxSurfingTextSubtitle::updateFades()
 		{
 			uint64_t tSlide = 0;
 
-			if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
+			if (bPlayForced ) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
 			else if (bPlayStandalone || bPlayExternal || bPlayManual)
 				tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 
@@ -652,7 +652,7 @@ void ofxSurfingTextSubtitle::updateFades()
 			{
 				// trigs fade out start
 
-				if (bPlayForced)
+				if (bPlayForced )
 				{
 					if (tSlide > durationPlayForced - durationOut)
 					{
@@ -803,7 +803,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	//--
 
-	if (indexModes == 0 || indexModes == 1)
+	if (indexModes == 0 || indexModes == 1) // external or standalone
 	{
 		if (isSlidePlaying && (bPlayStandalone || bPlayExternal || bPlayManual))
 		{
@@ -849,6 +849,13 @@ void ofxSurfingTextSubtitle::updateEngine()
 	{
 		if (bPlayManual)
 		{
+			uint64_t tf = ofGetElapsedTimeMillis() - tPlayForce;
+			if (tf > durationPlayForced)
+			{
+				tPlayForce = ofGetElapsedTimeMillis();//restart timer. next slide
+				//currentDialog++;
+			}
+			progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1, true);
 		}
 	}
 }
@@ -1165,8 +1172,9 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 			// 1. Timeline 
 			{
-				// 1.1 Big line
 				{
+					// 1.1 Big line
+		
 					ofPushStyle();
 
 					float lw1 = 3;
@@ -1199,6 +1207,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 					//--
 
+					// 1.2 Fade Marks
+					 
 					//TODO:
 					// mark fade in phase end point with a vertical line
 					// hard to do bc using speed instead of time duration in ms!
@@ -1284,7 +1294,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 					}
 
 					//--
-
+					
 					// mark fade out phase start point with a vertical line
 					// mark countdown start
 					if (bAnimatedOut)
@@ -1366,7 +1376,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 				//--
 
-				// 1.2 Draw main rule line
+				// 1.2 Draw main rule thin line
 
 				if ((bAnimatedIn) || (bAnimatedOut))
 				{
@@ -3255,7 +3265,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			currentDialog.setWithoutEventNotifications(0);
 
 			progressPlaySlide = 0;
-			//bPlayExternal = false;
+
 			if (bPlayExternal) bPlayExternal = false;
 			if (bPlayManual) bPlayManual = false;
 
@@ -3288,7 +3298,9 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 			tPlayForce = ofGetElapsedTimeMillis();
 			tPlayForceFilm = ofGetElapsedTimeMillis();
+			
 			progressPlaySlide = 0;
+
 			//bPlayExternal = false;
 			if (bPlayExternal) bPlayExternal = false;
 			if (bPlayManual) bPlayManual = false;
@@ -3315,6 +3327,9 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlayManual)
 		{
+			tPlayForce = ofGetElapsedTimeMillis();
+			tPlayForceFilm = ofGetElapsedTimeMillis();
+
 			if (bPlayStandalone) bPlayStandalone = false;
 			if (bPlayForced) bPlayForced = false;
 			if (bPlayExternal) bPlayExternal = false;
@@ -3634,7 +3649,7 @@ void ofxSurfingTextSubtitle::pause() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::setTextSlide(string s) {
+void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
 	bool b = indexModes == 3 && bPlayManual;
 
 	// workflow
@@ -3653,7 +3668,7 @@ void ofxSurfingTextSubtitle::setTextSlide(string s) {
 		else textCurrent = s;
 
 		progressPlaySlide = 0;
-		ofLogNotice("ofxSurfingTextSubtitle") << "setTextSlide: " << textCurrent;
+		ofLogNotice("ofxSurfingTextSubtitle") << "doSetTextSlide: " << textCurrent;
 
 		//--
 
@@ -3677,9 +3692,13 @@ void ofxSurfingTextSubtitle::setTextSlide(string s) {
 		else if (!bAnimatedIn && !bAnimatedOut) {
 			alpha = 1.f;
 		}
+
+		tPlayStartSlide = ofGetElapsedTimeMillis();
+		isSlidePlaying = true;
+		durationPlaySlide = durationPlayForced;
 	}
 	// workflow
 	//else {
-	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring setTextSlide bc not in MANUAL mode";
+	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring doSetTextSlide bc not in MANUAL mode";
 	//}
 }

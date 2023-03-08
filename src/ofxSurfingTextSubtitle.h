@@ -469,7 +469,7 @@ public:
 	void stop();
 	void pause();
 
-	void setTextSlide(string s);
+	void doSetTextSlide(string s);
 
 	//--
 

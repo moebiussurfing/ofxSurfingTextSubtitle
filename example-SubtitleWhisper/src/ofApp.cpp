@@ -83,7 +83,7 @@ void ofApp::doPopulateText(string s) {
 	}
 
 	ofLogNotice() << s;
-	subs.setTextSlide(s);
+	subs.doSetTextSlide(s);
 }
 
 //--------------------------------------------------------------
@@ -108,6 +108,6 @@ void ofApp::keyPressed(int key)
 void ofApp::doUpdatedWhisper() {
 	string s = whisper.getLastText();
 	ofLogNotice() << "doUpdatedWhisper(): " << s;
-	subs.setTextSlide(s);
+	subs.doSetTextSlide(s);
 }
 #endif
