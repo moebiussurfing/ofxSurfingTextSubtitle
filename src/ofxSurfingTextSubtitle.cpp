@@ -407,7 +407,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 
 	name_Srt = file.getBaseName();
 
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path_Srt;
+	ofLogNotice(__FUNCTION__) << " " << path_Srt;
 
 	//bLoaded = ofFile::doesFileExist(path_Srt);
 	//if (!bLoaded) {
@@ -1062,12 +1062,11 @@ void ofxSurfingTextSubtitle::drawRaw()
 	{
 		float h = getOneLineHeight() + getSpacingBetweenLines();
 		box.setHeight(amountLinesTarget * h);
-		box.setLockH();
 	}
 	else
 	{
-		box.setLockH(false);
 	}
+	box.setLockH();
 
 	//TODO:
 	// 1st pass. Expected aprox amount lines of the last current drawn 
@@ -2700,6 +2699,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->AddTooltip(s);
 			}
 
+			if (bModeNoSrt) {
+				ui->AddSpacing();
+				ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+			}
+
 			if (!bLive && !bMinimize)
 			{
 				ui->AddSpacingSeparated();
@@ -3525,6 +3529,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == bOpen.getName())
 	{
 		doOpenFile();
+
+		if (bModeNoSrt) bModeNoSrt = false;
 	}
 
 	// Font

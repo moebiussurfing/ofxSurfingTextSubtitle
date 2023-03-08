@@ -24,12 +24,11 @@ public:
 	string path;
 
 	ofxSurfingGui ui;
-
+	string tag;
 	ofxWindowApp w;
 
 #ifdef USE_WHISPER
 	surfingWhisper whisper;
-
 	void doUpdatedWhisper();
 #endif
 
