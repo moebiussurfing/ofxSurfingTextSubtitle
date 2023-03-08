@@ -4,13 +4,16 @@
 void ofApp::setup()
 {
 	subs.setUiPtr(&ui);
-	subs.setDisableGuiInternal(true);
 
+	/*
 	path = "subs/Huxley.srt";
 	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
-
 	subs.setup(path);
+	*/
+
+	// no subs mode
+	subs.setup();
 
 #ifdef USE_WHISPER
 	whisper.setup();
@@ -40,13 +43,17 @@ void ofApp::draw() {
 
 	ui.Begin();
 	{
+		ImGui::SetNextWindowSize(ImVec2(200, -1), ImGuiCond_Appearing);
 		if (ui.BeginWindow("ofApp"))
 		{
-			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-			if (ui.AddButton("Populate Text!", OFX_IM_BUTTON_BIG_XXL)) {
-				//if(subs.get)
+			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
+			ui.AddSpacingBig();
+			ui.PushFont(OFX_IM_FONT_BIG);
+			if (ui.AddButton("Populate Text!", OFX_IM_BUTTON_BIG_XXXL_BORDER)) 
+			{
 				doPopulateText();
 			}
+			ui.PopFont();
 			ui.EndWindow();
 		}
 

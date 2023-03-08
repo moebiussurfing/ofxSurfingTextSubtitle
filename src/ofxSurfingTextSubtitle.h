@@ -8,7 +8,13 @@
 
 	BUG:
 
-	fix Forced mode broken
+	fix too short duation fades trouble 
+
+	fix workflow for not srt mode!
+
+	fix progress in on pause
+
+	fix Forced mode broken ?
 		fails if external video is playing. 
 		should ignore setPos when forcing!
 	
@@ -151,6 +157,7 @@ public:
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
 
+	void setup();
 	void setup(string _pathSrt);
 	// pass the .srt file path to load
 
@@ -182,7 +189,8 @@ private:
 	string sEngine;
 	int diff;
 
-	bool bLoaded = false;
+	bool bLoaded = false; // srt file is loaded or not
+	bool bModeNoSrt = false; // use manual mode. don't load the srt file
 
 public:
 
@@ -265,7 +273,7 @@ private:
 
 	ofParameter<bool> bMinimize;
 	ofParameter<bool> bGui_Internal;
-	bool bGui_InternalAllowed = true;
+	bool bGui_InternalAllowed = false;
 
 	uint64_t tEndSubsFilm = 0;
 	bool bForceAddBreakLines = true;
