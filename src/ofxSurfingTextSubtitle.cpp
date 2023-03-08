@@ -221,7 +221,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	fSizePrc.set("Size", 0.2, 0.1, 1.0f);
 	fSpacing.set("Spacing", 0, -20, 50);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
-	fColorTxt.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	colorTextFloat.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fColorShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
 	fColorBg.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
@@ -345,7 +345,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.setName("Style");
 	//params_Style.add(fName);
 	params_Style.add(fPath);
-	params_Style.add(fColorTxt);
+	params_Style.add(colorTextFloat);
 #ifdef USE_SHADOW
 	params_Style.add(fColorShadow);
 	params_Style.add(offsetShadow);
@@ -1359,7 +1359,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 					if ((bAnimatedIn) || (bAnimatedOut))
 					{
 						ofSetLineWidth(1.f);
-						ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 64);
+						ofSetColor(bTheme.get() ? colorDebugLight : colorDebugDark, 64);
 
 						if (bTop) ofDrawLine(bb.getX(), bb.getY() - pady, bb.getX() + bb.getWidth(), bb.getY() - pady);
 						else ofDrawLine(bb.getBottomLeft().x, bb.getBottomLeft().y + pady, bb.getBottomLeft().x + bb.getWidth(), bb.getBottomLeft().y + pady);
@@ -1368,7 +1368,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 				//--
 
-				// Alpha preview
+				// 2. Alpha Preview
+				 
 				// Lateral Widget
 
 				if ((bAnimatedIn || bAnimatedOut))
@@ -1380,18 +1381,19 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 					float x1 = 0;
 					float x2 = 0;
-					float y1 = 4;
-					float y2 = 4;
+					float y1 = 6;
+					float y2 = 0;
 
 					float w = 3;
 					float h = -bb.getHeight();
 
 					static ofBitmapFont f;
-					//float o = 0;//correct font
+					float o = 3;//correct font
 
 					glm::vec2 p;
-
 					string s;
+
+					//--
 
 					if (bLeft) x = bb.getTopLeft().x - pad2;
 					else x = bb.getTopRight().x + pad2;
@@ -1400,9 +1402,10 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 					s = "ALPHA";
 					auto bb1 = f.getBoundingBox(s, 0, 0);
-					x1 = bb1.getWidth() / 2 - 4;
+					x1 = bb1.getWidth() / 2 - o;
 
-					ofDrawBitmapStringHighlight(s, x - x1, y - y1, (bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+					ofDrawBitmapStringHighlight(s, x - x1, y - y1, 
+						(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
 
 					//--
 
@@ -1418,11 +1421,10 @@ void ofxSurfingTextSubtitle::drawDebug()
 					}
 					y = p.y + bb.getHeight();
 
-					ofColor c = ofColor(fColorTxt.get(), alpha * fColorTxt.get().a * 255);
+					ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
 					ofSetColor(c);
-
-					ofRectangle r(x, y, w, h * alpha);
 					ofFill();
+					ofRectangle r(x, y, w, h * alpha);
 					ofDrawRectangle(r);
 
 					//--
@@ -1433,12 +1435,14 @@ void ofxSurfingTextSubtitle::drawDebug()
 						else if (bAnimatedOut && isAnimOut) s = "OUT";
 
 						auto bb2 = f.getBoundingBox(s, 0, 0);
-						x2 = bb2.getWidth() / 2 - 4;
-						ofDrawBitmapStringHighlight(s, x - x2, y - y2, (bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+						x2 = bb2.getWidth() / 2 - o;
+						y2 = bb2.getHeight();
+						ofDrawBitmapStringHighlight(s, x - x2, y + y2, 
+							(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
 					}
 				}
 
-				//--
+				//----
 
 				// Debug boxDrawn
 
@@ -1492,7 +1496,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	int _size = 1.f;
 	int _align = fAlign.get();
-	ofColor _color = fColorTxt.get();
+	ofColor _color = colorTextFloat.get();
 	ofColor _color2 = fColorShadow.get();
 
 	float _x2 = _x + offsetShadow.get().x;
@@ -1764,7 +1768,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	int _size = 1.f;
 	int _align = fAlign.get();
-	ofColor _color = fColorTxt.get();
+	ofColor _color = colorTextFloat.get();
 	ofColor _color2 = fColorShadow.get();
 
 	float _x2 = _x + offsetShadow.get().x;
@@ -2675,7 +2679,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			//TODO:
 			//fix?
-			ui->Indent();
+			//ui->Indent();
 		}
 
 		//--
@@ -2735,25 +2739,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 				//if (!bPlayExternal || indexModes != 2) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 
-				ui->EndTree();
+				ui->EndTree(false);
 			}
 
 			ui->AddSpacingSeparated();
 		}
 
-		//ui->AddSpacingSeparated();
-
-#ifdef USE_PRESETS__SUBTITLES
-		if (presets.bGui)
-		{
-			presets.drawImGui(false, false, true, false);
-
-			//ui->AddSpacingSeparated();
-			ImGui::Spacing();
-			ImGui::Separator();//fix
-			ImGui::Spacing();
-		}
-#endif
+		//--
 
 		if (ui->BeginTree("FADES", false, false))
 		{
@@ -2822,18 +2814,18 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->PushWidth(0.7);
 					static bool bShowBg = false;
 					static float _alpha;
-					_alpha = fColorTxt.get().a;
+					_alpha = colorTextFloat.get().a;
 					if (ImGui::SliderFloat("Alpha", &_alpha, 0, 1)) {
-						ofFloatColor c = fColorTxt.get();
-						fColorTxt.set(ofFloatColor(c.r, c.g, c.b, _alpha));
+						ofFloatColor c = colorTextFloat.get();
+						colorTextFloat.set(ofFloatColor(c.r, c.g, c.b, _alpha));
 					}
 					ui->PopWidth();
 
 					//ui->Add(fName);
 					//ui->AddSpacing();
 
-					ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
-					//ui->Add(fColorTxt, OFX_IM_COLOR);
+					ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
+					//ui->Add(colorTextFloat, OFX_IM_COLOR);
 
 					ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
 					//if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
@@ -2845,13 +2837,27 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			if (bMinimize)
 			{
-				ui->Add(fColorTxt, OFX_IM_COLOR_NO_INPUTS);
+				ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
 			}
 
 			ui->EndTree();
 		}
 
 		//--
+
+		//ui->AddSpacingSeparated();
+
+#ifdef USE_PRESETS__SUBTITLES
+		if (presets.bGui)
+		{
+			//ui->AddSpacingSeparated();
+			ImGui::Spacing();
+			ImGui::Separator();//fix
+			ImGui::Spacing();
+
+			presets.drawImGui(false, false, true, false);
+		}
+#endif
 	}
 }
 
@@ -2983,7 +2989,7 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 void ofxSurfingTextSubtitle::doReset() {
 	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 
-	//fColorTxt = ofColor(255, 255);
+	//colorTextFloat = ofColor(255, 255);
 	fSpacing = 0;
 	fLineHeight = 0.75;
 	fSizePrc = 0.25;

@@ -367,7 +367,7 @@ private:
 	ofParameter<float> fSize; // real font raw size in px
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
-	ofParameter<ofFloatColor> fColorTxt;
+	ofParameter<ofFloatColor> colorTextFloat;
 	ofParameter<ofFloatColor> fColorShadow;
 	ofParameter<glm::vec2> offsetShadow;
 	ofParameter<ofFloatColor> fColorBg;
