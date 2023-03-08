@@ -213,7 +213,7 @@ public:
 	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
 
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
-	ofColor getColorBg() const { return fColorBg.get(); };
+	ofColor getColorBg() const { return colorBgFloat.get(); };
 
 	// Call before setup. Set duration in ms to be used with play external mode
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
@@ -370,7 +370,7 @@ private:
 	ofParameter<ofFloatColor> colorTextFloat;
 	ofParameter<ofFloatColor> fColorShadow;
 	ofParameter<glm::vec2> offsetShadow;
-	ofParameter<ofFloatColor> fColorBg;
+	ofParameter<ofFloatColor> colorBgFloat;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bCapitalize;
@@ -382,7 +382,7 @@ private:
 
 	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
-	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED" };
+	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL"};
 
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;

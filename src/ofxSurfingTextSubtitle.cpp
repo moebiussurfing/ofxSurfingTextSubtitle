@@ -224,7 +224,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	colorTextFloat.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fColorShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
-	fColorBg.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	colorBgFloat.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset", false);
@@ -350,7 +350,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.add(fColorShadow);
 	params_Style.add(offsetShadow);
 #endif
-	params_Style.add(fColorBg);
+	params_Style.add(colorBgFloat);
 	params_Style.add(bCapitalize);
 	params_Style.add(fSizePrc);
 	params_Style.add(fSpacing);
@@ -1117,346 +1117,356 @@ void ofxSurfingTextSubtitle::drawRaw()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawDebug()
 {
-	if (!bLive)
+	if (bLive) return;
+	if (!bDebug) return;
+	if (isPrecoutingStart) return;
+
+	ofPushStyle();
 	{
-		ofPushStyle();
+		/*
+		if (bEdit && bDebug)
 		{
-			if (bEdit && bDebug)
-			{
-				// Border
-				box.drawBorderBlinking();
+			// A. Border
+			//box.drawBorderBlinking();
 
-				// Fill
-				//ofPushStyle();
-				//ofSetColor(fColorBg);
-				//ofFill();
-				//ofDrawRectangle(box.getRectangle());
-				//ofPopStyle();
-			}
+			// B. Fill
+			//ofPushStyle();
+			//ofSetColor(colorBgFloat);
+			//ofFill();
+			//ofDrawRectangle(box.getRectangle());
+			//ofPopStyle();
+		}
+		*/
 
-			if (!bDebug) return;
-			if (isPrecoutingStart) return;
+		//--
 
-			// Box
-			// B. Attached to paragraph
-			ofRectangle bb = boxDrawnReal;
-			//// A. Attached to box
-			//ofRectangle bb = box;
+		// Box
+		// B. Attached to paragraph
+		//ofRectangle bb = boxDrawnReal;
+		// A. Attached to box
+		ofRectangle bb = box.getRectangle();
+
+		// improve getting the bigger 
+		float diff = boxDrawnReal.getHeight() - bb.getHeight();
+		bool b = (diff > 0);
+		if (b) {
+			bb.setHeight(boxDrawnReal.getHeight());
+			bb.translateY(-diff / 2);
+		}
+
+		//--
+
+		{
+			int padx = 50;
+			int pady = 50;
 
 			//--
 
+			// 1. Timeline 
 			{
-				int padx = 50;
-				int pady = 50;
-
-				//--
-
-				// 1. Timeline 
+				// 1.1 Big line
 				{
-					// 1.1 Big line
+					ofPushStyle();
+
+					float lw1 = 3;
+					float lh1 = 5;
+
+					glm::vec2 p = (bTop.get() ?
+						(bb.getTopLeft() + glm::vec2(0, -pady)) : (bb.getBottomLeft() + glm::vec2(0, pady)));
+
+					float x = p.x;
+					float y = p.y;
+
+					float w = bb.getWidth() + 1;
+
+					// Slide progress
+					ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
+					ofSetLineWidth(lh1);
+
+					float o = 0;
+					//float o = 1;
+					ofDrawLine(x - o, y, x - o + (w + o) * progressPlaySlide, y);
+
+					// Phase fade in/out lines
+					float sz = 6;
+
+					float xIn = 0;
+					float xOut1 = 0;
+					float xOut2 = 0;
+
+					float szt = 12;//triangles
+
+					//--
+
+					//TODO:
+					// mark fade in phase end point with a vertical line
+					// hard to do bc using speed instead of time duration in ms!
+
+					if (bAnimatedIn)
 					{
-						ofPushStyle();
+						float d = 1.f / dtAnimIn;
 
-						float lw1 = 3;
-						float lh1 = 5;
+						// estimated duration of the fade in phase,
+						// bc we are applying this amount of the above
+						// dt on every single frame!
+						int t = (d / fps) * 1000;
 
-						glm::vec2 p = (bTop.get() ?
-							(bb.getTopLeft() + glm::vec2(0, -pady)) : (bb.getBottomLeft() + glm::vec2(0, pady)));
-
-						float x = p.x;
-						float y = p.y;
-
-						float w = bb.getWidth() + 1;
-
-						// Slide progress
-						ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
-						ofSetLineWidth(lh1);
-
-						float o = 0;
-						//float o = 1;
-						ofDrawLine(x - o, y, x - o + (w + o) * progressPlaySlide, y);
-
-						// Phase fade in/out lines
-						float sz = 6;
-
-						float xIn = 0;
-						float xOut1 = 0;
-						float xOut2 = 0;
-
-						float szt = 12;//triangles
-
-						//--
-
-						//TODO:
-						// mark fade in phase end point with a vertical line
-						// hard to do bc using speed instead of time duration in ms!
-
-						if (bAnimatedIn)
+						float r = 0;
+						if (bPlayForced)
 						{
-							float d = 1.f / dtAnimIn;
+							r = (t / (float)durationPlayForced);//ratio
+						}
+						if (bPlayStandalone || bPlayExternal || bPlayManual)
+						{
+							r = (t / (float)durationPlaySlide);//ratio
+						}
+						xIn = p.x + w * r;
 
-							// estimated duration of the fade in phase,
-							// bc we are applying this amount of the above
-							// dt on every single frame!
-							int t = (d / fps) * 1000;
-
-							float r = 0;
-							if (bPlayForced)
-							{
-								r = (t / (float)durationPlayForced);//ratio
-							}
-							if (bPlayStandalone || bPlayExternal || bPlayManual)
-							{
-								r = (t / (float)durationPlaySlide);//ratio
-							}
-							xIn = p.x + w * r;
-
-							if (xIn != -1)
-							{
-								// zero
-								/*
-								// triangle
-								if (textCurrent != "") {
-									ofFill();
-									ofSetPolyMode(OF_POLY_WINDING_NONZERO);
-									ofBeginShape();
-									//float o = h / 2 - 0;
-									float o = 0;
-									ofVertex(p.x, p.y - o);
-									ofVertex(p.x + szt, p.y - o - szt);
-									ofVertex(p.x + szt, p.y - o);
-									ofEndShape();
-								}
-								*/
-
-								// triangle
+						if (xIn != -1)
+						{
+							// zero
+							/*
+							// triangle
+							if (textCurrent != "") {
 								ofFill();
 								ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 								ofBeginShape();
-								// a
-								//ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
-								//ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
-								//ofVertex(xIn, p.y);
-								// b
-								//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
-								//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
-								//ofVertex(xIn, p.y);
-								// c
-								//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
-								//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
-								//ofVertex(xIn, p.y);
-								// d
-								ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
-								ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
-								ofVertex(xIn, p.y);
+								//float o = h / 2 - 0;
+								float o = 0;
+								ofVertex(p.x, p.y - o);
+								ofVertex(p.x + szt, p.y - o - szt);
+								ofVertex(p.x + szt, p.y - o);
 								ofEndShape();
-
-								//// line
-								//ofSetLineWidth(lw1);
-								//ofDrawLine(xIn + lw1 / 2, p.y - szt, xIn + lw1 / 2, p.y);
-								////ofDrawLine(xIn, p.y - szt, xIn, p.y);
-								////T
-								////ofDrawLine(xIn, p.y - szt, xIn, p.y + szt);
-								////ofDrawLine(xIn - szt / 2, p.y - szt, xIn + szt / 2, p.y - szt);
-
-								////triangle
-								//ofFill();
-								//ofSetPolyMode(OF_POLY_WINDING_NONZERO);
-								//ofBeginShape();
-								//ofVertex(xIn - sz, p.y );
-								//ofVertex(xIn, p.y -sz);
-								//ofVertex(xIn, p.y +sz);
-								////ofVertex(xIn - sz, p.y );
-								//ofEndShape();
 							}
-						}
-
-						//--
-
-						// mark fade out phase start point with a vertical line
-						// mark countdown start
-						if (bAnimatedOut)
-						{
-							ofSetLineWidth(lw1);
-
-							// Fade out begins
-							float r = 0.f;
-							if (bPlayForced)
-							{
-								r = 1.f - (durationOut / (float)durationPlayForced);//ratio
-							}
-							if (bPlayStandalone || bPlayExternal || bPlayManual)
-							{
-								r = 1.f - (durationOut / (float)durationPlaySlide);//ratio
-							}
-							xOut1 = p.x + w * r;
-
-							//// line
-							//ofDrawLine(xOut1, p.y - sz, xOut1, p.y + sz);
+							*/
 
 							// triangle
 							ofFill();
 							ofSetPolyMode(OF_POLY_WINDING_NONZERO);
 							ofBeginShape();
 							// a
-							//float o = 0;
-							//ofVertex(xOut1, p.y + o);
-							//ofVertex(xOut1 - szt, p.y - szt);
-							//ofVertex(xOut1 - szt, p.y + o);
+							//ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
+							//ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+							//ofVertex(xIn, p.y);
 							// b
-							ofVertex(xOut1 - szt / 2, p.y);
-							ofVertex(xOut1 + szt / 2, p.y);
-							ofVertex(xOut1, p.y + 0.7 * szt);
+							//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn, p.y);
+							// c
+							//ofVertex(xIn - szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn + szt / 2, p.y - 0.7 * szt);
+							//ofVertex(xIn, p.y);
+							// d
+							ofVertex(xIn - szt / 2, p.y + 0.7 * szt);
+							ofVertex(xIn + szt / 2, p.y + 0.7 * szt);
+							ofVertex(xIn, p.y);
 							ofEndShape();
 
-							//--
+							//// line
+							//ofSetLineWidth(lw1);
+							//ofDrawLine(xIn + lw1 / 2, p.y - szt, xIn + lw1 / 2, p.y);
+							////ofDrawLine(xIn, p.y - szt, xIn, p.y);
+							////T
+							////ofDrawLine(xIn, p.y - szt, xIn, p.y + szt);
+							////ofDrawLine(xIn - szt / 2, p.y - szt, xIn + szt / 2, p.y - szt);
 
-							/*
-							// Fade out ends
-							// Circle Point
-							float pixPerMillis = 0;
-							if (bPlayForced)
-							{
-								pixPerMillis = w / (float)durationPlayForced;//ratio
-							}
-							if (bPlayStandalone || bPlayExternal)
-							{
-								pixPerMillis = w / (float)durationPlaySlide;//ratio
-							}
-							float d = 1.f / dtAnimOut;
-							int t = (d / fps) * 1000;//duration required to fade out until 0!
-							xOut2 = xOut1 + t * pixPerMillis;
-							if (xOut2 < p.x + w) ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
-							else ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 32);//attenuate if goes out of the  time line!
-							//sz -= 2;
-							//ofSetLineWidth(2);
-							//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
-							ofFill();
-							ofDrawCircle(xOut2, p.y, 5);
-
-							//--
-
-							// Make fatter the line for the full opacity middle section!
-							// full alpha zone
-							if (0)
-							{
-								int lw = 4;
-								int off = 0;
-								ofSetLineWidth(lw);
-								ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 128);
-								ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
-							}
-							*/
+							////triangle
+							//ofFill();
+							//ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+							//ofBeginShape();
+							//ofVertex(xIn - sz, p.y );
+							//ofVertex(xIn, p.y -sz);
+							//ofVertex(xIn, p.y +sz);
+							////ofVertex(xIn - sz, p.y );
+							//ofEndShape();
 						}
-
-						ofPopStyle();
 					}
 
 					//--
 
-					// 1.2 Draw main rule line
-
-					if ((bAnimatedIn) || (bAnimatedOut))
+					// mark fade out phase start point with a vertical line
+					// mark countdown start
+					if (bAnimatedOut)
 					{
-						ofSetLineWidth(1.f);
-						ofSetColor(bTheme.get() ? colorDebugLight : colorDebugDark, 64);
+						ofSetLineWidth(lw1);
 
-						if (bTop) ofDrawLine(bb.getX(), bb.getY() - pady, bb.getX() + bb.getWidth(), bb.getY() - pady);
-						else ofDrawLine(bb.getBottomLeft().x, bb.getBottomLeft().y + pady, bb.getBottomLeft().x + bb.getWidth(), bb.getBottomLeft().y + pady);
+						// Fade out begins
+						float r = 0.f;
+						if (bPlayForced)
+						{
+							r = 1.f - (durationOut / (float)durationPlayForced);//ratio
+						}
+						if (bPlayStandalone || bPlayExternal || bPlayManual)
+						{
+							r = 1.f - (durationOut / (float)durationPlaySlide);//ratio
+						}
+						xOut1 = p.x + w * r;
+
+						//// line
+						//ofDrawLine(xOut1, p.y - sz, xOut1, p.y + sz);
+
+						// triangle
+						ofFill();
+						ofSetPolyMode(OF_POLY_WINDING_NONZERO);
+						ofBeginShape();
+						// a
+						//float o = 0;
+						//ofVertex(xOut1, p.y + o);
+						//ofVertex(xOut1 - szt, p.y - szt);
+						//ofVertex(xOut1 - szt, p.y + o);
+						// b
+						ofVertex(xOut1 - szt / 2, p.y);
+						ofVertex(xOut1 + szt / 2, p.y);
+						ofVertex(xOut1, p.y + 0.7 * szt);
+						ofEndShape();
+
+						//--
+
+						/*
+						// Fade out ends
+						// Circle Point
+						float pixPerMillis = 0;
+						if (bPlayForced)
+						{
+							pixPerMillis = w / (float)durationPlayForced;//ratio
+						}
+						if (bPlayStandalone || bPlayExternal)
+						{
+							pixPerMillis = w / (float)durationPlaySlide;//ratio
+						}
+						float d = 1.f / dtAnimOut;
+						int t = (d / fps) * 1000;//duration required to fade out until 0!
+						xOut2 = xOut1 + t * pixPerMillis;
+						if (xOut2 < p.x + w) ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 255);
+						else ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 32);//attenuate if goes out of the  time line!
+						//sz -= 2;
+						//ofSetLineWidth(2);
+						//ofDrawLine(xOut2, p.y - sz, xOut2, p.y + sz);
+						ofFill();
+						ofDrawCircle(xOut2, p.y, 5);
+
+						//--
+
+						// Make fatter the line for the full opacity middle section!
+						// full alpha zone
+						if (0)
+						{
+							int lw = 4;
+							int off = 0;
+							ofSetLineWidth(lw);
+							ofSetColor(bTheme ? colorDebugLight : colorDebugDark, 128);
+							ofDrawLine(xIn, p.y + off, xOut1, p.y + off);
+						}
+						*/
 					}
+
+					ofPopStyle();
 				}
 
 				//--
 
-				// 2. Alpha Preview
-				 
-				// Lateral Widget
+				// 1.2 Draw main rule line
 
-				if ((bAnimatedIn || bAnimatedOut))
+				if ((bAnimatedIn) || (bAnimatedOut))
 				{
-					float pad2 = 60;
+					ofSetLineWidth(1.f);
+					ofSetColor(bTheme.get() ? colorDebugLight : colorDebugDark, 64);
 
-					float x = 0;
-					float y = 0;
-
-					float x1 = 0;
-					float x2 = 0;
-					float y1 = 6;
-					float y2 = 0;
-
-					float w = 3;
-					float h = -bb.getHeight();
-
-					static ofBitmapFont f;
-					float o = 3;//correct font
-
-					glm::vec2 p;
-					string s;
-
-					//--
-
-					if (bLeft) x = bb.getTopLeft().x - pad2;
-					else x = bb.getTopRight().x + pad2;
-
-					y = bb.getTopLeft().y;
-
-					s = "ALPHA";
-					auto bb1 = f.getBoundingBox(s, 0, 0);
-					x1 = bb1.getWidth() / 2 - o;
-
-					ofDrawBitmapStringHighlight(s, x - x1, y - y1, 
-						(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
-
-					//--
-
-					if (bLeft)
-					{
-						p = bb.getTopLeft();
-						x = p.x - pad2;
-					}
-					else
-					{
-						p = bb.getTopRight();
-						x = p.x + pad2;
-					}
-					y = p.y + bb.getHeight();
-
-					ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
-					ofSetColor(c);
-					ofFill();
-					ofRectangle r(x, y, w, h * alpha);
-					ofDrawRectangle(r);
-
-					//--
-
-					if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
-					{
-						if ((bAnimatedIn && isAnimIn)) s = "IN";
-						else if (bAnimatedOut && isAnimOut) s = "OUT";
-
-						auto bb2 = f.getBoundingBox(s, 0, 0);
-						x2 = bb2.getWidth() / 2 - o;
-						y2 = bb2.getHeight();
-						ofDrawBitmapStringHighlight(s, x - x2, y + y2, 
-							(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
-					}
-				}
-
-				//----
-
-				// Debug boxDrawn
-
-				if (bDebug2)
-				{
-					ofNoFill();
-					ofSetColor(ofColor::yellow, 128);
-					ofSetLineWidth(2);
-					ofDrawRectangle(boxDrawnReal);
+					if (bTop) ofDrawLine(bb.getX(), bb.getY() - pady, bb.getX() + bb.getWidth(), bb.getY() - pady);
+					else ofDrawLine(bb.getBottomLeft().x, bb.getBottomLeft().y + pady, bb.getBottomLeft().x + bb.getWidth(), bb.getBottomLeft().y + pady);
 				}
 			}
+
+			//--
+
+			// 2. Alpha Preview
+
+			// Lateral Widget
+
+			if ((bAnimatedIn || bAnimatedOut))
+			{
+				float pad2 = 60;
+
+				float x = 0;
+				float y = 0;
+
+				float x1 = 0;
+				float x2 = 0;
+				float y1 = 6;
+				float y2 = 0;
+
+				float w = 3;
+				float h = -bb.getHeight();
+
+				static ofBitmapFont f;
+				float o = 3;//correct font
+
+				glm::vec2 p;
+				string s;
+
+				//--
+
+				if (bLeft) x = bb.getTopLeft().x - pad2;
+				else x = bb.getTopRight().x + pad2;
+
+				y = bb.getTopLeft().y;
+
+				s = "ALPHA";
+				auto bb1 = f.getBoundingBox(s, 0, 0);
+				x1 = bb1.getWidth() / 2 - o;
+
+				ofDrawBitmapStringHighlight(s, x - x1, y - y1,
+					(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+
+				//--
+
+				if (bLeft)
+				{
+					p = bb.getTopLeft();
+					x = p.x - pad2;
+				}
+				else
+				{
+					p = bb.getTopRight();
+					x = p.x + pad2;
+				}
+				y = p.y + bb.getHeight();
+
+				ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
+				ofSetColor(c);
+				ofFill();
+				ofRectangle r(x, y, w, h * alpha);
+				ofDrawRectangle(r);
+
+				//--
+
+				if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
+				{
+					if ((bAnimatedIn && isAnimIn)) s = "IN";
+					else if (bAnimatedOut && isAnimOut) s = "OUT";
+
+					auto bb2 = f.getBoundingBox(s, 0, 0);
+					x2 = bb2.getWidth() / 2 - o;
+					y2 = bb2.getHeight();
+					ofDrawBitmapStringHighlight(s, x - x2, y + y2,
+						(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+				}
+			}
+
+			//----
+
+			// Debug boxDrawn
+
+			if (bDebug2)
+			{
+				ofNoFill();
+				ofSetColor(ofColor::yellow, 128);
+				ofSetLineWidth(2);
+				ofDrawRectangle(boxDrawnReal);
+			}
 		}
-		ofPopStyle();
 	}
+	ofPopStyle();
 }
 
 //--------------------------------------------------------------
@@ -2388,8 +2398,11 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 					ui->AddTooltip(s);
 					ui->Unindent();
 				}
-				if (bCenteredV || bResponsive)
+				if (bCenteredV || bResponsive) {
 					ui->Add(amountLinesTarget, OFX_IM_STEPPER);
+					string s = "Expented amount lines";
+					ui->AddTooltip(s);
+				}
 
 				ui->AddSpacingSeparated();
 
@@ -2440,7 +2453,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 					ui->PopWidth();
 
-					ui->EndTree();
+					ui->EndTree(false);
 				}
 
 				//--
@@ -2450,11 +2463,11 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 				{
 					ui->AddSpacingSeparated();
 
-					static bool bDebug3 = false;
-					ui->AddToggle("Debug", bDebug3, OFX_IM_TOGGLE_ROUNDED_MINI);
+					//static bool bDebug3 = false;
+					ui->AddToggle("Debug Advanced", bDebug2, OFX_IM_TOGGLE_ROUNDED_MINI);
 					ui->AddSpacing();
 
-					if (bDebug3)
+					if (bDebug2)
 					{
 						string s;
 						ui->Indent();
@@ -2478,7 +2491,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 					}
 				}
 
-				ui->EndTree();
+				ui->EndTree(false);
 			}
 		}
 
@@ -2513,7 +2526,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				stime = t / 1000.f + "''";
 #endif
 			}
-		}
+			}
 		else if (indexModes == 1)
 		{
 			if (bPlayStandalone)
@@ -2526,7 +2539,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				stime += t / 1000.f;
 #endif
 			}
-		}
+			}
 		else if (indexModes == 2)
 		{
 			if (bPlayForced)
@@ -2555,7 +2568,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+		}
 
 	//----
 
@@ -2596,13 +2609,38 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	{
 		ui->AddSpacingSeparated();
 
-		//--
+		//----
 
 		if (ui->BeginTree("MAIN", false, false))
 		{
 			ui->AddSpacing();
 
+			if (!bMinimize) // maximized 
+			{
+				//if (!bLive) ui->AddSpacingSeparated();
+
+				std::string n = "FILE";
+				//std::string n = "SRT FILE";
+				//std::string n = name_Srt;
+				if (ui->BeginTree(n))
+				{
+					ui->AddLabel(name_Srt + ".srt");
+					//ui->AddLabel("SRT FILE");
+
+					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+					ui->AddSpacingSeparated();
+					ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
+					ui->EndTree(false);
+				}
+
+				ui->AddSpacingSeparated();
+			}
+
 			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
+			ui->AddSpacing();
 
 #ifdef USE_PRESETS__SUBTITLES
 			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
@@ -2618,16 +2656,20 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				s = "Makes container draggeble";
 				ui->AddTooltip(s);
 			}
-			ui->AddSpacingSeparated();
-			ui->AddSpacing();
 
 			if (!bLive && !bMinimize)
 			{
+				ui->AddSpacingSeparated();
+				ui->AddSpacing();
 				ui->Indent();
 				{
-					static bool bExtra = false;
-					ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED);
-					if (bExtra)
+					//static bool bExtra = false;
+					//ui->AddToggle("Extra", bExtra, OFX_IM_TOGGLE_ROUNDED);
+					//if (bExtra)
+
+					ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
+					if (ui->bExtra)
+
 					{
 						ui->AddSpacing();
 						ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -2645,42 +2687,20 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 							}
 							ui->Unindent();
+							}
 						}
 					}
-				}
 				ui->Unindent();
 
 				//ui->AddSpacing();
-			}
-
-			if (!bMinimize) // maximized 
-			{
-				if (!bLive) ui->AddSpacingSeparated();
-
-				std::string n = "FILE";
-				//std::string n = "SRT FILE";
-				//std::string n = name_Srt;
-				if (ui->BeginTree(n))
-				{
-					ui->AddLabel(name_Srt + ".srt");
-					//ui->AddLabel("SRT FILE");
-
-					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-					ui->AddSpacingSeparated();
-					ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
-#endif
-					ui->EndTree();
 				}
-			}
 
-			ui->EndTree();
+			ui->EndTree(false);
 
 			//TODO:
 			//fix?
 			//ui->Indent();
-		}
+			}
 
 		//--
 
@@ -2797,7 +2817,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(bResetFades, OFX_IM_BUTTON_SMALL);
 			}
 
-			ui->EndTree();
+			ui->EndTree(false);
 		}
 
 		ui->AddSpacingSeparated();
@@ -2827,11 +2847,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
 					//ui->Add(colorTextFloat, OFX_IM_COLOR);
 
-					ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
-					//if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_ALPHA);
-					if (bShowBg) ui->Add(fColorBg, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
+					//ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
+					////if (bShowBg) ui->Add(colorBgFloat, OFX_IM_COLOR_NO_ALPHA);
+					//if (bShowBg) ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
 
-					ui->EndTree();
+					ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
+
+					ui->EndTree(false);
 				}
 			}
 
@@ -2840,7 +2862,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
 			}
 
-			ui->EndTree();
+			ui->EndTree(false);
 		}
 
 		//--
@@ -2858,8 +2880,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			presets.drawImGui(false, false, true, false);
 		}
 #endif
+		}
 	}
-}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiList()
