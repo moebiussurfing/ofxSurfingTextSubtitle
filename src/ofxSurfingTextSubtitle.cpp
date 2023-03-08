@@ -2765,8 +2765,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 					s = "Time linked to .srt file times.";
 					ui->AddTooltip(s);
-
 					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
+					s = "Dialog \n#" + ofToString(currentDialog.get());
 				}
 				else if (indexModes == 2) // forced
 				{
