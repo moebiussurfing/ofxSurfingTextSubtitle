@@ -572,3 +572,4 @@ example-Subtitle/bin/data/ofApp
 example-Subtitle3/bin/data/ofApp
 example-Whisper/bin/data/models/ggml-base.en.bin
 example-Whisper/enc_temp_folder/3d61cba0dad964e89870c9a8fec2b464/ofxSurfingTextSubtitle.cpp
+example-SubtitleWhisper/bin/data/models/ggml-base.en.bin

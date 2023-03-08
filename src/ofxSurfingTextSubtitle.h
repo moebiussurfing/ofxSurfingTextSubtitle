@@ -189,7 +189,7 @@ public:
 	void drawGui();
 
 	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
-	// disables ofxGui. useful when using ImGui or to disable gui.
+	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
 	void keyPressed(int key);
 	ofParameter<bool> bKeys{ "Keys", true };
@@ -348,6 +348,7 @@ private:
 
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> positionExternal;
+	ofParameter<bool> bPlayManual;
 
 	ofParameter<bool> bAnimatedIn;
 	ofParameter<int> durationIn; // time before the end to start fadeout from. in ms 
@@ -432,7 +433,12 @@ private:
 	// oneOnly true is faster but false is probably more precise.
 	float getOneLineHeight(bool fast = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
-	ofRectangle boxDrawn; // to memorize last drawn container. Use with care to avoid some flicks.
+
+	// Useful to memorize last drawn container.
+	// Use with care to avoid some flicks.
+	ofRectangle boxDrawn; 
+	//TODO:
+	ofRectangle boxDrawnReal; 
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
@@ -459,6 +465,8 @@ public:
 	void stop();
 	void pause();
 
+	void setTextSlide(string s);
+
 	//--
 
 private:
@@ -469,7 +477,7 @@ private:
 	ofEventListeners listeners;
 #endif
 
-	// extra info
+	// Extra debug info
 	bool bDebug2 = false;
 };
 

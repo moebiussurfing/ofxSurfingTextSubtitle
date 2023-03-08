@@ -29,5 +29,7 @@ public:
 
 #ifdef USE_WHISPER
 	surfingWhisper whisper;
+
+	void doUpdatedWhisper();
 #endif
 };

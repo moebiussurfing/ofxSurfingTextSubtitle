@@ -14,6 +14,7 @@ void ofApp::setup()
 
 #ifdef USE_WHISPER
 	whisper.setup();
+	whisper.vCallback.addListener(this, &ofApp::doUpdatedWhisper);
 #endif
 }
 
@@ -41,7 +42,7 @@ void ofApp::draw() {
 	{
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-		
+
 			ui.EndWindow();
 		}
 
@@ -66,3 +67,12 @@ void ofApp::keyPressed(int key)
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
 }
+
+#ifdef USE_WHISPER
+//--------------------------------------------------------------
+void ofApp::doUpdatedWhisper() {
+	string s = whisper.getLastText();
+	ofLogNotice() << "doUpdatedWhisper(): " << s;
+	subs.setTextSlide(s);
+}
+#endif
