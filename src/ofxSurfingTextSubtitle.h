@@ -69,7 +69,7 @@
 //#define USE_SHADOW
 
 #define USE_PRESETS__SUBTITLES
- 
+
 //----
 
 #include "ofMain.h"
@@ -121,7 +121,7 @@ private:
 	ofxSurfingGui* ui;
 
 public:
-	void setUiPtr(ofxSurfingGui* _ui) { 
+	void setUiPtr(ofxSurfingGui* _ui) {
 		ui = _ui;
 
 #ifdef USE_PRESETS__SUBTITLES
@@ -188,7 +188,10 @@ public:
 
 	void drawGui();
 
-	void setDisableGuiInternal(bool b) { bGui_Internal = !b; }
+	void setDisableGuiInternal(bool b) {
+		bGui_InternalAllowed = !b;
+		bGui_Internal = !b;
+	}
 	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
 	void keyPressed(int key);
@@ -262,6 +265,7 @@ private:
 
 	ofParameter<bool> bMinimize;
 	ofParameter<bool> bGui_Internal;
+	bool bGui_InternalAllowed = true;
 
 	uint64_t tEndSubsFilm = 0;
 	bool bForceAddBreakLines = true;
@@ -312,7 +316,7 @@ public:
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 	ofParameterGroup params_AppSettings;
-	
+
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 private:
@@ -382,7 +386,7 @@ private:
 
 	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
-	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL"};
+	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
 
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
@@ -436,9 +440,9 @@ private:
 
 	// Useful to memorize last drawn container.
 	// Use with care to avoid some flicks.
-	ofRectangle boxDrawn; 
+	ofRectangle boxDrawn;
 	//TODO:
-	ofRectangle boxDrawnReal; 
+	ofRectangle boxDrawnReal;
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 

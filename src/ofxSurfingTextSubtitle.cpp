@@ -40,7 +40,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	//--
 
 	// Internal Gui
-	if (bGui_Internal)
+	if (bGui_InternalAllowed)
 	{
 		ofxSurfingHelpers::setThemeDarkMini_ofxGui();
 		gui.setup(params);
@@ -318,7 +318,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Transport.add(params_Forced);
 	params_External.add(bPlayExternal);
 	params_External.add(positionExternal);
-	params_External.add(bPlayManual);
+	params_Transport.add(bPlayManual);
 	params_Transport.add(params_External);
 
 	//params_Transport.add(progressPlayFilm);
@@ -473,6 +473,8 @@ void ofxSurfingTextSubtitle::buildSubsData()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::startup()
 {
+	ofLogNotice(__FUNCTION__);
+
 #ifdef USE_IM_GUI__SUBTITLES
 	this->setDisableGuiInternal(true);
 #endif
@@ -480,7 +482,6 @@ void ofxSurfingTextSubtitle::startup()
 	//return;
 	doReset();
 
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
 
 	//TODO:
 	//crash
@@ -1002,7 +1003,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (bDrawWidgetInfo) boxInfo.draw();
 #endif
 
-	if (bGui_Internal) gui.draw();
+	if (bGui_Internal && bGui_InternalAllowed) gui.draw();
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.drawGui();
@@ -2526,7 +2527,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				stime = t / 1000.f + "''";
 #endif
 			}
-			}
+		}
 		else if (indexModes == 1)
 		{
 			if (bPlayStandalone)
@@ -2539,7 +2540,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				stime += t / 1000.f;
 #endif
 			}
-			}
+		}
 		else if (indexModes == 2)
 		{
 			if (bPlayForced)
@@ -2568,44 +2569,48 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-		}
+	}
 
 	//----
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	if (!bMinimize) ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
 
-	ui->AddSpacingSeparated();
-
-	if (bLoaded)
+	// manual
+	if (indexModes != 3)
 	{
-		if (!bMinimize)
+		ui->AddSpacingSeparated();
+
+		if (bLoaded)
 		{
-			ui->AddLabelBig(sfile);
-			s = path_Srt;
+			if (!bMinimize)
+			{
+				ui->AddLabelBig(sfile);
+				s = path_Srt;
+				ui->AddTooltip(s);
+			}
+			ui->AddLabelBig(stime);
+
+			ui->AddSpacing();
+
+			ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+			s = "Total Duration";
+			ui->AddTooltip(s);
+
+			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
+			s = "Dialog Duration";
 			ui->AddTooltip(s);
 		}
-
-		ui->AddLabelBig(stime);
-
-		ui->AddSpacing();
-
-		ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
-		s = "Total Duration";
-		ui->AddTooltip(s);
-
-		ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-		s = "Dialog Duration";
-		ui->AddTooltip(s);
+		else {
+			ui->BeginBlinkText();
+			ui->AddLabelBig("SRT FILE NOT LOADED!");
+			ui->EndBlinkText();
+			ui->AddSpacing();
+			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+		}
 	}
-	else {
-		ui->BeginBlinkText();
-		ui->AddLabelBig("SRT FILE NOT LOADED!");
-		ui->EndBlinkText();
-		ui->AddSpacing();
-		ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-	}
-	if (bLoaded)
+
+	if (bLoaded || (indexModes == 3))
 	{
 		ui->AddSpacingSeparated();
 
@@ -2646,7 +2651,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
-			ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
+
+			// manual
+			if (indexModes != 3)
+			{
+				ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
+			}
+
 			ui->AddSpacing();
 			ui->Add(bLive, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
 			s = "Live Mode hides some stuff";
@@ -2669,7 +2680,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 					ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
 					if (ui->bExtra)
-
 					{
 						ui->AddSpacing();
 						ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -2681,26 +2691,26 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 								ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
 								ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
 
-								if (bEdit && bGui_Internal) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+								if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #ifdef USE_WIDGET__SUBTITLES
 								ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
 							}
 							ui->Unindent();
-							}
 						}
 					}
+				}
 				ui->Unindent();
 
 				//ui->AddSpacing();
-				}
+			}
 
 			ui->EndTree(false);
 
 			//TODO:
 			//fix?
 			//ui->Indent();
-			}
+		}
 
 		//--
 
@@ -2718,9 +2728,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				string s = "Link Mode ";
 				switch (indexModes)
 				{
-				case 0: s += "EXTERNAL\nLocal time linked to parent player."; break;
-				case 1: s += "STANDALONE\nTime linked to .srt file times."; break;
-				case 2: s += "FORCED\nLocal time linked to his timer."; break;
+				case 0: s += "EXTERNAL\nLocal time linked \nto parent player."; break;
+				case 1: s += "STANDALONE\nTime linked to \n.srt file times."; break;
+				case 2: s += "FORCED\nLocal time linked \nto his timer."; break;
+				case 3: s += "MANUAL\nIgnore SRT files \nand load any text."; break;
 				}
 				ui->AddTooltip(s);
 
@@ -2755,6 +2766,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
 					ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
 					ui->PopButtonRepeat();
+				}
+				else if (indexModes == 3) // manual
+				{
+					ui->Add(bPlayManual, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 				}
 
 				//if (!bPlayExternal || indexModes != 2) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
@@ -2880,8 +2895,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			presets.drawImGui(false, false, true, false);
 		}
 #endif
-		}
 	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiList()
@@ -3009,7 +3024,7 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doReset() {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
+	ofLogNotice(__FUNCTION__);
 
 	//colorTextFloat = ofColor(255, 255);
 	fSpacing = 0;
@@ -3090,7 +3105,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == indexModes.getName())
 	{
-		if (bGui_Internal)
+		if (bGui_Internal && bGui_InternalAllowed)
 		{
 			auto& gt = gui.getGroup(params_Transport.getName());
 			gt.getGroup(params_External.getName()).minimize();
@@ -3124,6 +3139,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	// Dialog index
 	else if (name == currentDialog.getName())
 	{
+		if (indexModes == 3 && bPlayManual) return;
+
 		//return;//bypass
 
 		// Avoid / clamp errors
@@ -3238,7 +3255,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			currentDialog.setWithoutEventNotifications(0);
 
 			progressPlaySlide = 0;
-			bPlayExternal = false;
+			//bPlayExternal = false;
+			if (bPlayExternal) bPlayExternal = false;
 			if (bPlayManual) bPlayManual = false;
 
 			//workflow
@@ -3271,7 +3289,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			tPlayForce = ofGetElapsedTimeMillis();
 			tPlayForceFilm = ofGetElapsedTimeMillis();
 			progressPlaySlide = 0;
-			bPlayExternal = false;
+			//bPlayExternal = false;
+			if (bPlayExternal) bPlayExternal = false;
 			if (bPlayManual) bPlayManual = false;
 
 			//workflow
@@ -3579,6 +3598,9 @@ void ofxSurfingTextSubtitle::setTogglePlay()
 	else if (indexModes == 2) {
 		bPlayForced = !bPlayForced;
 	}
+	else if (indexModes == 3) {
+		bPlayManual = !bPlayManual;
+	}
 
 	//#ifdef USE_WIDGET__VIDEO_PLAYER
 	//	if (bPlayStandalone) player.play();
@@ -3595,6 +3617,7 @@ void ofxSurfingTextSubtitle::play() {
 void ofxSurfingTextSubtitle::stop() {
 	if (bPlayStandalone) bPlayStandalone = false;
 	if (bPlayForced) bPlayForced = false;
+	if (bPlayManual) bPlayManual = false;
 
 	if (isAnimIn) isAnimIn = false;
 	if (isAnimOut) isAnimOut = false;
@@ -3612,8 +3635,51 @@ void ofxSurfingTextSubtitle::pause() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setTextSlide(string s) {
-	textCurrent = s;
+	bool b = indexModes == 3 && bPlayManual;
 
-	progressPlaySlide = 0;
+	// workflow
+	// A.force mode
+	if (!b)
+	{
+		if (indexModes != 3) indexModes = 3;
+		if (!bPlayManual) bPlayManual = true;
+	}
 
+	// workflow
+	// B. Lock if wrong mode
+	//if (b)
+	{
+		if (bCapitalize) textCurrent = ofToUpper(s);
+		else textCurrent = s;
+
+		progressPlaySlide = 0;
+		ofLogNotice("ofxSurfingTextSubtitle") << "setTextSlide: " << textCurrent;
+
+		//--
+
+		// Fades
+
+		if (bAnimatedIn && bAnimatedOut)
+		{
+			isAnimIn = true;
+			alpha = 0.f;
+			if (isAnimOut) isAnimOut = false;
+		}
+		else if (bAnimatedIn && !bAnimatedOut)
+		{
+			isAnimIn = true;
+			alpha = 0.f;
+			//if (bPlayStandalone || bPlayForced) alpha = 1.f;//should force play
+		}
+		else if (!bAnimatedIn && bAnimatedOut) {
+			alpha = 1.f;
+		}
+		else if (!bAnimatedIn && !bAnimatedOut) {
+			alpha = 1.f;
+		}
+	}
+	// workflow
+	//else {
+	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring setTextSlide bc not in MANUAL mode";
+	//}
 }

@@ -40,9 +40,13 @@ void ofApp::draw() {
 
 	ui.Begin();
 	{
-		if (ui.BeginWindow("ofApp")) {
+		if (ui.BeginWindow("ofApp"))
+		{
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-
+			if (ui.AddButton("Populate Text!", OFX_IM_BUTTON_BIG_XXL)) {
+				//if(subs.get)
+				doPopulateText();
+			}
 			ui.EndWindow();
 		}
 
@@ -56,8 +60,39 @@ void ofApp::draw() {
 }
 
 //--------------------------------------------------------------
+void ofApp::doPopulateText(string s) {
+
+	// auto generate
+	if (s == "") {
+		float r = ofRandom(1.f);
+		if (r < 0.25f) {
+			s = "Hello people, how are you today?";
+			s += " And current frame is " + ofToString(ofGetFrameNum());
+		}
+		else if (r < 0.5f) {
+			s = "Hello dude. Ready to wake up?";
+		}
+		else if (r < 0.75f) {
+			s = "I go sleep now. Ready to wake up!";
+			s += " Time is " + ofToString(ofGetTimestampString());
+		}
+		else {
+			s = "Dude, hello! Im ready to go out";
+			s += " Current time is " + ofToString(ofGetTimestampString());
+		}
+	}
+
+	ofLogNotice() << s;
+	subs.setTextSlide(s);
+}
+
+//--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
+	if (key == OF_KEY_F8) {
+		doPopulateText();
+	}
+
 	if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }

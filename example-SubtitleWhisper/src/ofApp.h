@@ -11,7 +11,7 @@
 #include "surfingWhisper.h"
 #endif
 
-class ofApp : public ofBaseApp 
+class ofApp : public ofBaseApp
 {
 public:
 
@@ -32,4 +32,6 @@ public:
 
 	void doUpdatedWhisper();
 #endif
+
+	void doPopulateText(string s = "");
 };
