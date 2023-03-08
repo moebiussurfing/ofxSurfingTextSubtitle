@@ -9,7 +9,9 @@
 	BUG:
 
 	fix Forced mode broken
-		fails if external video is playing. should ignore setPos when forcing!
+		fails if external video is playing. 
+		should ignore setPos when forcing!
+	
 	--
 
 	TODO:
@@ -31,8 +33,6 @@
 
 	test video player encoding problems...
 	bad frame rate on Debug compilation.
-
-	add presets inside the addon.
 
 */
 

@@ -644,7 +644,7 @@ void ofxSurfingTextSubtitle::updateFades()
 		{
 			uint64_t tSlide = 0;
 
-			if (bPlayForced ) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
+			if (bPlayForced) tSlide = ofGetElapsedTimeMillis() - tPlayForce;
 			else if (bPlayStandalone || bPlayExternal || bPlayManual)
 				tSlide = ofGetElapsedTimeMillis() - tPlayStartSlide;
 
@@ -652,7 +652,7 @@ void ofxSurfingTextSubtitle::updateFades()
 			{
 				// trigs fade out start
 
-				if (bPlayForced )
+				if (bPlayForced)
 				{
 					if (tSlide > durationPlayForced - durationOut)
 					{
@@ -759,6 +759,9 @@ void ofxSurfingTextSubtitle::updateEngine()
 		//if (bPlayStandalone) t = ofGetElapsedTimeMillis() - tPlay;
 		t = ofGetElapsedTimeMillis() - tPlay;
 	}
+	else if (indexModes == 2) // forced
+	{
+	}
 	else if (indexModes == 3) // manual
 	{
 		////if (bPlayExternal) t = positionExternal * (float)tEndSubsFilm;
@@ -805,7 +808,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	if (indexModes == 0 || indexModes == 1) // external or standalone
 	{
-		if (isSlidePlaying && (bPlayStandalone || bPlayExternal || bPlayManual))
+		if (isSlidePlaying && (bPlayStandalone || bPlayExternal))
 		{
 			uint64_t tp = ofGetElapsedTimeMillis() - tPlayStartSlide;
 			progressPlaySlide = ofMap(tp, 0, durationPlaySlide, 0, 1, true);
@@ -849,13 +852,15 @@ void ofxSurfingTextSubtitle::updateEngine()
 	{
 		if (bPlayManual)
 		{
-			uint64_t tf = ofGetElapsedTimeMillis() - tPlayForce;
-			if (tf > durationPlayForced)
+			if (isSlidePlaying)
 			{
-				tPlayForce = ofGetElapsedTimeMillis();//restart timer. next slide
-				//currentDialog++;
+				uint64_t tp = ofGetElapsedTimeMillis() - tPlayStartSlide;
+				progressPlaySlide = ofMap(tp, 0, durationPlaySlide, 0, 1, true);
 			}
-			progressPlaySlide = ofMap(tf, 0, durationPlayForced, 0, 1, true);
+			else
+			{
+				progressPlaySlide = 0;
+			}
 		}
 	}
 }
@@ -1154,12 +1159,15 @@ void ofxSurfingTextSubtitle::drawDebug()
 		// A. Attached to box
 		ofRectangle bb = box.getRectangle();
 
+		//TODO:
 		// improve getting the bigger 
-		float diff = boxDrawnReal.getHeight() - bb.getHeight();
-		bool b = (diff > 0);
-		if (b) {
-			bb.setHeight(boxDrawnReal.getHeight());
-			bb.translateY(-diff / 2);
+		if (0) {
+			float diff = boxDrawnReal.getHeight() - bb.getHeight();
+			bool b = (diff > 0);
+			if (b) {
+				bb.setHeight(boxDrawnReal.getHeight());
+				bb.translateY(-diff / 2);
+			}
 		}
 
 		//--
@@ -1174,7 +1182,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 			{
 				{
 					// 1.1 Big line
-		
+
 					ofPushStyle();
 
 					float lw1 = 3;
@@ -1194,6 +1202,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 					float o = 0;
 					//float o = 1;
+
 					ofDrawLine(x - o, y, x - o + (w + o) * progressPlaySlide, y);
 
 					// Phase fade in/out lines
@@ -1208,7 +1217,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 					//--
 
 					// 1.2 Fade Marks
-					 
+
 					//TODO:
 					// mark fade in phase end point with a vertical line
 					// hard to do bc using speed instead of time duration in ms!
@@ -1294,7 +1303,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 					}
 
 					//--
-					
+
 					// mark fade out phase start point with a vertical line
 					// mark countdown start
 					if (bAnimatedOut)
@@ -1392,77 +1401,80 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 			// 2. Alpha Preview
 
-			// Lateral Widget
+			// Lateral Widget. 
+			// Vertical bar to show current opacity
 
-			if ((bAnimatedIn || bAnimatedOut))
-			{
-				float pad2 = 60;
-
-				float x = 0;
-				float y = 0;
-
-				float x1 = 0;
-				float x2 = 0;
-				float y1 = 6;
-				float y2 = 0;
-
-				float w = 3;
-				float h = -bb.getHeight();
-
-				static ofBitmapFont f;
-				float o = 3;//correct font
-
-				glm::vec2 p;
-				string s;
-
-				//--
-
-				if (bLeft) x = bb.getTopLeft().x - pad2;
-				else x = bb.getTopRight().x + pad2;
-
-				y = bb.getTopLeft().y;
-
-				s = "ALPHA";
-				auto bb1 = f.getBoundingBox(s, 0, 0);
-				x1 = bb1.getWidth() / 2 - o;
-
-				ofDrawBitmapStringHighlight(s, x - x1, y - y1,
-					(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
-
-				//--
-
-				if (bLeft)
+			if (alpha != 0)
+				if ((bAnimatedIn || bAnimatedOut))
 				{
-					p = bb.getTopLeft();
-					x = p.x - pad2;
-				}
-				else
-				{
-					p = bb.getTopRight();
-					x = p.x + pad2;
-				}
-				y = p.y + bb.getHeight();
+					float pad2 = 60;
 
-				ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
-				ofSetColor(c);
-				ofFill();
-				ofRectangle r(x, y, w, h * alpha);
-				ofDrawRectangle(r);
+					float x = 0;
+					float y = 0;
 
-				//--
+					float x1 = 0;
+					float x2 = 0;
+					float y1 = 6;
+					float y2 = 0;
 
-				if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
-				{
-					if ((bAnimatedIn && isAnimIn)) s = "IN";
-					else if (bAnimatedOut && isAnimOut) s = "OUT";
+					float w = 3;
+					float h = -bb.getHeight();
 
-					auto bb2 = f.getBoundingBox(s, 0, 0);
-					x2 = bb2.getWidth() / 2 - o;
-					y2 = bb2.getHeight();
-					ofDrawBitmapStringHighlight(s, x - x2, y + y2,
+					static ofBitmapFont f;
+					float o = 3;//correct font
+
+					glm::vec2 p;
+					string s;
+
+					//--
+
+					if (bLeft) x = bb.getTopLeft().x - pad2;
+					else x = bb.getTopRight().x + pad2;
+
+					y = bb.getTopLeft().y;
+
+					s = "ALPHA";
+					auto bb1 = f.getBoundingBox(s, 0, 0);
+					x1 = bb1.getWidth() / 2 - o;
+
+					ofDrawBitmapStringHighlight(s, x - x1, y - y1,
 						(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+
+					//--
+
+					if (bLeft)
+					{
+						p = bb.getTopLeft();
+						x = p.x - pad2;
+					}
+					else
+					{
+						p = bb.getTopRight();
+						x = p.x + pad2;
+					}
+
+					y = p.y + bb.getHeight();
+
+					ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
+					ofSetColor(c);
+					ofFill();
+					ofRectangle r(x, y, w, h * alpha);
+					ofDrawRectangle(r);
+
+					//--
+
+					if ((bAnimatedIn && isAnimIn) || (bAnimatedOut && isAnimOut))
+					{
+						if ((bAnimatedIn && isAnimIn)) s = "IN";
+						else if (bAnimatedOut && isAnimOut) s = "OUT";
+
+						auto bb2 = f.getBoundingBox(s, 0, 0);
+						x2 = bb2.getWidth() / 2 - o;
+						y2 = bb2.getHeight();
+						ofDrawBitmapStringHighlight(s, x - x2, y + y2,
+							(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
+					}
 				}
-			}
 
 			//----
 
@@ -2352,7 +2364,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -2525,8 +2537,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		// filename
 		sfile = name_Srt;
 
-		// elapsed time 
-		if (indexModes == 0)
+		// Elapsed time 
+
+		if (indexModes == 0) // external
 		{
 			if (bPlayExternal)
 			{
@@ -2538,7 +2551,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 			}
 		}
-		else if (indexModes == 1)
+		else if (indexModes == 1) // standalone
 		{
 			if (bPlayStandalone)
 			{
@@ -2551,23 +2564,17 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 			}
 		}
-		else if (indexModes == 2)
+		else if (indexModes == 2) // forced
 		{
 			if (bPlayForced)
 			{
 				stime = sub[currentDialog]->getStartTimeString();
 			}
 		}
-		else if (indexModes == 3)
+		else if (indexModes == 3)  // manual
 		{
 			if (bPlayManual)
 			{
-				//				auto t = positionExternal * (float)tEndSubsFilm;
-				//#ifdef USING_OFX_TIME_CODE
-				//				stime = timecode.timecodeForMillis(t);
-				//#else
-				//				stime = t / 1000.f + "''";
-				//#endif
 			}
 		}
 
@@ -2669,7 +2676,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 
 			ui->AddSpacing();
-			ui->Add(bLive, OFX_IM_TOGGLE_SMALL_BORDER_BLINK);
+			ui->Add(bLive, OFX_IM_TOGGLE_BIG_BORDER);
 			s = "Live Mode hides some stuff";
 			ui->AddTooltip(s);
 			if (!bLive) {
@@ -2750,6 +2757,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(positionExternal, OFX_IM_HSLIDER_MINI);
 					s = "Local time linked to parent player.";
 					ui->AddTooltip(s);
+					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
+					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 				}
 				else if (indexModes == 1) // standalone
 				{
@@ -2780,6 +2789,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				else if (indexModes == 3) // manual
 				{
 					ui->Add(bPlayManual, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
+					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 				}
 
 				//if (!bPlayExternal || indexModes != 2) ui->Add(bStop, OFX_IM_BUTTON_SMALL);
@@ -2796,13 +2807,23 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			string s;
 
+				ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR);
+				s = "Slide progress";
+				ui->AddTooltip(s);
+				ui->AddSpacing();
+
 			if (bMinimize)
 			{
+
 				// in
 				ui->Add(bAnimatedIn, OFX_IM_TOGGLE_SMALL, 2, true);
+				s = "Fade In";
+				ui->AddTooltip(s);
 
 				// out
 				ui->Add(bAnimatedOut, OFX_IM_TOGGLE_SMALL, 2);
+				s = "Fade Out";
+				ui->AddTooltip(s);
 
 				if (bAnimatedIn) {
 					ui->Add(progressIn, OFX_IM_PROGRESS_BAR_NO_TEXT);
@@ -3298,7 +3319,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 			tPlayForce = ofGetElapsedTimeMillis();
 			tPlayForceFilm = ofGetElapsedTimeMillis();
-			
+
 			progressPlaySlide = 0;
 
 			//bPlayExternal = false;
@@ -3328,7 +3349,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		if (bPlayManual)
 		{
 			tPlayForce = ofGetElapsedTimeMillis();
-			tPlayForceFilm = ofGetElapsedTimeMillis();
+			//tPlayForceFilm = ofGetElapsedTimeMillis();
 
 			if (bPlayStandalone) bPlayStandalone = false;
 			if (bPlayForced) bPlayForced = false;

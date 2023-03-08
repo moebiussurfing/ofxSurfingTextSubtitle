@@ -77,7 +77,7 @@ void ofApp::doPopulateText(string s) {
 			s += " Time is " + ofToString(ofGetTimestampString());
 		}
 		else {
-			s = "Dude, hello! Im ready to go out";
+			s = "Hey, hello! Im ready to go out";
 			s += " Current time is " + ofToString(ofGetTimestampString());
 		}
 	}
