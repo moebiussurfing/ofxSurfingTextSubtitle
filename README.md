@@ -32,10 +32,9 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 ### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
-### [ADVANCED] example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) 
+### example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED]  
 ![Screenshot](example-SubtitleWhisper/Capture.PNG)  
-Requires [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald])(https://github.com/roymacdonald)  
-Usees this [FORK](https://github.com/moebiussurfing/ofxWhisper)  
+Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald)  
 ![VIDEO](https://youtu.be/G8iH-0UakN4)
 
 ## USAGE
