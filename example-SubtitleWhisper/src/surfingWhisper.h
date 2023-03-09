@@ -4,6 +4,7 @@
 
 #include "ofxWhisper.h"
 #include <deque>
+
 //#include "ofxSurfingHelpers.h"
 #include "ofxAutosaveGroupTimer.h"
 
@@ -14,26 +15,31 @@ public:
 
 		whisper.bTimeStamps.makeReferenceTo(bTimeStamps);
 
+		params_surfingWhisper.add(bEnable);
 		params_surfingWhisper.add(bDebug);
 		params_surfingWhisper.add(bTimeStamps);
 		params_surfingWhisper.add(bSpanish);
 		params_surfingWhisper.add(bHighQuality);
+		params_surfingWhisper.add(vClear);
 
 		gt.addGroup(params_surfingWhisper);
 		//ofxSurfingHelpers::loadGroup(params_surfingWhisper);
 	};
-	
+
 	~surfingWhisper() {
 		//ofxSurfingHelpers::saveGroup(params_surfingWhisper);
 	};
 
 	ofParameter<void> vCallback{ "vCallback" };
+	ofParameter<void> vClear{ "Clear" };
+	ofParameter<bool> bEnable{ "ENABLE", true };
 	ofParameter<bool> bDebug{ "Debug", false };
 	ofParameter<bool> bTimeStamps{ "TimeStamps", true };
 	ofParameter<bool> bSpanish{ "Spanish", true };
 	ofParameter<bool> bHighQuality{ "HighQuality", false };
 	ofParameterGroup params_surfingWhisper{ "surfingWhisper" };
 	ofxAutosaveGroupTimer gt;
+	ofEventListener e;
 
 	//--
 
@@ -47,6 +53,12 @@ public:
 	void setup()
 	{
 		gt.startup();//force
+
+		e = vClear.newListener([this]() {
+			{
+				textQueue.clear();
+			}
+			});
 
 		//--
 
@@ -71,24 +83,24 @@ public:
 		// whisperSettings.no_context    = true; //"keep context between audio chunks\n",
 		// whisperSettings.no_timestamps = false; 
 		// whisperSettings.language  = "en"; //"spoken language\n",
-		
+
 		//"model path\n",
-		if(bHighQuality) whisperSettings.model = "models/ggml-medium.en.bin";
+		if (bHighQuality) whisperSettings.model = "models/ggml-medium.en.bin";
 		else whisperSettings.model = "models/ggml-base.en.bin";
 
 		// customize
-		if (1) 
+		if (1)
 		{
 			//https://github.com/ggerganov/whisper.cpp/tree/master/examples/stream
 			whisperSettings.step_ms = 500; //step_ms "audio step size in milliseconds\n",             ;
 			whisperSettings.length_ms = 5000; //length_ms "audio length in milliseconds\n",                ;
 
 			//whisperSettings.no_timestamps = true; //TODO: why is ignored?
-			
-			if (bSpanish) 
+
+			if (bSpanish)
 			{
 				//"model path\n",
-				if(bHighQuality) whisperSettings.model = "models/ggml-medium.bin";
+				if (bHighQuality) whisperSettings.model = "models/ggml-medium.bin";
 				else  whisperSettings.model = "models/ggml-base.bin";
 
 				whisperSettings.language = "es"; //"spoken language\n",
@@ -131,7 +143,7 @@ public:
 #endif   
 
 		settings.setInListener(whisper.audio_input.get());
-		
+
 		settings.sampleRate = 48000;
 		settings.numOutputChannels = 0;
 		//settings.numInputChannels = 2;
@@ -141,6 +153,8 @@ public:
 	};
 
 	void update() {
+		if (!bEnable) return;
+
 		string newText = "";
 		while (whisper.textChannel.tryReceive(newText)) {
 			textQueue.push_back(newText);
@@ -149,7 +163,8 @@ public:
 			vCallback.trigger();
 		}
 
-		size_t sz = 50;
+		size_t sz = 30;
+
 		while (textQueue.size() > sz) {
 			textQueue.pop_front();
 		}

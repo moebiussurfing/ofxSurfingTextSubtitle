@@ -1049,7 +1049,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-}
+		}
 #endif
 	}
 }
@@ -2427,7 +2427,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 }
 
@@ -2440,6 +2440,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 	if (ui->BeginWindow(bGui_Paragraph))
 	{
 		ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
+		ui->AddSpacing();
 		//ui->PushWidth(0.7f);
 		SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
 		ui->Add(fSizePrc, st);
@@ -2449,14 +2450,19 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 		ui->AddSpacing();
 
-		if (bMinimize)
+		if (bMinimize) // minimized
 		{
 			ui->AddCombo(fAlign, names_Align);
 			ui->AddTooltip("Align");
+			ui->AddSpacingSeparated();
+
 			ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+			ui->AddSpacingSeparated();
 			ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
-			if (bResponsive) {
-				ui->Add(resizeResponsive, OFX_IM_HSLIDER_MINI_NO_LABELS);
+			ui->AddSpacing();
+			if (bResponsive) 
+			{
+				ui->Add(resizeResponsive, OFX_IM_HSLIDER_SMALL);
 				string s = "Rescale";
 				ui->AddTooltip(s);
 			}
@@ -2466,8 +2472,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 			ui->Add(bReset, OFX_IM_BUTTON_SMALL);
 		}
-
-		if (!bMinimize)
+		else // maximized
 		{
 			ui->AddCombo(fAlign, names_Align);
 			ui->AddTooltip("Align");
@@ -2476,17 +2481,22 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 			if (ui->BeginTree("EXTRA", false, false))
 			{
+				ui->AddSpacing();
 				ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->AddSpacingSeparated();
 				ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
 				if (bResponsive) {
 					ui->Indent();
+					ui->AddSpacing();
 					ui->Add(resizeResponsive, OFX_IM_STEPPER);
-					ui->Add(resizeResponsive, OFX_IM_HSLIDER_MINI_NO_LABELS);
+					ui->Add(resizeResponsive, OFX_IM_HSLIDER_SMALL_NO_LABELS);
 					string s = "Rescale";
 					ui->AddTooltip(s);
 					ui->Unindent();
 				}
-				if (bCenteredV || bResponsive) {
+				if (bCenteredV || bResponsive)
+				{
+					ui->AddSpacing();
 					ui->Add(amountLinesTarget, OFX_IM_STEPPER);
 					string s = "Expented amount lines";
 					ui->AddTooltip(s);

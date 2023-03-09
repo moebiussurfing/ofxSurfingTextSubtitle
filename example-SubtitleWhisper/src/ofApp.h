@@ -23,14 +23,15 @@ public:
 	ofxSurfingTextSubtitle subs;
 	string path;
 
+	ofParameter<bool> bGui;
 	ofxSurfingGui ui;
-	string tag;
-	ofxWindowApp w;
 
 #ifdef USE_WHISPER
 	surfingWhisper whisper;
 	void doUpdatedWhisper();
 #endif
-
+	
 	void doPopulateText(string s = "");
+
+	ofxWindowApp w;
 };
