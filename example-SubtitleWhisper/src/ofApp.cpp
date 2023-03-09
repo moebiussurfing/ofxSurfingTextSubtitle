@@ -45,7 +45,7 @@ void ofApp::draw()
 
 	ui.Begin();
 	{
-		ImGui::SetNextWindowSize(ImVec2(200, -1), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(220, -1), ImGuiCond_Appearing);
 		if (ui.BeginWindow(bGui))
 		{
 			string s;
@@ -100,7 +100,7 @@ void ofApp::draw()
 
 #ifdef USE_WHISPER
 	ofPushMatrix();
-	ofTranslate(-20, ofGetHeight() * 0.7);
+	ofTranslate(-16, ofGetHeight() * 0.7);
 	whisper.draw();
 	ofPopMatrix();
 #endif
@@ -167,7 +167,7 @@ void ofApp::doPopulateText(string s)
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	if (key == 'f') { ofSetFullscreen(true); }
+	//if (key == 'f') { ofSetFullscreen(true); }
 	//if (key == 'f') { ofSetFullscreen(true); }
 
 	if (key == 'g') { bGui = !bGui; }

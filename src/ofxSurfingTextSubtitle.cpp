@@ -2439,6 +2439,8 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 	//if (ui->BeginTree("PARAGRAPH", false, false))
 	if (ui->BeginWindow(bGui_Paragraph))
 	{
+		string s;
+
 		ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
 		ui->AddSpacing();
 		//ui->PushWidth(0.7f);
@@ -2457,13 +2459,17 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			ui->AddSpacingSeparated();
 
 			ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+			s = "y center on container.";
+			ui->AddTooltip(s);
 			ui->AddSpacingSeparated();
 			ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+			s = "Use responsive engine.";
+			ui->AddTooltip(s);
 			ui->AddSpacing();
-			if (bResponsive) 
+			if (bResponsive)
 			{
 				ui->Add(resizeResponsive, OFX_IM_HSLIDER_SMALL);
-				string s = "Rescale";
+				s = "Rescale";
 				ui->AddTooltip(s);
 			}
 			if (bCenteredV || bResponsive) ui->Add(amountLinesTarget, OFX_IM_STEPPER);
@@ -2483,14 +2489,18 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			{
 				ui->AddSpacing();
 				ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
+				s = "y center on container.";
+				ui->AddTooltip(s);
 				ui->AddSpacingSeparated();
 				ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
+				s = "Use responsive engine.";
+				ui->AddTooltip(s);
 				if (bResponsive) {
 					ui->Indent();
 					ui->AddSpacing();
 					ui->Add(resizeResponsive, OFX_IM_STEPPER);
 					ui->Add(resizeResponsive, OFX_IM_HSLIDER_SMALL_NO_LABELS);
-					string s = "Rescale";
+					s = "Rescale";
 					ui->AddTooltip(s);
 					ui->Unindent();
 				}
@@ -2498,7 +2508,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 				{
 					ui->AddSpacing();
 					ui->Add(amountLinesTarget, OFX_IM_STEPPER);
-					string s = "Expented amount lines";
+					s = "Expented amount lines";
 					ui->AddTooltip(s);
 				}
 
@@ -2663,7 +2673,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+			}
 
 	//----
 
@@ -2755,11 +2765,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 						ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 						ui->EndTree(false);
-					}
+				}
 
 					ui->AddSpacingSeparated();
-				}
 			}
+		}
 
 			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
@@ -2815,13 +2825,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 									ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
 								}
-							}
-							ui->Unindent();
 						}
+							ui->Unindent();
 					}
-					ui->Unindent();
 				}
+					ui->Unindent();
 			}
+	}
 
 			ui->EndTree(false);
 		}//main

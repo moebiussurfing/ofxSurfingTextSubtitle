@@ -48,6 +48,8 @@ private:
 	ofxWhisper whisper;
 	deque<string> textQueue;
 
+	size_t sz = 20;//amount lines debug
+
 public:
 
 	void setup()
@@ -162,8 +164,6 @@ public:
 			textLast = newText;
 			vCallback.trigger();
 		}
-
-		size_t sz = 30;
 
 		while (textQueue.size() > sz) {
 			textQueue.pop_front();

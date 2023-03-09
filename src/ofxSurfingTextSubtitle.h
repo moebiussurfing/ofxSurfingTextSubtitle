@@ -8,6 +8,9 @@
 
 	BUG:
 
+	fix broken lines / words... 
+		could be related to pre draw rectangles?
+
 	fix too short duration fades breaks trouble
 
 	fix workflow for not srt mode!
