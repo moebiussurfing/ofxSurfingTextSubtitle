@@ -128,7 +128,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::loadFont(string path)
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path;
+	ofLogNotice("ofxSurfingTextSubtitle") << ("loadFont: ") << " " << path;
 
 	if (fPath.get() != path) fPath.setWithoutEventNotifications(path);
 
@@ -142,10 +142,35 @@ void ofxSurfingTextSubtitle::loadFont(string path)
 	}
 }
 
+#ifdef USE_IM_GUI__SUBTITLES
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
+{
+	ui = _ui;
+
+#ifdef USE_PRESETS__SUBTITLES
+	presets.setUiPtr(_ui);
+	presets.setPathGlobal("ofxSurfingTextSubtitle");
+	presets.setPath("ofxSurfingTextSubtitle");
+	presets.AddGroup(params_Preset);
+
+	////TODO:
+	////trick fix to example-SubtitleWhisper app
+	//plistener = presets.index.newListener([this](int i) {
+	//	{
+	//		ui->ClearLogDefaultTags();
+	//		ofColor c = ofColor(getColorText(), 255);
+	//		ui->AddLogTag(c);
+	//	}
+	//	});
+#endif
+}
+#endif
+
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setupFont()
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
+	ofLogNotice(__FUNCTION__);
 
 	fName = "-1";
 	//fName = "ExtendedBold";
@@ -182,7 +207,7 @@ void ofxSurfingTextSubtitle::setupFont()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setupParams()
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__);
+	ofLogNotice(__FUNCTION__);
 
 	// force load default font
 	setupFont();
@@ -193,7 +218,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bStop.set("Stop");
 	bOpen.set("Open");
 	bDraw.set("DRAW", true);
-	bLive.set("Live", false);
+	bLive.set("LIVE!", false);
 	bEdit.set("Edit", true);
 	bDebug.set("Debug", true);
 	bTop.set("Top Timeline", true);
@@ -465,7 +490,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::buildSubsData()
 {
-	ofLogNotice("ofxSurfingTextSubtitle") << (__FUNCTION__) << " " << path_Srt;
+	ofLogNotice(__FUNCTION__) << " " << path_Srt;
 
 	//not used yet
 	int i = 0;
@@ -492,7 +517,6 @@ void ofxSurfingTextSubtitle::startup()
 	//return;
 	doReset();
 
-
 	//TODO:
 	//crash
 	//return;
@@ -505,6 +529,8 @@ void ofxSurfingTextSubtitle::startup()
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.startup();
 #endif
+
+	bDoneStartup = true;
 }
 
 //--------------------------------------------------------------
@@ -726,13 +752,25 @@ void ofxSurfingTextSubtitle::update()
 
 	//TODO:
 	// Delayed startup to avoid crashes
-	if (ofGetFrameNum() == 0) startup();
+	if (!bDoneStartup) startup();
+	//if (ofGetFrameNum() == 0) startup();
 	//if (ofGetFrameNum() == 1) startup();
 
 	//--
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.update();
+#endif
+
+	//TODO:
+	//trick fix to example-SubtitleWhisper app
+#ifdef USE_PRESETS__SUBTITLES
+	if (presets.isChangedIndex())
+	{
+		ui->ClearLogDefaultTags();
+		ofColor c = ofColor(getColorText(), 255);
+		ui->AddLogTag(c);
+	};
 #endif
 
 	//if (!bDraw) return;
@@ -1011,7 +1049,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-		}
+}
 #endif
 	}
 }
@@ -1169,8 +1207,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 		ofRectangle bb = box.getRectangle();
 
 		//TODO:
-		// improve getting the bigger 
-		if (0) {
+		// improve getting the bigger rectangle.. 
+		if (1) {
 			float diff = boxDrawnReal.getHeight() - bb.getHeight();
 			bool b = (diff > 0);
 			if (b) {
@@ -2324,7 +2362,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
 	*/
 
-	if (ui->BeginWindow(bGui))
+	if (ui->BeginWindow(bGui))//main
 	{
 		drawImGuiWidgets();
 
@@ -2343,13 +2381,29 @@ void ofxSurfingTextSubtitle::drawImGui()
 
 	//--
 
-	if (bGui_List) {
+	if (bGui_List)
+	{
 		if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
 		else  ui->setNextWindowAfterWindowNamed(bGui);
+
+		drawImGuiList();
 	}
 
-	drawImGuiList();
+	//--
 
+	//ui->AddSpacingSeparated();
+
+#ifdef USE_PRESETS__SUBTITLES
+	if (presets.bGui)
+	{
+		if (bGui_List) ui->setNextWindowAfterWindowNamed(bGui_List);
+		else if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+		//else if (bGui) ui->setNextWindowAfterWindowNamed(bGui);
+		else ui->setNextWindowAfterWindowNamed(bGui);
+
+		presets.drawImGui(true, false, false, false);
+	}
+#endif
 	//--
 
 #ifdef USE_WIDGET__VIDEO_PLAYER	
@@ -2373,14 +2427,14 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 {
-	if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui);
+	if (bGui && bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui);
 
 	//if (ui->BeginTree("PARAGRAPH", false, false))
 	if (ui->BeginWindow(bGui_Paragraph))
@@ -2417,6 +2471,8 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 		{
 			ui->AddCombo(fAlign, names_Align);
 			ui->AddTooltip("Align");
+
+			ui->AddSpacingSeparated();
 
 			if (ui->BeginTree("EXTRA", false, false))
 			{
@@ -2635,6 +2691,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->EndBlinkText();
 			ui->AddSpacing();
 			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+			s = "Open an SRT file";
+			ui->AddTooltip(s);
 		}
 	}
 
@@ -2646,11 +2704,26 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		//----
 
+		//if (bMinimize)
+		{
+			ui->Add(bLive, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+			s = "Live Mode hides some stuff";
+			if (!bLive)
+			{
+				ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
+				s = "Edit container";
+				ui->AddTooltip(s);
+			}
+
+			ui->AddSpacingSeparated();
+		}
+
 		if (ui->BeginTree("MAIN", false, false))
 		{
 			ui->AddSpacing();
 
 			if (!bModeNoSrt)
+			{
 				if (!bMinimize) // maximized 
 				{
 					//if (!bLive) ui->AddSpacingSeparated();
@@ -2664,6 +2737,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 						//ui->AddLabel("SRT FILE");
 
 						ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+						s = "Open an SRT file";
+						ui->AddTooltip(s);
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 						ui->AddSpacingSeparated();
@@ -2674,69 +2749,72 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 					ui->AddSpacingSeparated();
 				}
+			}
 
 			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
 
+			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 #ifdef USE_PRESETS__SUBTITLES
 			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
-			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
-
-			// manual
+			// not manual
 			if (indexModes != 3)
 			{
 				ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			}
 
-			ui->AddSpacing();
-			ui->Add(bLive, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
-			s = "Live Mode hides some stuff";
-			ui->AddTooltip(s);
 			if (!bLive) {
-				ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
-				s = "Makes container draggeble";
-				ui->AddTooltip(s);
-			}
-
-			if (bModeNoSrt) {
-				ui->AddSpacing();
-				ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-			}
-
-			if (!bLive && !bMinimize)
-			{
 				ui->AddSpacingSeparated();
 				ui->AddSpacing();
+			}
 
-				ui->Indent();
+			//--
+
+			if (!bLive)
+			{
+				if (bModeNoSrt)
 				{
-					ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
-					if (ui->bExtra)
-					{
-						ui->Indent();
-						{
-							ui->AddSpacing();
-							ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-							if (bDebug) {
-								ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-								ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-								ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-
-								if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#ifdef USE_WIDGET__SUBTITLES
-								ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#endif
-							}
-						}
-						ui->Unindent();
-					}
+					//ui->AddSpacing();
+					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+					s = "Open an SRT file";
+					ui->AddTooltip(s);
 				}
-				ui->Unindent();
+
+				if (!bMinimize)
+				{
+					ui->AddSpacingSeparated();
+					ui->AddSpacing();
+
+					ui->Indent();
+					{
+						ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
+						if (ui->bExtra)
+						{
+							ui->Indent();
+							{
+								ui->AddSpacing();
+								ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+								if (bDebug) {
+									ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+									ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+									ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+
+									if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#ifdef USE_WIDGET__SUBTITLES
+									ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
+								}
+							}
+							ui->Unindent();
+						}
+					}
+					ui->Unindent();
+				}
 			}
 
 			ui->EndTree(false);
-		}
+		}//main
 
 		//--
 
@@ -2921,26 +2999,27 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			if (bMinimize)
 			{
 				ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
+				ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
 			}
 
 			ui->EndTree(false);
 		}
 
-		//--
-
-		//ui->AddSpacingSeparated();
-
-#ifdef USE_PRESETS__SUBTITLES
-		if (presets.bGui)
-		{
-			//ui->AddSpacingSeparated();
-			ImGui::Spacing();
-			ImGui::Separator();//fix
-			ImGui::Spacing();
-
-			presets.drawImGui(false, false, true, false);
-		}
-#endif
+		//		//--
+		//
+		//		//ui->AddSpacingSeparated();
+		//
+		//#ifdef USE_PRESETS__SUBTITLES
+		//		if (presets.bGui)
+		//		{
+		//			//ui->AddSpacingSeparated();
+		//			ImGui::Spacing();
+		//			ImGui::Separator();//fix
+		//			ImGui::Spacing();
+		//
+		//			presets.drawImGui(false, false, true, false);
+		//		}
+		//#endif
 	}
 }
 

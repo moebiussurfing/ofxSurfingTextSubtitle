@@ -8,19 +8,22 @@
 
 	BUG:
 
-	fix too short duation fades trouble 
+	fix too short duration fades breaks trouble
 
 	fix workflow for not srt mode!
 
 	fix progress in on pause
 
 	fix Forced mode broken ?
-		fails if external video is playing. 
+		fails if external video is playing.
 		should ignore setPos when forcing!
-	
+
 	--
 
 	TODO:
+
+	make imgui internal, not pointer referenced!
+		to help on special windows workflow
 
 	fix overlap paths for different instances
 
@@ -123,20 +126,12 @@ class ofxSurfingTextSubtitle
 	//--
 
 #ifdef USE_IM_GUI__SUBTITLES
+
 private:
 	ofxSurfingGui* ui;
 
 public:
-	void setUiPtr(ofxSurfingGui* _ui) {
-		ui = _ui;
-
-#ifdef USE_PRESETS__SUBTITLES
-		presets.setUiPtr(_ui);
-		presets.setPathGlobal("ofxSurfingTextSubtitle");
-		presets.setPath("ofxSurfingTextSubtitle");
-		presets.AddGroup(params_Preset);
-#endif
-	}
+	void setUiPtr(ofxSurfingGui* _ui);
 
 	void drawImGui();
 
@@ -144,10 +139,13 @@ private:
 	void drawImGuiWidgets();
 	void drawImGuiWindowParagraph();
 	void drawImGuiList();
+
 #ifdef USE_PRESETS__SUBTITLES
+	//ofEventListener plistener;
 private:
 	ofxSurfingPresetsLite presets;
 #endif
+
 #endif
 
 	//--
@@ -161,7 +159,7 @@ public:
 	void setup(string _pathSrt);
 	// pass the .srt file path to load
 
-	void setPosition(float position);
+	void setPosition(float position); // set prc time position for srt/film timeline!
 
 	// call only one of both update methods
 	void updatePosition(float position); // to be used by the external mode
@@ -225,6 +223,7 @@ public:
 
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return colorBgFloat.get(); };
+	ofColor getColorText() const { return colorTextFloat.get(); };
 
 	// Call before setup. Set duration in ms to be used with play external mode
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
@@ -292,7 +291,8 @@ private:
 
 	void doOpenFile();
 	void processOpenFileSelection(ofFileDialogResult openFileResult);
-
+	
+	bool bDoneStartup = false;
 	void startup();
 	void exit();
 

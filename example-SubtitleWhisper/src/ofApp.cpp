@@ -41,21 +41,37 @@ void ofApp::draw()
 	ui.Begin();
 	{
 		ImGui::SetNextWindowSize(ImVec2(200, -1), ImGuiCond_Appearing);
-		if (ui.BeginWindow("ofApp"))
+		if (ui.BeginWindow("WHISPER_ofApp"))
 		{
+			string s;
 #ifdef USE_WHISPER
-			ui.AddLabelBig("WHISPER");
-			ui.AddSpacing();
-			ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
+			ui.Add(ui.bMinimize, OFX_IM_TOGGLE_BUTTON_ROUNDED);
 			ui.Add(ui.bLog, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+			ui.AddSpacingBigSeparated();
+
+			ui.AddLabelHuge("ofxWhisper");
+			if (ui.isMaximized()) 
+			{
 			ui.AddSpacing();
-			//ui.AddLabel(whisper.getTextLast());
+				ui.Add(whisper.bTimeStamps, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				ui.Add(whisper.bSpanish, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				s = "Requires app restart!";
+				ui.AddTooltip(s);
+				ui.Add(whisper.bHighQuality, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				ui.AddTooltip(s);
+				ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				ui.AddSpacing();
+				//ui.AddLabel(whisper.getTextLast());
+			}
 #endif
 			ui.AddSpacingBigSeparated();
+
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
-			ui.AddSpacingBig();
+			ui.AddSpacingDouble();
 			ui.PushFont(OFX_IM_FONT_BIG);
-			if (ui.AddButton("Populate Text!", OFX_IM_BUTTON_BIG_XXXL_BORDER))
+			s = "Random Text!";
+			s = ofToUpper(s);
+			if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXXL_BORDER))
 			{
 				doPopulateText();
 			}
@@ -71,6 +87,33 @@ void ofApp::draw()
 	whisper.draw();
 #endif
 }
+
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key)
+{
+	if (key == OF_KEY_F8 || key == ' ') {
+		doPopulateText();
+	}
+
+	if (key == 'g') { subs.setToggleVisibleGui(); }
+	if (key == 'l') { subs.setToggleLive(); }
+	if (key == 'e') { subs.setToggleEdit(); }
+	//if (key == ' ') { subs.setTogglePlay(); }
+	//if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
+	//if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
+	//if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
+	//if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
+}
+
+#ifdef USE_WHISPER
+//--------------------------------------------------------------
+void ofApp::doUpdatedWhisper()
+{
+	string s = whisper.getTextLast();
+	ofLogNotice() << "doUpdatedWhisper(): " << s;
+	doPopulateText(s);
+}
+#endif
 
 //--------------------------------------------------------------
 void ofApp::doPopulateText(string s)
@@ -103,37 +146,18 @@ void ofApp::doPopulateText(string s)
 			s = "How are you tonight? Bye bye people";
 			ilast = 4;
 		}
+
+		//workaround fix
+		s = " " + s;
 	}
+
+	//TODO:
+	//trick
+	ui.ClearLogDefaultTags();
+	ofColor c = ofColor(subs.getColorText(), 255);
+	ui.AddLogTag(c);
 
 	ofLogNotice() << s;
 	subs.doSetTextSlide(s);
 	ui.AddToLog(s);
 }
-
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key)
-{
-	if (key == OF_KEY_F8 || key == ' ') {
-		doPopulateText();
-	}
-
-	if (key == 'g') { subs.setToggleVisibleGui(); }
-	if (key == 'l') { subs.setToggleLive(); }
-	if (key == 'e') { subs.setToggleEdit(); }
-	//if (key == ' ') { subs.setTogglePlay(); }
-	//if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
-	//if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
-	//if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
-	//if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
-}
-
-#ifdef USE_WHISPER
-//--------------------------------------------------------------
-void ofApp::doUpdatedWhisper()
-{
-	string s = whisper.getTextLast();
-	ofLogNotice() << "doUpdatedWhisper(): " << s;
-	subs.doSetTextSlide(s);
-	ui.AddToLog(s);
-}
-#endif
