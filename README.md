@@ -23,18 +23,19 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 
 ## SCREENSHOTS
 
-### Example-Subtitle / ofxGui 
+#### Example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
 
-### Example-Subtitle2 / ImGui (Optional) 
+#### Example-Subtitle2 / ImGui (Optional) 
 ![Screenshot](example-Subtitle2/Capture.PNG)
 
-### Example-Subtitle3 / ofxGui (Video Player) 
+#### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
-### example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED]  
+#### Example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED]  
 ![Screenshot](example-SubtitleWhisper/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald)  
+
 ![VIDEO](https://youtu.be/G8iH-0UakN4)
 
 ## USAGE
@@ -66,22 +67,25 @@ void ofApp::draw() {
 - [ofxFontStash](https://github.com/armadillu/ofxFontStash)
 - [ofxSurfingBox](https://github.com/moebiussurfing/ofxSurfingBox)
 - [ofxSurfingHelpers](https://github.com/moebiussurfing/ofxSurfingHelpers)
-- ofxGui / oF core
+- **ofxGui** / oF core
 
 ### OPTIONAL
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
+- [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (for example)
 
 ### TODO
-- List and load render fonts files on runtime.
+- List and load different render fonts files on runtime.
 
 ## TESTED SYSTEM
 * **Windows 10** / **VS 2017** / **OF ~0.11**
 
 ## THANKS
-* SRT parser: file `srtparser.h` taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
+* SRT parser: file `srtparser.h`  
+taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
 Thanks `@Jonathhhan`.  
-Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
-* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using ofxGui as GUI. (Can be removed when using ofxSurfingImGui.)
+Originally by  
+https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
+* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
 * [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald])(https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp)  
 
 ## LICENSE
