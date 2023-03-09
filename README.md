@@ -19,8 +19,7 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 	
 ## SCREENCAST VIDEO
 
-[![](https://markdown-videos.deta.dev/youtube/kcObeooL3Pc)](https://youtu.be/kcObeooL3Pc)
-<!-- [![](https://img.youtube.com/vi/kcObeooL3Pc/maxresdefault.jpg)](https://www.youtube.com/watch?v=kcObeooL3Pc) -->
+[VIDEO](https://youtu.be/kcObeooL3Pc)
 
 ## SCREENSHOTS
 
@@ -32,6 +31,12 @@ Ready to use customizable `.SRT` text subtitle player for `openFrameworks`.
 
 ### Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
+
+### [ADVANCED] example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) 
+![Screenshot](example-SubtitleWhisper/Capture.PNG)  
+Requires [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald])(https://github.com/roymacdonald)  
+Usees this [FORK](https://github.com/moebiussurfing/ofxWhisper)  
+![VIDEO](https://youtu.be/G8iH-0UakN4)
 
 ## USAGE
 
@@ -68,11 +73,7 @@ void ofApp::draw() {
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### TODO
-<<<<<<< HEAD
-- Load render fonts on runtime.
-=======
-- Load render fonts files on runtime.
->>>>>>> develop
+- List and load render fonts files on runtime.
 
 ## TESTED SYSTEM
 * **Windows 10** / **VS 2017** / **OF ~0.11**
@@ -82,6 +83,7 @@ void ofApp::draw() {
 Thanks `@Jonathhhan`.  
 Originally by https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using ofxGui as GUI. (Can be removed when using ofxSurfingImGui.)
+* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald])(https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp)  
 
 ## LICENSE
 **MIT License**
