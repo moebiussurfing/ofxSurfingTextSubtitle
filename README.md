@@ -4,17 +4,17 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 
 ## FEATURES
 
+- Full `.SRT` file browser for exploring the dialogs.
 - Fast `FontStash` render.
 - Custom `Paragraph Styles`.
 - Scalable and draggable `container`.
 - `Persistent` settings.
-- Full `srt` file browser for exploring the dialogs.
-- Animated `Fade In/Out` for transparency.
-- Transport `Player` with 4 Modes: 
-	- STANDALONE: Dialogs following the original `srt` times and durations.
-	- FORCED: Customizable dialogs duration. Ignoring `srt` times.
-	- EXTERNAL: Time is controlled by a video player or linked to an external control.  
-	- MANUAL: To work without loadgin any SRT file. Just pass the text slides manually.
+- Animated `Fade In/Out` for the transparency.
+- `Transport Player` with 4 Modes: 
+	- **STANDALONE**: Dialogs following the original `SRT` times and durations.
+	- **FORCED**: Customizable dialogs duration. Ignoring `SRT` times.
+	- **EXTERNAL**: Time is controlled by a video player or linked to one external control.  
+	- **MANUAL**: To work without loading any `SRT` file. Just pass the text slides manually.
 - `Presets` Engine for styles (Optional). 
 	
 ## SCREENCAST VIDEO
@@ -32,7 +32,7 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 #### - Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
-#### - Example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED / WIP]  
+#### - Example-SubtitleWhisper / Whisper + ImGui (real-time audio to text) [ ADVANCED / WIP ]  
 ![Screenshot](example-SubtitleWhisper/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald).  
 
@@ -44,6 +44,7 @@ Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhispe
 #### ofApp.h
 ```.cpp
 #include "ofxSurfingTextSubtitle.h"
+
 // Remember to comment to use ofxGui only and to disable ImGui!
 // #define USE_IM_GUI__SUBTITLES
 
@@ -75,17 +76,15 @@ void ofApp::draw() {
 - [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (Only for the example)
 
 ### TODO
-- [**BUG**] Fix some words remove when building paragraph.
+- [ **BUG** ] Fix some words remove when building the paragraph.
 - List and load different render fonts files on runtime.  
 - macOS testing.
 
 ## TESTED SYSTEM
-* **Windows 10** / **VS 2017** / **OF ~0.11**
+* **Windows 10** / **VS 2022** / **OF ~0.11**
 
 ## THANKS
-* SRT parser: file `srtparser.h`.  
-Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks `@Jonathhhan`.  
-Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
+* SRT parser: file `srtparser.h`. Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks `@Jonathhhan`. Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
 * [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp).  
 
