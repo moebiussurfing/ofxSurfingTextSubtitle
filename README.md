@@ -21,7 +21,8 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 
 [VIDEO](https://youtu.be/kcObeooL3Pc)
 
-## EXAMPLES / SCREENSHOTS
+<details>
+  <summary>EXAMPLES / SCREENSHOTS</summary>
 
 #### - Example-Subtitle / ofxGui 
 ![Screenshot](example-Subtitle/Capture.PNG)
@@ -38,6 +39,7 @@ Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhispe
 
 [VIDEO](https://youtu.be/G8iH-0UakN4)
 
+</details>
 
 ## USAGE
 
