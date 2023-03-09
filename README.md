@@ -36,7 +36,7 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 ![Screenshot](example-SubtitleWhisper/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald).  
 
-![VIDEO](https://youtu.be/G8iH-0UakN4)
+[VIDEO](https://youtu.be/G8iH-0UakN4)
 
 
 ## USAGE
@@ -84,11 +84,9 @@ void ofApp::draw() {
 
 ## THANKS
 * SRT parser: file `srtparser.h`.  
-Taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
-Thanks `@Jonathhhan`.  
+Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks `@Jonathhhan`.  
 Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
-* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`.  
-Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
+* [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
 * [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp).  
 
 ## LICENSE
