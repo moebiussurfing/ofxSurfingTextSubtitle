@@ -52,6 +52,12 @@ void ofApp::draw()
 #ifdef USE_WHISPER
 			ui.Add(ui.bMinimize, OFX_IM_TOGGLE_BUTTON_ROUNDED);
 			ui.Add(ui.bLog, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+			if (ui.bLog || whisper.bDebug) {
+				ui.AddSpacing();
+				if (ui.Add(whisper.vClear, OFX_IM_BUTTON)) {
+					ui.ClearLog();
+				};
+			}
 			ui.AddSpacingBigSeparated();
 
 			ui.AddLabelHuge("ofxWhisper");
@@ -64,23 +70,24 @@ void ofApp::draw()
 				ui.AddSpacing();
 				ui.Add(whisper.bTimeStamps, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 				ui.Add(whisper.bSpanish, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-				s = "Requires app restart!";
+				s = "Uses another model\n";
+				s += "Requires app restart!";
 				ui.AddTooltip(s);
 				ui.Add(whisper.bHighQuality, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+				s = "Uses a bigger model\n";
+				s += "Requires app restart!";
 				ui.AddTooltip(s);
 				ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 				if (whisper.bDebug) {
 				}
-				ui.AddSpacing();
-				if (ui.Add(whisper.vClear, OFX_IM_BUTTON)) {
-					ui.ClearLog();
-				};
 				ui.AddSpacing();
 				//ui.AddLabel(whisper.getTextLast());
 			}
 #endif
 			ui.AddSpacingBigSeparated();
 
+			ui.AddLabelHuge("ofxSurfing\nTextSubtitle");
+			ui.AddSpacing();
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
 			ui.AddSpacingDouble();
 			ui.PushFont(OFX_IM_FONT_BIG);
@@ -122,33 +129,9 @@ void ofApp::doPopulateText(string s)
 	// auto generate a random text
 	if (s == "")
 	{
-		static int ilast = -1;
-		float r = ofRandom(1.f);
-		if (r < 0.25f && ilast != 0) {
-			s = "Hello people, how are you today?";
-			if (ofRandom(1) < 0.5) s += " And current frame is " + ofToString(ofGetFrameNum());
-			ilast = 0;
-		}
-		else if (r < 0.5f && ilast != 1) {
-			s = "Hello dude. Ready to wake up?";
-			ilast = 1;
-		}
-		else if (r < 0.75f && ilast != 2) {
-			s = "I go sleep now. Ready to wake up!";
-			if (ofRandom(1) < 0.5) s += " Time is " + ofToString(ofGetTimestampString());
-			ilast = 2;
-		}
-		else if (ilast != 3) {
-			s = "Hey, hello! Im ready to go out";
-			if (ofRandom(1) < 0.5) s += " Current time is " + ofToString(ofGetTimestampString());
-			ilast = 3;
-		}
-		else {
-			s = "How are you tonight? Bye bye people";
-			ilast = 4;
-		}
+		s = ofxSurfingHelpers::getTextRandom();
 
-		//workaround fix
+		//workaround log fix
 		s = " " + s;
 	}
 
@@ -167,12 +150,8 @@ void ofApp::doPopulateText(string s)
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	//if (key == 'f') { ofSetFullscreen(true); }
-	//if (key == 'f') { ofSetFullscreen(true); }
-
 	if (key == 'g') { bGui = !bGui; }
-
-	if (key == OF_KEY_F8 || key == ' ') { doPopulateText(); }
+	if (key == ' ') { doPopulateText(); }
 
 	//if (key == 'g') { subs.setToggleVisibleGui(); }
 	if (key == 'l') { subs.setToggleLive(); }

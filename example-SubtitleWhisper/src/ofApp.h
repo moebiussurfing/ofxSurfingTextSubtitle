@@ -5,6 +5,7 @@
 
 #include "ofxSurfingTextSubtitle.h"
 #include "ofxSurfingImGui.h"
+#include "surfingSceneTesters.h"
 
 #define USE_WHISPER
 #ifdef USE_WHISPER

@@ -4,8 +4,11 @@
 
 	BUG:
 
-	fix broken lines / words... 
+	1. fix broken lines / words... 
 		could be related to pre draw rectangles?
+
+	fix fades styling. 
+	ui looks not perfect..
 
 	fix too short duration fades breaks trouble
 
@@ -395,10 +398,10 @@ private:
 
 	ofParameter<bool> bFine{ "Fine", false };
 
-	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
+	vector<string> names_Align{ "LEFT", "RIGHT", "CENTER" };
 
+	ofParameter<int> indexModes; // 0, 1, 2, 3
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
-	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
 
 	ofParameterGroup params_External{ "MODE EXTERNAL" };
@@ -481,6 +484,10 @@ public:
 	void pause();
 
 	void doSetTextSlide(string s);
+
+private:
+
+	string lastTextSlideRaw = "";
 
 	//--
 

@@ -264,7 +264,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset", false);
 
-	bCenteredV.set("Centered", true);
+	bCenteredV.set("y Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
 
 	//bMinimize.set("Minimize", false);
@@ -416,6 +416,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Preset.setName("Subtitler");
 	params_Preset.add(params_Style);
 	params_Preset.add(params_Fade);
+	params_Preset.add(bTheme);//extra
+
+	//--
 
 	// App Settings / session
 	params_AppSettings.setName("AppSettings");
@@ -2469,8 +2472,8 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			if (bResponsive)
 			{
 				ui->Add(resizeResponsive, OFX_IM_HSLIDER_SMALL);
-				s = "Rescale";
-				ui->AddTooltip(s);
+				//s = "Rescale";
+				ui->AddTooltip(resizeResponsive);
 			}
 			if (bCenteredV || bResponsive) ui->Add(amountLinesTarget, OFX_IM_STEPPER);
 
@@ -2573,6 +2576,9 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 					//static bool bDebug3 = false;
 					ui->AddToggle("Debug Advanced", bDebug2, OFX_IM_TOGGLE_ROUNDED_MINI);
+					s = "Show internal vars from \nresponsive formatting engine.";
+					ui->AddTooltip(s);
+					ui->AddSpacing();
 					ui->AddSpacing();
 
 					if (bDebug2)
@@ -2586,13 +2592,13 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 						float hb = box.getHeight();
 						s = "H Box: " + ofToString(hb);
 						ui->AddLabel(s);
-						s = "Lines: " + ofToString(amountLinesTarget);
+						s = "Expected Lines: " + ofToString(amountLinesTarget);
 						ui->AddLabel(s);
 						s = "Drawn: " + ofToString(amountLinesDrawn);
 						ui->AddLabel(s);
 						s = "Diff: " + ofToString(diff);
 						ui->AddLabel(s);
-						s = "Engine: " + sEngine;
+						s = "Used Engine: " + sEngine;
 						ui->AddLabel(s);
 
 						ui->Unindent();
@@ -2673,7 +2679,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-			}
+	}
 
 	//----
 
@@ -2765,11 +2771,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 						ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 						ui->EndTree(false);
-				}
+					}
 
 					ui->AddSpacingSeparated();
+				}
 			}
-		}
 
 			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
@@ -2825,13 +2831,13 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 									ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
 								}
-						}
+							}
 							ui->Unindent();
+						}
 					}
-				}
 					ui->Unindent();
+				}
 			}
-	}
 
 			ui->EndTree(false);
 		}//main
@@ -2985,7 +2991,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			if (!bMinimize)
 			{
-				ui->Add(bCapitalize, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui->Add(bCapitalize, OFX_IM_TOGGLE);
 				ui->AddSpacing();
 
 				if (ui->BeginTree("COLORS", false, false))
@@ -3000,23 +3006,19 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					}
 					ui->PopWidth();
 
-					//ui->Add(fName);
-					//ui->AddSpacing();
-
 					ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
-					//ui->Add(colorTextFloat, OFX_IM_COLOR);
-
-					//ui->AddToggle("Bg", bShowBg, OFX_IM_TOGGLE_ROUNDED_MINI);
-					////if (bShowBg) ui->Add(colorBgFloat, OFX_IM_COLOR_NO_ALPHA);
-					//if (bShowBg) ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
-
 					ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
+
+					if (ui->AddButton("Swap")) {
+						ofFloatColor c = colorTextFloat;
+						colorTextFloat = colorBgFloat;
+						colorBgFloat = c;
+					}
 
 					ui->EndTree(false);
 				}
 			}
-
-			if (bMinimize)
+			else
 			{
 				ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
 				ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
@@ -3575,12 +3577,17 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == bCapitalize.getName())
 	{
-		if (!bLoaded) return;
-
-		if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
-		else textCurrent = sub[currentDialog.get()]->getDialogue();
-
-		buildSubsData();
+		if (bLoaded || (!bModeNoSrt && indexModes != 3))//not manual mode
+		{
+			if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
+			else textCurrent = sub[currentDialog.get()]->getDialogue();
+			buildSubsData();
+		}
+		else if (bModeNoSrt && indexModes == 3)//manual mode
+		{
+			if (bCapitalize) textCurrent = ofToUpper(lastTextSlideRaw);
+			else textCurrent = lastTextSlideRaw;
+		}
 	}
 
 	else if (name == fSizePrc.getName())
@@ -3790,6 +3797,8 @@ void ofxSurfingTextSubtitle::pause() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
 	bool b = indexModes == 3 && bPlayManual;
+
+	lastTextSlideRaw = s;//store raw to allow hot upper/lower capitalize
 
 	// workflow
 	// A.force mode
