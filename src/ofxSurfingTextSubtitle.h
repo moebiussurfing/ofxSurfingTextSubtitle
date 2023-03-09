@@ -1,9 +1,5 @@
 #pragma once
 
-// srtparser.h
-// taken from https://github.com/Jonathhhan/ofEmscriptenExamples
-// thanks @Jonathhhan!
-
 /*
 
 	BUG:
@@ -86,6 +82,11 @@
 
 #include "ofMain.h"
 
+// CREDITS:
+// srtparser.h
+// taken from https://github.com/Jonathhhan/ofEmscriptenExamples
+// thanks @Jonathhhan!
+
 #ifdef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingImGui.h"
 #ifdef USE_PRESETS__SUBTITLES
@@ -144,7 +145,6 @@ private:
 	void drawImGuiList();
 
 #ifdef USE_PRESETS__SUBTITLES
-	//ofEventListener plistener;
 private:
 	ofxSurfingPresetsLite presets;
 #endif
@@ -398,9 +398,9 @@ private:
 	vector<string> names_Align{ "LEFT","RIGHT","CENTER" };
 
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
-
 	ofParameter<int> indexModes;
 	ofParameter<string> indexModes_Name;
+
 	ofParameterGroup params_External{ "MODE EXTERNAL" };
 	ofParameterGroup params_Standalone{ "MODE STANDALONE" };
 	ofParameterGroup params_Forced{ "MODE FORCED" };
@@ -495,13 +495,3 @@ private:
 	// Extra debug info
 	bool bDebug2 = false;
 };
-
-/*
-//TODO: add tweakeable speed
-const int SPEED_SCALE = 5;
-float speed = ofMap(speedPlayForce, -1, 1, 0.25f, (float)SPEED_SCALE);
-uint64_t t = ofGetElapsedTimeMillis() * speed - tPlay;
-s += timecode.timecodeForMillis(t);
-//s += ofToString(t / 1000);
-s += "\n";
-*/
