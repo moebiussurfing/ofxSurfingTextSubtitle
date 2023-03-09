@@ -32,11 +32,12 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 #### - Example-Subtitle3 / ofxGui (Video Player) 
 ![Screenshot](example-Subtitle3/Capture.PNG)
 
-#### - Example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED]  
+#### - Example-SubtitleWhisper / Whisper / ImGui (real-time audio to text) [ADVANCED / WIP]  
 ![Screenshot](example-SubtitleWhisper/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald).  
 
 ![VIDEO](https://youtu.be/G8iH-0UakN4)
+
 
 ## USAGE
 
@@ -74,7 +75,7 @@ void ofApp::draw() {
 - [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (Only for the example)
 
 ### TODO
-- [BUG] Fix some words remove when building paragraph.
+- [**BUG**] Fix some words remove when building paragraph.
 - List and load different render fonts files on runtime.  
 - macOS testing.
 
@@ -85,11 +86,10 @@ void ofApp::draw() {
 * SRT parser: file `srtparser.h`.  
 Taken from https://github.com/Jonathhhan/ofEmscriptenExamples.  
 Thanks `@Jonathhhan`.  
-Originally by:  
-https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
+Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`.  
 Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
-* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald])(https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp)  
+* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp)  
 
 ## LICENSE
 **MIT License**
