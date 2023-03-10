@@ -4,10 +4,12 @@
 
 	BUG:
 
-	1. fix broken lines / words... 
+	1. fix broken lines / words...
 		could be related to pre draw rectangles?
 
-	fix fades styling. 
+	add container center to preset settings ?
+
+	fix fades styling.
 	ui looks not perfect..
 
 	fix too short duration fades breaks trouble
@@ -106,6 +108,7 @@
 #include "ofxGui.h"
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxSurfing_ofxGui.h"
+#include "ofxAutosaveGroupTimer.h"
 
 // easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
@@ -297,12 +300,12 @@ private:
 
 	void doOpenFile();
 	void processOpenFileSelection(ofFileDialogResult openFileResult);
-	
+
 	bool bDoneStartup = false;
 	void startup();
 	void exit();
 
-	string path_SubtitlerSettings = "ofxSurfingTextSubtitle.json";
+	string path_SubtitlerSettings = "ofxSurfingTextSubtitle_Settings.json";
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
@@ -330,6 +333,7 @@ public:
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 	ofParameterGroup params_AppSettings;
+	ofxAutosaveGroupTimer gt;
 
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
@@ -379,8 +383,9 @@ private:
 	ofParameter<bool> bCenteredV; // move up block to center not depending of amount of lines.
 	ofParameter<int> amountLinesTarget;
 
-	ofParameter<std::string> fName; // name to display only
-	ofParameter<std::string> fPath; // hardcoded file fonts paths
+	ofParameter<std::string> fName{ "font_name", "" }; // name to display only
+	ofParameter<std::string> fPath{ "font_path", "" }; // hardcoded file fonts paths
+
 	ofParameter<float> fSizePrc; // relative to column width font size
 	ofParameter<float> fSize; // real font raw size in px
 	ofParameter<float> fSpacing;

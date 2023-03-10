@@ -16,11 +16,13 @@ public:
 		whisper.bTimeStamps.makeReferenceTo(bTimeStamps);
 
 		params_surfingWhisper.add(bEnable);
-		params_surfingWhisper.add(bDebug);
 		params_surfingWhisper.add(bTimeStamps);
 		params_surfingWhisper.add(bSpanish);
 		params_surfingWhisper.add(bHighQuality);
+		params_surfingWhisper.add(bDebug);
 		params_surfingWhisper.add(vClear);
+		params_surfingWhisper.add(step_ms);
+		params_surfingWhisper.add(length_ms);
 
 		gt.addGroup(params_surfingWhisper);
 		//ofxSurfingHelpers::loadGroup(params_surfingWhisper);
@@ -30,16 +32,23 @@ public:
 		//ofxSurfingHelpers::saveGroup(params_surfingWhisper);
 	};
 
+	// to notify parent that a new text income!
 	ofParameter<void> vCallback{ "vCallback" };
+
+	// to clear the log!
 	ofParameter<void> vClear{ "Clear" };
+	ofEventListener e;
+
 	ofParameter<bool> bEnable{ "ENABLE", true };
 	ofParameter<bool> bDebug{ "Debug", false };
 	ofParameter<bool> bTimeStamps{ "TimeStamps", true };
 	ofParameter<bool> bSpanish{ "Spanish", true };
 	ofParameter<bool> bHighQuality{ "HighQuality", false };
+	ofParameter<int> step_ms{ "Step", 500, 100, 3000 };
+	ofParameter<int> length_ms{ "Length", 5000, 1000, 10000 };
+	
 	ofParameterGroup params_surfingWhisper{ "surfingWhisper" };
 	ofxAutosaveGroupTimer gt;
-	ofEventListener e;
 
 	//--
 
@@ -56,6 +65,7 @@ public:
 	{
 		gt.startup();//force
 
+		// clear the log
 		e = vClear.newListener([this]() {
 			{
 				textQueue.clear();
@@ -93,9 +103,14 @@ public:
 		// customize
 		if (1)
 		{
-			//https://github.com/ggerganov/whisper.cpp/tree/master/examples/stream
-			whisperSettings.step_ms = 500; //step_ms "audio step size in milliseconds\n",             ;
-			whisperSettings.length_ms = 5000; //length_ms "audio length in milliseconds\n",                ;
+			////https://github.com/ggerganov/whisper.cpp/tree/master/examples/stream
+			//whisperSettings.step_ms = 500; //step_ms "audio step size in milliseconds\n",             ;
+			//whisperSettings.length_ms = 5000; //length_ms "audio length in milliseconds\n",                ;
+
+			//step_ms "audio step size in milliseconds\n",             ;
+			whisperSettings.step_ms = step_ms.get();
+			//length_ms "audio length in milliseconds\n",                ;
+			whisperSettings.length_ms = length_ms.get();
 
 			//whisperSettings.no_timestamps = true; //TODO: why is ignored?
 
@@ -150,7 +165,10 @@ public:
 		settings.numOutputChannels = 0;
 		//settings.numInputChannels = 2;
 		settings.numInputChannels = 1;
-		settings.bufferSize = 1024;
+
+		settings.bufferSize = 512;
+		//settings.bufferSize = 1024;
+		
 		soundStream.setup(settings);
 	};
 

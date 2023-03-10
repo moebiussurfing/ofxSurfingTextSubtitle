@@ -60,15 +60,15 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 			//gui.minimize();
 		gui.getGroup(params_Control.getName()).minimize();
-		auto& gt = gui.getGroup(params_Transport.getName());
-		gt.minimize();
-		gt.getGroup(params_External.getName()).minimize();
-		gt.getGroup(params_Forced.getName()).minimize();
-		gt.getGroup(params_Standalone.getName()).minimize();
-		auto& gf = gui.getGroup(params_Fade.getName());
-		gf.minimize();
-		gf.getGroup(params_FadeIn.getName()).minimize();
-		gf.getGroup(params_FadeOut.getName()).minimize();
+		auto& guit = gui.getGroup(params_Transport.getName());
+		guit.minimize();
+		guit.getGroup(params_External.getName()).minimize();
+		guit.getGroup(params_Forced.getName()).minimize();
+		guit.getGroup(params_Standalone.getName()).minimize();
+		auto& guif = gui.getGroup(params_Fade.getName());
+		guif.minimize();
+		guif.getGroup(params_FadeIn.getName()).minimize();
+		guif.getGroup(params_FadeOut.getName()).minimize();
 		gui.getGroup(params_Style.getName()).minimize();
 	}
 
@@ -424,6 +424,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_AppSettings.setName("AppSettings");
 	params_AppSettings.add(params_Control);
 	params_AppSettings.add(params_Transport);
+	gt.addGroup(params_AppSettings, path_SubtitlerSettings);
 }
 
 //--------------------------------------------------------------
@@ -524,7 +525,7 @@ void ofxSurfingTextSubtitle::startup()
 	//crash
 	//return;
 #ifdef USE_PRESETS__SUBTITLES
-	ofxSurfingHelpers::loadGroup(params_AppSettings, path_SubtitlerSettings);
+	//ofxSurfingHelpers::loadGroup(params_AppSettings, path_SubtitlerSettings);
 #else
 	ofxSurfingHelpers::loadGroup(params, path_SubtitlerSettings);
 #endif
@@ -542,7 +543,7 @@ void ofxSurfingTextSubtitle::exit() {
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
 #ifdef USE_PRESETS__SUBTITLES
-	ofxSurfingHelpers::saveGroup(params_AppSettings, path_SubtitlerSettings);
+	//ofxSurfingHelpers::saveGroup(params_AppSettings, path_SubtitlerSettings);
 #else
 	ofxSurfingHelpers::saveGroup(params, path_SubtitlerSettings);
 #endif
@@ -612,7 +613,8 @@ void ofxSurfingTextSubtitle::updateFades()
 {
 	//TODO:
 	// Fades are disabled
-	if (!bAnimatedIn && !bAnimatedOut) {
+	if (!bAnimatedIn && !bAnimatedOut) 
+	{
 		alpha = 1.f;
 		progressIn = 1;
 		progressOut = 1;
@@ -1052,7 +1054,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-		}
+}
 #endif
 	}
 }
@@ -1180,6 +1182,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawDebug()
 {
+	if (!bGui) return;//workflow
 	if (bLive) return;
 	if (!bDebug) return;
 	if (isPrecoutingStart) return;
@@ -2430,7 +2433,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif	
 }
 
@@ -2462,7 +2465,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			ui->AddSpacingSeparated();
 
 			ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
-			s = "y center on container.";
+			s = "Y center on container.";
 			ui->AddTooltip(s);
 			ui->AddSpacingSeparated();
 			ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -2492,7 +2495,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			{
 				ui->AddSpacing();
 				ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
-				s = "y center on container.";
+				s = "Y center on container.";
 				ui->AddTooltip(s);
 				ui->AddSpacingSeparated();
 				ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -3254,17 +3257,17 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bGui_Internal && bGui_InternalAllowed)
 		{
-			auto& gt = gui.getGroup(params_Transport.getName());
-			gt.getGroup(params_External.getName()).minimize();
-			gt.getGroup(params_Forced.getName()).minimize();
-			gt.getGroup(params_Standalone.getName()).minimize();
+			auto& guit = gui.getGroup(params_Transport.getName());
+			guit.getGroup(params_External.getName()).minimize();
+			guit.getGroup(params_Forced.getName()).minimize();
+			guit.getGroup(params_Standalone.getName()).minimize();
 
 			//workflow
 			switch (indexModes)
 			{
-			case 0: gt.getGroup(params_External.getName()).maximize(); break;
-			case 1: gt.getGroup(params_Standalone.getName()).maximize(); break;
-			case 2: gt.getGroup(params_Forced.getName()).maximize(); break;
+			case 0: guit.getGroup(params_External.getName()).maximize(); break;
+			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
+			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 			}
 		}
 

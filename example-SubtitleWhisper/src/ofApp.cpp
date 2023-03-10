@@ -45,7 +45,7 @@ void ofApp::draw()
 
 	ui.Begin();
 	{
-		ImGui::SetNextWindowSize(ImVec2(220, -1), ImGuiCond_Appearing);
+		ImGui::SetNextWindowSize(ImVec2(230, 0), ImGuiCond_Appearing);
 		if (ui.BeginWindow(bGui))
 		{
 			string s;
@@ -77,6 +77,15 @@ void ofApp::draw()
 				s = "Uses a bigger model\n";
 				s += "Requires app restart!";
 				ui.AddTooltip(s);
+				ui.Add(whisper.step_ms);
+				s = "Default is 500ms\n";
+				s += "Requires app restart!";
+				ui.AddTooltip(s);
+				ui.Add(whisper.length_ms);
+				s = "Default is 5000ms\n";
+				s += "Requires app restart!";
+				ui.AddTooltip(s);
+				ui.AddSpacing();
 				ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 				if (whisper.bDebug) {
 				}
@@ -107,7 +116,7 @@ void ofApp::draw()
 
 #ifdef USE_WHISPER
 	ofPushMatrix();
-	ofTranslate(-16, ofGetHeight() * 0.7);
+	ofTranslate(-15, ofGetHeight() * 0.7);
 	whisper.draw();
 	ofPopMatrix();
 #endif
