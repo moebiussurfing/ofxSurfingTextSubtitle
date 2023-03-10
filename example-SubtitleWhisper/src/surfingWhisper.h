@@ -11,8 +11,8 @@
 class surfingWhisper {
 
 public:
-	surfingWhisper() {
-
+	surfingWhisper() 
+	{
 		whisper.bTimeStamps.makeReferenceTo(bTimeStamps);
 
 		params_surfingWhisper.add(bEnable);
@@ -28,7 +28,8 @@ public:
 		//ofxSurfingHelpers::loadGroup(params_surfingWhisper);
 	};
 
-	~surfingWhisper() {
+	~surfingWhisper()
+	{
 		//ofxSurfingHelpers::saveGroup(params_surfingWhisper);
 	};
 
