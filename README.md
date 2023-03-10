@@ -6,20 +6,20 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 
 - Full `.SRT` file browser for exploring the dialogs.
 - Fast `FontStash` render.
-- Custom `Paragraph Styles`.
+- Custom `paragraph styles`.
 - Scalable and draggable `rectangle container`.
 - All `settings are persistent`.
-- Animated `Fade In/Out` for the transparency.
-- `Transport Player` with four modes: 
-	- **STANDALONE**:  
+- Animated `fade In/Out` for the transparency.
+- `Transport time player` with four modes: 
+	- **STANDALONE**  
 	  - Dialogs following the original `SRT` times and durations.
-	- **FORCED**: 
+	- **FORCED** 
 	  - Customizable dialogs duration. Ignoring `SRT` times.
-	- **EXTERNAL**: 
+	- **EXTERNAL** 
 	  - Time is controlled by a video player or linked to one external control.  
-	- **MANUAL**: 
+	- **MANUAL** 
 	  - To work without loading any `SRT` file. Just pass the text slides manually.
-- `Presets Engine` for styles. 
+- `Presets Engine` for all the settings. 
 	
 ## SCREENCAST VIDEO
 
