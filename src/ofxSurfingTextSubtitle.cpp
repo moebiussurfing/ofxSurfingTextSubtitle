@@ -927,7 +927,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 
 	if (sub.size() == 0)
 	{
-		ofLogVerbose("ofxSurfingTextSubtitle") << "SUB object empty!";
+		//ofLogVerbose("ofxSurfingTextSubtitle") << "SUB object empty!";
 		progressPlayFilm = 0;
 	}
 	else
