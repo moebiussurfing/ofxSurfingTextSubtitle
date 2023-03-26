@@ -19,7 +19,10 @@ void ofApp::setInputGPT(string s)
 //--------------------------------------------------------------
 void ofApp::setup()
 {
+	//ofxSurfingHelpers::SurfSetMyMonitor(0);
+
 	params.add(keyAPI);
+	params.add(subs.bGui);
 
 	subs.setUiPtr(&ui);
 	subs.setup(); // Startup with no subs mode
@@ -34,12 +37,63 @@ void ofApp::setup()
 	//ui.ClearLogDefaultTags();
 	//ui.AddLogTag(ofColor::white);
 
+	//--
+
 	editorInput.setup("Input");
-	//editorInput.loadText(ofToDataPath("text1.txt", true));
+	editorInput.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+	editorInput.addKeyword("\"user\":");
+	editorInput.addKeyword("\"assistant\":");
+
+	//--
 
 	editorReply.setup("Response");
+	editorReply.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+
+	//--
 
 	startup();
+}
+
+//--------------------------------------------------------------
+void ofApp::setupGPT()
+{
+	if (keyAPI.get() == "")
+	{
+		ui.AddToLog("No settled API key to run Setup GPT", OF_LOG_ERROR);
+		return;
+	}
+
+	{
+		ui.AddToLog("Setup GPT");
+
+		chatGPT.setup(keyAPI.get());
+
+		ofSetLogLevel(OF_LOG_VERBOSE);
+		ui.setLogLevel(OF_LOG_VERBOSE);
+
+		ui.AddToLog("GPT Model list");
+		for (auto model : chatGPT.getModelList()) {
+			ui.AddToLog(model);
+		}
+	}
+
+	if (0)
+	{
+		string userMessage = "Hello, are you ChatGPT?";
+		ui.AddToLog("User: " + userMessage);
+		string assistantMessage = chatGPT.chatWithHistory(userMessage);
+		ui.AddToLog("GPT: " + assistantMessage);
+
+		userMessage = "Can you answer anything?";
+		ui.AddToLog("User: " + userMessage);
+		assistantMessage = chatGPT.chatWithHistory(userMessage);
+		ui.AddToLog("GPT: " + assistantMessage);
+
+		userMessage = "That's amazing, I can answer anything too. can i ask you a question?";
+		ui.AddToLog("User: " + userMessage);
+		assistantMessage = chatGPT.chatWithHistory(userMessage);
+		ui.AddToLog("GPT: " + assistantMessage);
+	}
 }
 
 //--------------------------------------------------------------
@@ -50,7 +104,6 @@ void ofApp::startup()
 	setupGPT();
 
 	//ui.ClearLogDefaultTags();
-
 }
 
 //--------------------------------------------------------------
@@ -135,11 +188,12 @@ void ofApp::draw()
 		{
 			string s;
 
-			ui.AddLabelHuge("example-SubtitleChatGPT");
+			ui.AddLabelHuge("example-SubtitleChatGPT", false, true);
 
 			ui.AddMinimizerToggle();
 			ui.AddLogToggle();
-			ui.AddSpacingSeparated();
+
+			ui.AddSpacingBigSeparated();
 
 			//--
 
@@ -156,7 +210,7 @@ void ofApp::draw()
 				editorReply.setText(textLastResponse);
 			}
 
-			ui.AddSpacingSeparated();
+			ui.AddSpacingBigSeparated();
 
 			//--
 
@@ -186,9 +240,7 @@ void ofApp::draw()
 		//--
 
 		// Editor Input
-		ui.PushFont(OFX_IM_FONT_BIG);
 		editorInput.draw();
-		ui.PopFont();
 
 		//--
 
@@ -212,13 +264,12 @@ void ofApp::draw()
 		if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
 		{
 			ui.AddLabelBig(textLastResponse);
+
 			ui.EndWindow();
 		}
 
 		// Editor Input
-		ui.PushFont(OFX_IM_FONT_BIG);
 		editorReply.draw();
-		ui.PopFont();
 
 		//--
 
@@ -280,7 +331,7 @@ void ofApp::keyPressed(int key)
 	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	//if (key == 'g') { subs.setToggleVisibleGui(); }
-	 
+
 	//if (key == ' ') { subs.setTogglePlay(); }
 	//if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
 	//if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
@@ -304,41 +355,5 @@ void ofApp::keyPressed(int key)
 		editorInput.setText(str);
 		break;
 	}
-	}
-}
-
-//--------------------------------------------------------------
-void ofApp::setupGPT() {
-	if (keyAPI.get() == "") {
-		ui.AddToLog("No settled API key to run Setup GPT", OF_LOG_ERROR);
-		return;
-	}
-	ui.AddToLog("Setup GPT");
-
-	chatGPT.setup(keyAPI.get());
-
-	ofSetLogLevel(OF_LOG_VERBOSE);
-	ui.setLogLevel(OF_LOG_VERBOSE);
-
-	ui.AddToLog("GPT Model list");
-	for (auto model : chatGPT.getModelList()) {
-		ui.AddToLog(model);
-	}
-
-	if (0) {
-		string userMessage = "Hello, are you ChatGPT?";
-		ui.AddToLog("User: " + userMessage);
-		string assistantMessage = chatGPT.chatWithHistory(userMessage);
-		ui.AddToLog("GPT: " + assistantMessage);
-
-		userMessage = "Can you answer anything?";
-		ui.AddToLog("User: " + userMessage);
-		assistantMessage = chatGPT.chatWithHistory(userMessage);
-		ui.AddToLog("GPT: " + assistantMessage);
-
-		userMessage = "That's amazing, I can answer anything too. can i ask you a question?";
-		ui.AddToLog("User: " + userMessage);
-		assistantMessage = chatGPT.chatWithHistory(userMessage);
-		ui.AddToLog("GPT: " + assistantMessage);
 	}
 }
