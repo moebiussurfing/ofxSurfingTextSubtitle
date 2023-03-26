@@ -72,6 +72,7 @@ public:
 	}
 
 	void doRandomInput() {
+		ui.AddToLog("doRandomInput");
 
 		string s = "";
 		float r = ofRandom(1);
@@ -88,7 +89,11 @@ public:
 		}
 
 		editorInput.setText(s);
+		ui.AddToLog("editorInput.setText");
+
 		setInputGPT(editorInput.getText());
+
 		editorReply.setText(textLastResponse);
+		ui.AddToLog("editorReply.setTex");
 	};
 };

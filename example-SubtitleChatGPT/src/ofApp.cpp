@@ -9,6 +9,8 @@ void ofApp::exit()
 //--------------------------------------------------------------
 void ofApp::setInputGPT(string s)
 {
+	ui.AddToLog("setInputGPT");
+
 	//textLastResponse = chatGPT.chatWithHistory(s);
 	chatGPT.chatWithHistory(s);
 
