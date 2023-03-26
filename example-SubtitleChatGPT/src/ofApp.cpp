@@ -19,13 +19,12 @@ void ofApp::setInputGPT(string s)
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	//ofxSurfingHelpers::SurfSetMyMonitor(0);
-
-	params.add(keyAPI);
-	params.add(subs.bGui);
+	ui.setup();
 
 	subs.setUiPtr(&ui);
 	subs.setup(); // Startup with no subs mode
+
+	//-
 
 #ifdef USE_WHISPER
 	whisper.setup();
@@ -41,13 +40,21 @@ void ofApp::setup()
 
 	editorInput.setup("Input");
 	editorInput.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+
 	editorInput.addKeyword("\"user\":");
 	editorInput.addKeyword("\"assistant\":");
 
-	//--
+	//-
 
 	editorReply.setup("Response");
 	editorReply.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+
+	//--
+
+	params.add(keyAPI);
+	params.add(subs.bGui); 
+	params.add(fontI);
+	params.add(fontR);
 
 	//--
 
@@ -77,6 +84,7 @@ void ofApp::setupGPT()
 		}
 	}
 
+	// 1st query
 	if (0)
 	{
 		string userMessage = "Hello, are you ChatGPT?";
@@ -177,13 +185,30 @@ void ofApp::draw()
 
 	subs.draw();
 
+	//-
+
 	if (!bGui) return;
 
+	drawImGui();
+
+	//--
+
+#ifdef USE_WHISPER
+	ofPushMatrix();
+	ofTranslate(-15, ofGetHeight() * 0.7);
+	whisper.draw();
+	ofPopMatrix();
+#endif
+}
+
+//--------------------------------------------------------------
+void ofApp::drawImGui()
+{
 	subs.drawGui();
 
 	ui.Begin();
 	{
-		ImGui::SetNextWindowSize(ImVec2(230, 0), ImGuiCond_FirstUseEver);
+		if (bGui)ImGui::SetNextWindowSize(ImVec2(230, 0), ImGuiCond_FirstUseEver);
 		if (ui.BeginWindow(bGui))
 		{
 			string s;
@@ -197,8 +222,8 @@ void ofApp::draw()
 
 			//--
 
-			ui.AddLabelHuge("Chat GPT");
-			ui.AddSpacing();
+			ui.AddLabelHuge("Chat\nGPT", false, true);
+
 			ui.Add(keyAPI, OFX_IM_TEXT_INPUT_NO_NAME);
 			if (ui.AddButton("Setup")) {
 				setupGPT();
@@ -209,6 +234,20 @@ void ofApp::draw()
 			if (ui.AddButton("Get Response")) {
 				editorReply.setText(textLastResponse);
 			}
+			ui.AddSpacing();
+
+			static float tlast;
+			static float tdiff;
+			static bool b = false;
+			if (ui.AddButton("Random")) {
+				b = true;
+				tlast = ofGetElapsedTimef();
+				doRandomInput();
+				b = false;
+				tdiff = ofGetElapsedTimef() - tlast;
+			}
+			s = ofToString(tdiff, 1);
+			if (!b) ui.AddLabel(s);
 
 			ui.AddSpacingBigSeparated();
 
@@ -219,7 +258,8 @@ void ofApp::draw()
 #endif
 			//--
 
-			ui.AddLabelHuge("Text Titles");
+			ui.AddLabelHuge("Text Titles", false, true);
+
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
 			if (subs.bGui) {
 				ui.AddSpacing();
@@ -235,7 +275,7 @@ void ofApp::draw()
 			}
 
 			ui.EndWindow();
-		}
+			}
 
 		//--
 
@@ -246,15 +286,21 @@ void ofApp::draw()
 
 		if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
 		{
-			string s = "";
+			ui.AddComboFontsSelector(fontI);
+			ui.PushFont(SurfingFontTypes(fontI.get()));
+
 			stringstream conversationText;
 			for (const ofJson& message : chatGPT.getConversation()) {
 				conversationText << message["role"] << ": " << message["content"] << "\n";
 			}
-			//ofDrawBitmapString("conversation:\n" + conversationText.str(), 20, 70);
-			s = "conversation:\n" + conversationText.str();
 
-			ui.AddLabel(s);
+			string s = "conversation:\n" + conversationText.str();
+			//ofDrawBitmapString(s, 20, 70);
+
+			//ui.AddLabel(s);
+			ImGui::TextWrapped(s.c_str());
+
+			ui.PopFont();
 
 			ui.EndWindow();
 		}
@@ -263,7 +309,15 @@ void ofApp::draw()
 
 		if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
 		{
-			ui.AddLabelBig(textLastResponse);
+			ui.AddComboFontsSelector(fontR);
+			ui.PushFont(SurfingFontTypes(fontR.get()));
+
+			string s = textLastResponse;
+
+			//ui.AddLabelBig(s);
+			ImGui::TextWrapped(s.c_str());
+
+			ui.PopFont();
 
 			ui.EndWindow();
 		}
@@ -276,15 +330,6 @@ void ofApp::draw()
 		subs.drawImGui();
 	}
 	ui.End();
-
-	//--
-
-#ifdef USE_WHISPER
-	ofPushMatrix();
-	ofTranslate(-15, ofGetHeight() * 0.7);
-	whisper.draw();
-	ofPopMatrix();
-#endif
 }
 
 #ifdef USE_WHISPER
@@ -337,6 +382,8 @@ void ofApp::keyPressed(int key)
 	//if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	//if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	//if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
+
+	//-
 
 	switch (key)
 	{
