@@ -7,20 +7,36 @@ void ofApp::exit()
 }
 
 //--------------------------------------------------------------
-void ofApp::setInputGPT(string s)
+void ofApp::setInputGPT(string s, bool bWithHistory)
 {
 	ui.AddToLog("setInputGPT");
 
-	//textLastResponse = chatGPT.chatWithHistory(s);
-	chatGPT.chatWithHistory(s);
+	//Spacing
+	size_t n = 20;
+	for (size_t i = 0; i < n; i++)
+	{
+		if (i == n / 2) ofLogNotice("ofApp")
+			<< "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ setInputGPT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+		else ofLogNotice("ofApp") << "|";
+	}
 
-	textLastResponse = chatGPT.chat(s);
+	//textLastResponse = chatGPT.chatWithHistory(s);
 	//textLastResponse = chatGPT.chat(s, std::function<void(std::string)>(myCallback));
+
+	if (bWithHistory) textLastResponse = chatGPT.chatWithHistory(s);
+	else textLastResponse = chatGPT.chat(s);
+
+	subs.doSetTextSlide(textLastResponse);
 };
 
 //--------------------------------------------------------------
 void ofApp::setup()
 {
+	w.doReset();
+	ofxSurfingHelpers::SurfSetMyMonitor(0);
+
+	//--
+
 	ui.setup();
 
 	subs.setUiPtr(&ui);
@@ -33,7 +49,7 @@ void ofApp::setup()
 	whisper.vCallback.addListener(this, &ofApp::doUpdatedWhisper);
 #endif
 
-	bGui.set("example-SubtitleChatGPT", true);
+	bGui.set("GPT", true);
 
 	//ui.ClearLogDefaultTags();
 	//ui.AddLogTag(ofColor::white);
@@ -43,20 +59,27 @@ void ofApp::setup()
 	editorInput.setup("Input");
 	editorInput.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
 
+	// custom keyword
 	editorInput.addKeyword("\"user\":");
 	editorInput.addKeyword("\"assistant\":");
 
+	// Advanced
+	callback_t myFunctionDraw = std::bind(&ofApp::drawWidgets, this);
+	//std::function<void()> myFunctionDraw = std::bind(&ofApp::drawWidgets, this);
+	editorInput.setDrawWidgetsFunction(myFunctionDraw);
+
 	//-
 
-	editorReply.setup("Response");
-	editorReply.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+	editorResponse.setup("Response");
+	editorResponse.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
 
 	//--
 
 	params.add(keyAPI);
-	params.add(subs.bGui); 
+	params.add(subs.bGui);
 	params.add(fontI);
 	params.add(fontR);
+	params.add(bConversation);
 
 	//--
 
@@ -215,41 +238,50 @@ void ofApp::drawImGui()
 		{
 			string s;
 
-			ui.AddLabelHuge("example-SubtitleChatGPT", false, true);
+			//ui.AddLabelHuge("SubtitleChatGPT", false, true);
 
 			ui.AddMinimizerToggle();
-			ui.AddLogToggle();
+			if (ui.isMaximized()) {
+				ui.AddDebugToggle();
+				ui.AddExtraToggle();
+				ui.AddLogToggle();
+			}
 
 			ui.AddSpacingBigSeparated();
 
 			//--
 
 			ui.AddLabelHuge("Chat\nGPT", false, true);
+			static ofParameter<bool> b{ "+",0 };
+			if (ui.isMaximized()) ui.Add(b, OFX_IM_TOGGLE_ROUNDED_MINI);
+			if (ui.isMaximized() && b)
+			{
+				ui.AddLabelBig("API KEY");
+				ui.Add(keyAPI, OFX_IM_TEXT_INPUT_NO_NAME);
+				if (ui.AddButton("Setup")) {
+					setupGPT();
+				}
+				if (ui.AddButton("Set Input")) {
+					setInputGPT(editorInput.getText(), bConversation);
+				}
+				if (ui.AddButton("Get Response")) {
+					editorResponse.setText(textLastResponse);
+				}
+				ui.AddSpacing();
 
-			ui.Add(keyAPI, OFX_IM_TEXT_INPUT_NO_NAME);
-			if (ui.AddButton("Setup")) {
-				setupGPT();
+				static float tlast;
+				static float tdiff;
+				static bool b = false;
+				if (ui.AddButton("Random")) {
+					b = true;
+					tlast = ofGetElapsedTimef();
+					doRandomInput();
+					b = false;
+					tdiff = ofGetElapsedTimef() - tlast;
+				}
+				s = ofToString(tdiff, 1);
+				if (!b) ui.AddLabel(s);
 			}
-			if (ui.AddButton("Set Input")) {
-				setInputGPT(editorInput.getText());
-			}
-			if (ui.AddButton("Get Response")) {
-				editorReply.setText(textLastResponse);
-			}
-			ui.AddSpacing();
-
-			static float tlast;
-			static float tdiff;
-			static bool b = false;
-			if (ui.AddButton("Random")) {
-				b = true;
-				tlast = ofGetElapsedTimef();
-				doRandomInput();
-				b = false;
-				tdiff = ofGetElapsedTimef() - tlast;
-			}
-			s = ofToString(tdiff, 1);
-			if (!b) ui.AddLabel(s);
 
 			ui.AddSpacingBigSeparated();
 
@@ -277,7 +309,7 @@ void ofApp::drawImGui()
 			}
 
 			ui.EndWindow();
-			}
+		}
 
 		//--
 
@@ -286,46 +318,49 @@ void ofApp::drawImGui()
 
 		//--
 
-		if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
+		if (ui.isMaximized() && ui.isExtraEnabled())
 		{
-			ui.AddComboFontsSelector(fontI);
-			ui.PushFont(SurfingFontTypes(fontI.get()));
+			//if (ui.isDebug())
+			{
+				// Gpt History
+				if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
+				{
+					if (ui.isDebug())ui.AddComboFontsSelector(fontI);
+					ui.PushFont(SurfingFontTypes(fontI.get()));
 
-			stringstream conversationText;
-			for (const ofJson& message : chatGPT.getConversation()) {
-				conversationText << message["role"] << ": " << message["content"] << "\n";
+					stringstream conversationText;
+					for (const ofJson& message : chatGPT.getConversation()) {
+						conversationText << message["role"] << ": " << message["content"] << "\n";
+					}
+					string s = "conversation:\n" + conversationText.str();
+
+					ImGui::TextWrapped(s.c_str());
+
+					ui.PopFont();
+					ui.EndWindow();
+				}
+			}
+			
+			if (ui.isDebug())
+			{
+				// Editor Response
+				editorResponse.draw();
 			}
 
-			string s = "conversation:\n" + conversationText.str();
-			//ofDrawBitmapString(s, 20, 70);
+			// Gpt last reply
+			if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
+			{
+				if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
+				ui.PushFont(SurfingFontTypes(fontR.get()));
 
-			//ui.AddLabel(s);
-			ImGui::TextWrapped(s.c_str());
+				string s = textLastResponse;
 
-			ui.PopFont();
+				ImGui::TextWrapped(s.c_str());
 
-			ui.EndWindow();
+				ui.PopFont();
+				ui.EndWindow();
+			}
 		}
-
-		//--
-
-		if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
-		{
-			ui.AddComboFontsSelector(fontR);
-			ui.PushFont(SurfingFontTypes(fontR.get()));
-
-			string s = textLastResponse;
-
-			//ui.AddLabelBig(s);
-			ImGui::TextWrapped(s.c_str());
-
-			ui.PopFont();
-
-			ui.EndWindow();
-		}
-
-		// Editor Input
-		editorReply.draw();
 
 		//--
 
@@ -365,6 +400,12 @@ void ofApp::doPopulateText(string s)
 	ofLogNotice() << s;
 	subs.doSetTextSlide(s);
 	ui.AddToLog(s);
+
+	//Spacing
+	for (size_t i = 0; i < 10; i++)
+	{
+		ofLogNotice("ofApp") << "|";
+	}
 }
 
 //--------------------------------------------------------------
@@ -406,3 +447,59 @@ void ofApp::keyPressed(int key)
 	}
 	}
 }
+
+//--------------------------------------------------------------
+void ofApp::drawWidgets()
+{
+	if (editorInput.bExtra || !editorInput.bMenus) ui.AddSpacingSeparated();
+
+	//float w = 200;
+	float w = ui.getWidgetsWidth(4);
+	float h = 2 * ui.getWidgetsHeightUnit();
+	ImVec2 sz{ w, h };
+
+	if (ui.AddButton("SEND", sz))
+	{
+		string s = editorInput.getText();
+		ui.AddToLog(s, OF_LOG_NOTICE);
+		setInputGPT(s, bConversation);
+
+		editorInput.clearText();
+	};
+	ui.SameLine();
+	if (ui.AddButton("CLEAR", sz))
+	{
+		editorInput.clearText();
+	};
+
+	ui.Add(bConversation);
+
+	//editorInput.drawImGuiWidgetsFonts();
+
+	ui.AddSpacingSeparated();
+
+	//--
+
+	// Catch from previous widget
+	//bOver = ImGui::IsItemHovered();
+	ImGuiIO& io = ImGui::GetIO();
+
+	bool bMouseLeft = io.MouseClicked[0];
+	bool bMouseRight = io.MouseClicked[1];
+	float mouseWheel = io.MouseWheel;
+
+	//bool bKeyReturn = ImGui::IsKeyboardKey(ImGuiKey_Enter);
+	bool bKeyReturn = ImGui::IsKeyPressed(ImGuiKey_Enter);
+	bool bCtrl = io.KeyCtrl;
+	bool bShift = io.KeyShift;
+
+	// Enter
+	if (bCtrl && bKeyReturn)
+	{
+		string s = editorInput.getText();
+		ui.AddToLog(s, OF_LOG_NOTICE);
+		setInputGPT(s, bConversation);
+
+		editorInput.clearText();
+	}
+};
