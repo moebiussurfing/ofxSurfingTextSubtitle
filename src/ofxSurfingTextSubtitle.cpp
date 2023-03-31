@@ -5,7 +5,10 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 	bGui.set("SUBTITLES", true);
 	bGui_List.set("LIST", false);
 	bGui_Paragraph.set("PARAGRAPH", true);
+
+#ifndef USE_IM_GUI__SUBTITLES
 	bGui_Internal.set("Gui Internal", true);
+#endif
 };
 
 //--------------------------------------------------------------
@@ -50,6 +53,8 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	//--
 
 	// Internal Gui
+
+#ifndef USE_IM_GUI__SUBTITLES
 	if (bGui_InternalAllowed)
 	{
 		ofxSurfingHelpers::setThemeDarkMini_ofxGui();
@@ -71,6 +76,7 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 		guif.getGroup(params_FadeOut.getName()).minimize();
 		gui.getGroup(params_Style.getName()).minimize();
 	}
+#endif
 
 	//--
 
@@ -514,9 +520,9 @@ void ofxSurfingTextSubtitle::startup()
 {
 	ofLogNotice(__FUNCTION__);
 
-#ifdef USE_IM_GUI__SUBTITLES
-	this->setDisableGuiInternal(true);
-#endif
+//#ifdef USE_IM_GUI__SUBTITLES
+//	this->setDisableGuiInternal(true);
+//#endif
 
 	//return;
 	doReset();
@@ -1068,7 +1074,9 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (bDrawWidgetInfo) boxInfo.draw();
 #endif
 
+#ifndef USE_IM_GUI__SUBTITLES
 	if (bGui_Internal && bGui_InternalAllowed) gui.draw();
+#endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.drawGui();
@@ -2829,7 +2837,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 									ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
 									ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
 
+#ifndef USE_IM_GUI__SUBTITLES
 									if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
 #ifdef USE_WIDGET__SUBTITLES
 									ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 #endif
@@ -3255,6 +3265,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == indexModes.getName())
 	{
+
+#ifndef USE_IM_GUI__SUBTITLES
 		if (bGui_Internal && bGui_InternalAllowed)
 		{
 			auto& guit = gui.getGroup(params_Transport.getName());
@@ -3270,6 +3282,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 			}
 		}
+#endif
 
 		//workflow
 		switch (indexModes)

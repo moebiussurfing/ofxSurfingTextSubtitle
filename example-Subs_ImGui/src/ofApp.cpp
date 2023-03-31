@@ -7,23 +7,21 @@ void ofApp::setup()
 	ofSetFrameRate(60);
 
 	subs.setUiPtr(&ui);
+
+#ifndef USE_IM_GUI__SUBTITLES
 	subs.setDisableGuiInternal(true);
+#endif
 
 	path = "subs/Huxley.srt";
 	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
 
 	subs.setup(path);
-
-// #ifdef USE_PRESETS
-// 	presets.setUiPtr(&ui);
-// 	presets.AddGroup(subs.params_Preset);
-// #endif
 }
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	string s = "example-Subtitle2 " + ofToString(ofGetFrameRate(), 0) + " Fps";
+	string s = "example-Subs_ImGui " + ofToString(ofGetFrameRate(), 0) + " Fps";
 	ofSetWindowTitle(s);
 
 	subs.update();
@@ -41,17 +39,10 @@ void ofApp::draw() {
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
 
-// #ifdef USE_PRESETS
-// 			ui.Add(presets.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-// #endif
 			ui.EndWindow();
 		}
 
 		subs.drawImGui();
-
-// #ifdef USE_PRESETS
-// 		presets.drawImGui(true);
-// #endif
 	}
 	ui.End();
 }

@@ -105,10 +105,13 @@
 
 #include "srtparser.h"
 #include "ofxFontStash.h"
-#include "ofxGui.h"
 #include "ofxSurfingBoxInteractive.h"
-#include "ofxSurfing_ofxGui.h"
 #include "ofxAutosaveGroupTimer.h"
+
+#ifndef USE_IM_GUI__SUBTITLES
+#include "ofxGui.h"
+#include "ofxSurfing_ofxGui.h"
+#endif
 
 // easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
@@ -203,10 +206,12 @@ public:
 
 	void drawGui();
 
+#ifndef USE_IM_GUI__SUBTITLES
 	void setDisableGuiInternal(bool b) {
 		bGui_InternalAllowed = !b;
 		bGui_Internal = !b;
 	}
+#endif
 	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
 	void keyPressed(int key);
@@ -280,8 +285,11 @@ public:
 private:
 
 	ofParameter<bool> bMinimize;
+
+#ifndef USE_IM_GUI__SUBTITLES
 	ofParameter<bool> bGui_Internal;
 	bool bGui_InternalAllowed = false;
+#endif
 
 	uint64_t tEndSubsFilm = 0;
 	bool bForceAddBreakLines = true;
@@ -440,7 +448,10 @@ private:
 
 	string textCurrent = "";
 
+
+#ifndef USE_IM_GUI__SUBTITLES
 	ofxPanel gui;
+#endif
 
 	uint64_t tPlay = 0;
 

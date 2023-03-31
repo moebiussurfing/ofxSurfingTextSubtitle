@@ -1,5 +1,4 @@
 ofxFontStash
-ofxGui
 ofxImGui
 ofxSurfingBox
 ofxSurfingHelpers
