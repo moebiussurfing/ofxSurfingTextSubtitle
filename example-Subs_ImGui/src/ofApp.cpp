@@ -67,7 +67,11 @@ void ofApp::draw() {
 				{
 					doText();
 				};
-				if (bAuto) ImGui::SliderInt("T", &td, 1, 10);
+				if (bAuto) {
+					ImGui::PushItemWidth(100);
+					ImGui::SliderInt("T", &td, 1, 10);
+					ImGui::PopItemWidth();
+				}
 			}
 
 			//--
