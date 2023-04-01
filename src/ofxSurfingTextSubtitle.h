@@ -248,6 +248,8 @@ public:
 	ofColor getColorBg() const { return colorBgFloat.get(); };
 	ofColor getColorText() const { return colorTextFloat.get(); };
 
+	int getModePlayer() const { return indexModes.get(); }
+
 	// Call before setup. Set duration in ms to be used with play external mode
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }

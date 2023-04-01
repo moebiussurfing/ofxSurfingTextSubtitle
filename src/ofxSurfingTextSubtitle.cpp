@@ -1629,6 +1629,8 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		tDEBUG2_ = t;
 	}
 
+	//--
+
 	// NOTE that uses only the rectangle width! 
 	// Not the height!
 
@@ -2265,6 +2267,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 		ui->Add(bFine, OFX_IM_TOGGLE_ROUNDED_MINI);
 		ui->AddSpacing();
+
 		//ui->PushWidth(0.7f);
 		SurfingGuiTypes st = (bFine.get() ? OFX_IM_STEPPER : OFX_IM_DEFAULT);
 		ui->Add(fSizePrc, st);
@@ -2570,7 +2573,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			s = "Live Mode hides some stuff";
 			if (!bLive)
 			{
-				ui->Add(bEdit, OFX_IM_TOGGLE_SMALL);
+				ui->Add(bEdit, OFX_IM_TOGGLE);
 				s = "Edit container";
 				ui->AddTooltip(s);
 			}
