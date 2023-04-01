@@ -16,6 +16,8 @@
 #include "ofxSurfingTextSubtitle.h"
 #include "ofxSurfingImGui.h"
 
+#include <utf8.h>
+
 class ofApp : public ofBaseApp 
 {
 public:
@@ -28,6 +30,4 @@ public:
 	string path;
 
 	ofxSurfingGui ui;
-
-	string load(string path);
 };

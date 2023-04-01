@@ -160,15 +160,19 @@ private:
 
 #endif
 
+private:
 	float tDEBUG1;
 	float tDEBUG1_;
 	float tDEBUG2;
 	float tDEBUG2_;
+	float tDEBUG0;
+	float tDEBUG0_;
+public:
+	bool bDebugPerformance = 1;
 
 	//--
 
 public:
-
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
 
@@ -528,4 +532,63 @@ private:
 	std::string _str2 = "T\nT";// two lines
 	std::string _str3 = "T\nT\nT";// three lines
 	std::string _str4 = "T\nT\nT\nT";// four lines
+
+	/*
+	//TODO:
+	//text file must be correctly encoded!
+	//if not we need to fix utf8 chars..
+	std::string remove_invalid_code_points(const std::string& s) {
+		std::string result;
+
+		// Loop through the string and append only valid code points to the result string
+		for (auto it = s.begin(); it != s.end(); ) {
+			try {
+				uint32_t code_point = utf8::next(it, s.end());//!
+
+				//result += utf8::encode(code_point);?
+				//result += (code_point);
+				result += ofUTF8ToString(code_point);
+			}
+			catch (utf8::invalid_code_point) {
+				// Ignore invalid code points
+			}
+		}
+
+		return result;
+	}
+	*/
+
+public:
+
+	//--------------------------------------------------------------
+	string loadFileText(string path)
+	{
+		string p = ofToDataPath(path, true);
+		//string p = ofFilePath::getAbsolutePath(path);
+
+		string text = "";
+
+		//path
+		char* pathChars = (char*)(p.c_str());
+
+		//-
+
+		ofLogNotice("ofApp") << "load ifstream pathChars: " << ofToString(pathChars);
+
+		std::ifstream t(pathChars);
+		if (t.good())
+		{
+			string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+			text = str;
+
+			ofLogNotice("ofApp") << "loaded file: " << ofToString(pathChars);
+		}
+		else
+		{
+			ofLogNotice("ofApp") << "file not found! " << ofToString(pathChars);
+		}
+
+		return text;
+	}
+
 };

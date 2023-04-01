@@ -1105,6 +1105,12 @@ void ofxSurfingTextSubtitle::drawRaw()
 {
 	if (!bDraw) return;
 
+	float t;
+	if (bDebug) {
+		t = ofGetElapsedTimef();
+		tDEBUG0_ = t;
+	}
+
 	//--
 
 	// Force box height
@@ -1193,6 +1199,17 @@ void ofxSurfingTextSubtitle::drawRaw()
 			}
 		}
 		*/
+	}
+
+	t = ofGetElapsedTimef();
+	if (bDebug) {
+		tDEBUG0 = t - tDEBUG0_;
+
+		if (bDebugPerformance) {
+			static int count0 = 0;
+			count0++;
+			cout << "Draw0:  " << count0 << " frames:" << ofGetFrameNum() + 1 << endl;
+		}
 	}
 }
 
@@ -1563,12 +1580,18 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 	//--
 
-	//string s = ofToString(tDEBUG1, 3) + "s";
-	string s = "";
-	s += "Draw  : " + ofToString(tDEBUG1 * 1000, 0) + "ms";
-	s += "\n";
-	s += "NoDraw: " + ofToString(tDEBUG2 * 1000, 0) + "ms";
-	ofDrawBitmapStringHighlight(s, 4, 15);
+	//if (0)
+	{
+		string s = "";
+		s += "Draw: " + ofToString(tDEBUG0 * 1000, 0) + "ms";
+		if (bDebugPerformance) {
+			s += "\n";
+			s += "DrawPass: " + ofToString(tDEBUG1 * 1000, 0) + "ms";
+			s += "\n";
+			s += "NoDraw: " + ofToString(tDEBUG2 * 1000, 0) + "ms";
+		}
+		ofDrawBitmapStringHighlight(s, 4, 15);
+	}
 }
 
 //--------------------------------------------------------------
@@ -1748,7 +1771,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	if (!bNoDraw) ofPushStyle();
 	{
-		int iPasses = 0;
+		//int iPasses = 0;
 
 		{
 			if (!bNoDraw)
@@ -1844,21 +1867,29 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	//--
 
 	t = ofGetElapsedTimef();
-	if (!bNoDraw) {
-		tDEBUG1 = t - tDEBUG1_;
 
-		static int count1 = 0;
-		count1++;
+	if (bDebug)
+	{
+		if (!bNoDraw) {
+			tDEBUG1 = t - tDEBUG1_;
 
-		cout << "Draw:" << count1 << " frames:" << ofGetFrameNum() + 1 << endl;
-	}
-	else {
-		tDEBUG2 = t - tDEBUG2_;
+			if (bDebugPerformance)
+			{
+				static int count1 = 0;
+				count1++;
+				cout << "Draw1  :" << count1 << " frames:" << ofGetFrameNum() + 1 << endl;
+			}
+		}
+		else {
+			tDEBUG2 = t - tDEBUG2_;
 
-		static int count2 = 0;
-		count2++;
-
-		cout << "No draw:" << count2 << " frames:" << ofGetFrameNum() + 1 << endl;
+			if (bDebugPerformance)
+			{
+				static int count2 = 0;
+				count2++;
+				cout << "NoDraw2:" << count2 << " frames:" << ofGetFrameNum() + 1 << endl;
+			}
+		}
 	}
 
 	return boxDrawn;
@@ -2373,7 +2404,6 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 				//--
 
-				//if (0)
 				if (!bMinimize)
 				{
 					ui->AddSpacingSeparated();
@@ -3075,7 +3105,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 }
-}
+	}
 #endif
 
 		//workflow
@@ -3387,6 +3417,10 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == bCapitalize.getName())
 	{
+		if (bCapitalize) textCurrent = ofToUpper(lastTextSlideRaw);
+		else textCurrent = lastTextSlideRaw;
+
+		/*
 		if (bLoaded || (!bModeNoSrt && indexModes != 3))//not manual mode
 		{
 			if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
@@ -3398,6 +3432,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			if (bCapitalize) textCurrent = ofToUpper(lastTextSlideRaw);
 			else textCurrent = lastTextSlideRaw;
 		}
+		*/
 	}
 
 	else if (name == fSizePrc.getName())

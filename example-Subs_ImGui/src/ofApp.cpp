@@ -23,8 +23,8 @@ void ofApp::setup()
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	string s = "example-Subs_ImGui " + ofToString(ofGetFrameRate(), 0) + " Fps";
-	ofSetWindowTitle(s);
+	string name = "example-Subs_ImGui";
+	ofxSurfingHelpers::SurfSetWindowTitleDebugPerformance(name);
 
 	subs.update();
 }
@@ -40,26 +40,58 @@ void ofApp::draw() {
 	subs.drawGui();
 	ui.Begin();
 	{
-		if (ui.BeginWindow("ofApp")) {
+		if (ui.BeginWindow("ofApp"))
+		{
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+			ui.AddSpacingSeparated();
 
-			if (ui.AddButton("Do Text!"))
+			//--
+
+			// Tester
 			{
-				string s;
-				static bool b = false;
-				if (b) {
-					b = !b;
-					s = load("files/text3.txt");
-					//s = load("files/text1.txt");
-				}
-				else {
-					b = !b;
-					s = load("files/text1.txt");
-					//s = load("files/text2.txt");
-				}
+				ui.AddToggle("Debug", subs.bDebugPerformance);
 
-				subs.doSetTextSlide(s);
+				// lambda function to random populate slides, loading different text files.
+				static auto doText = [&]() {
+					string s;
+					static bool b = false;
+					if (b) {
+						b = !b;
+						if (ofRandom(1) < 0.5)
+							s = subs.loadFileText("files/text1.txt");
+						else
+							s = subs.loadFileText("files/text2.txt");
+					}
+					else {
+						b = !b;
+						if (ofRandom(1) < 0.5)
+							s = subs.loadFileText("files/text3.txt");
+						else
+							s = subs.loadFileText("files/text4.txt");
+					}
+					subs.doSetTextSlide(s);
+				};
+
+				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
+
+				//ui.AddLabelBig("TEST");
+				static bool bAuto = false;
+				static int td = 2;
+				ImGui::SliderInt("T", &td, 1, 10);
+				ui.AddToggle("auto", bAuto, sz);
+				ui.SameLine();
+
+				if (bAuto && (ofGetFrameNum() % (td * 60) == 0)) {
+					doText();
+				};
+
+				if (ui.AddButton("DoText!", sz))
+				{
+					doText();
+				};
 			}
+
+			//--
 
 			ui.EndWindow();
 		}
@@ -88,34 +120,4 @@ void ofApp::keyPressed(int key)
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
-}
-
-//--------------------------------------------------------------
-string ofApp::load(string path)
-{
-	string p = ofToDataPath(path, true);
-	//string p = ofFilePath::getAbsolutePath(path);
-
-	string text = "";
-
-	char* fileToEdit;
-	fileToEdit = (char*)(p.c_str());
-
-	//-
-
-	ofLogNotice("ofApp") << "load ifstream fileToEdit: " << ofToString(fileToEdit);
-
-	std::ifstream t(fileToEdit);
-	if (t.good())
-	{
-		string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-		text = str;
-
-		ofLogNotice("ofApp") << "loaded file: " << ofToString(fileToEdit);
-	}
-	else {
-		ofLogNotice("ofApp") << "file not found! " << ofToString(fileToEdit);
-	}
-
-	return text;
 }
