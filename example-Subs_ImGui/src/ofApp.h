@@ -13,9 +13,7 @@
 
 */
 
-
-//-
-
+//--
 
 #pragma once
 #include "ofMain.h"
@@ -36,8 +34,10 @@ public:
 
 	ofxSurfingGui ui;
 
-	//tester
-	bool bAuto = false;
+	//--
+
+	// Tester
+	bool bAuto = 1;
 	int td = 2;
 	// function to random populate slides, loading different text files.
 	void doText() {

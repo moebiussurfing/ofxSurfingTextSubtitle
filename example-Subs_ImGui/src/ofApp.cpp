@@ -50,6 +50,9 @@ void ofApp::draw() {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
 			ui.AddSpacingSeparated();
 
+			ui.Add(ui.bDebugDebugger, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+			ui.AddSpacing();
+
 			//--
 
 			// Tester
