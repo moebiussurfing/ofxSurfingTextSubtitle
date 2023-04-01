@@ -168,7 +168,7 @@ private:
 	float tDEBUG0;
 	float tDEBUG0_;
 public:
-	bool bDebugPerformance = 1;
+	bool bDebugPerformance = 0;
 
 	//--
 

@@ -2731,6 +2731,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->AddTooltip(s);
 					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
+					//ui->Add(durationPlayForced);
+					//ui->Add(durationPlayForced, OFX_IM_HSLIDER);
 					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 					s = "Dialog \n#" + ofToString(currentDialog.get());
