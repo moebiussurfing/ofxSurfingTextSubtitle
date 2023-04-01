@@ -19,7 +19,6 @@
 class ofApp : public ofBaseApp 
 {
 public:
-
 	void setup();
 	void update();
 	void draw();
@@ -29,4 +28,6 @@ public:
 	string path;
 
 	ofxSurfingGui ui;
+
+	string load(string path);
 };

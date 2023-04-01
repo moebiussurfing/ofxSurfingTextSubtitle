@@ -59,7 +59,7 @@
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
-// 2. VIDEO PLAYER
+// 2. VIDEO PLAYER (ofxGui)
 //#define USE_WIDGET__VIDEO_PLAYER 
 // -> Could be disable to use your own video player or to use the subtitler as standalone.
 // A simple video player is bundled for commodity, 
@@ -78,7 +78,7 @@
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time conversions. Can be removed.
 
-//TODO: WIP
+//TODO: WIP: should use an fbo bc fonts drawing twice its slow!
 //#define USE_SHADOW
 
 #define USE_PRESETS__SUBTITLES
@@ -159,6 +159,11 @@ private:
 #endif
 
 #endif
+
+	float tDEBUG1;
+	float tDEBUG1_;
+	float tDEBUG2;
+	float tDEBUG2_;
 
 	//--
 
@@ -465,6 +470,7 @@ private:
 	ofRectangle getTextBoxEstimate(std::string _t, ofRectangle r);
 
 	// oneOnly true is faster but false is probably more precise.
+	float getLineHeightUnit();
 	float getOneLineHeight(bool fast = true); // get real letter height to correct anchor offset...
 	float getSpacingBetweenLines();
 
@@ -517,4 +523,9 @@ private:
 
 	// Extra debug info
 	bool bDebug2 = false;
+
+	std::string _str1 = "T";// one line
+	std::string _str2 = "T\nT";// two lines
+	std::string _str3 = "T\nT\nT";// three lines
+	std::string _str4 = "T\nT\nT\nT";// four lines
 };

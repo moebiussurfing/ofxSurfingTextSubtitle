@@ -387,10 +387,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	//params_Style.add(fName);
 	params_Style.add(fPath);
 	params_Style.add(colorTextFloat);
-#ifdef USE_SHADOW
-	params_Style.add(fColorShadow);
-	params_Style.add(offsetShadow);
-#endif
+	//#ifdef USE_SHADOW
+	//	params_Style.add(fColorShadow);
+	//	params_Style.add(offsetShadow);
+	//#endif
 	params_Style.add(colorBgFloat);
 	params_Style.add(bCapitalize);
 	params_Style.add(fSizePrc);
@@ -520,11 +520,11 @@ void ofxSurfingTextSubtitle::startup()
 {
 	ofLogNotice(__FUNCTION__);
 
-//#ifdef USE_IM_GUI__SUBTITLES
-//	this->setDisableGuiInternal(true);
-//#endif
+	//#ifdef USE_IM_GUI__SUBTITLES
+	//	this->setDisableGuiInternal(true);
+	//#endif
 
-	//return;
+		//return;
 	doReset();
 
 	//TODO:
@@ -619,7 +619,7 @@ void ofxSurfingTextSubtitle::updateFades()
 {
 	//TODO:
 	// Fades are disabled
-	if (!bAnimatedIn && !bAnimatedOut) 
+	if (!bAnimatedIn && !bAnimatedOut)
 	{
 		alpha = 1.f;
 		progressIn = 1;
@@ -1060,7 +1060,7 @@ void ofxSurfingTextSubtitle::updateDebug()
 			//--
 
 			boxInfo.setText(s);
-}
+		}
 #endif
 	}
 }
@@ -1111,13 +1111,17 @@ void ofxSurfingTextSubtitle::drawRaw()
 
 	if (bCenteredV || bResponsive)
 	{
-		float h = getOneLineHeight() + getSpacingBetweenLines();
-		box.setHeight(amountLinesTarget * h);
+		float h = getLineHeightUnit();
+		//float h = getOneLineHeight() + getSpacingBetweenLines();
+
+		//TODO:
+		//box.setHeight(amountLinesTarget * h);
 	}
 	else
 	{
 	}
-	box.setLockH();
+	//TODO:
+	//box.setLockH();
 
 	//TODO:
 	// 1st pass. Expected aprox amount lines of the last current drawn 
@@ -1126,10 +1130,13 @@ void ofxSurfingTextSubtitle::drawRaw()
 
 	//--
 
+	bool bNoDraw;
+
 	// Will update boxDrawn
 	// True. No drawing! 
 	// Just calculate and spaciate lines!
-	drawTextBox(textCurrent, box.getRectangle(), true);
+	bNoDraw = true;
+	drawTextBox(textCurrent, box.getRectangle(), bNoDraw);
 
 	//--
 
@@ -1156,7 +1163,9 @@ void ofxSurfingTextSubtitle::drawRaw()
 	//--
 
 	// The Real Real drawing!
-	boxDrawnReal = drawTextBox(textCurrent, box.getRectangle(), false);
+
+	bNoDraw = false;
+	boxDrawnReal = drawTextBox(textCurrent, box.getRectangle(), bNoDraw);
 	boxDrawnReal.translateY(_offset);
 
 	//--
@@ -1551,6 +1560,15 @@ void ofxSurfingTextSubtitle::drawDebug()
 		}
 	}
 	ofPopStyle();
+
+	//--
+
+	//string s = ofToString(tDEBUG1, 3) + "s";
+	string s = "";
+	s += "Draw  : " + ofToString(tDEBUG1 * 1000, 0) + "ms";
+	s += "\n";
+	s += "NoDraw: " + ofToString(tDEBUG2 * 1000, 0) + "ms";
+	ofDrawBitmapStringHighlight(s, 4, 15);
 }
 
 //--------------------------------------------------------------
@@ -1576,282 +1594,18 @@ void ofxSurfingTextSubtitle::draw()
 
 //--
 
-#ifdef USE_SHADOW
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw)
 {
-	// NOTE that uses only the rectangle width! 
-	// Not the height!
-
-	float _x = box.getX();
-	float _y = box.getY();
-	float _w = box.getWidth();
-	float _h = box.getHeight();
-
-	int _size = 1.f;
-	int _align = fAlign.get();
-	ofColor _color = colorTextFloat.get();
-	ofColor _color2 = fColorShadow.get();
-
-	float _x2 = _x + offsetShadow.get().x;
-	float _y2 = _y + offsetShadow.get().y;
-
-	// How much less or more lines that expected/targeted
-	diff = amountLinesDrawn - amountLinesTarget;
-
-	// Non responsive
-	if (!bResponsive)
-	{
-		_size = fSize.get();
+	float t;
+	t = ofGetElapsedTimef();
+	if (!bNoDraw) {
+		tDEBUG1_ = t;
 	}
-	// Responsive
-	else
-	{
-		// Using Engine
-		{
-			//TODO:
-			// it's problematic bc when changing size, 
-			// box relation changes too. 
-			// must be a kind of manual algorithm. 
-			// make font bigger to fit container
-			// must adapt size. a bit complex..
-			// also can be reduced to when there's too much lines..
-			//float rMax = 1.25f;
-			//_size = rMax * fSize.get();
-
-			float ho = getOneLineHeight();
-			float hb = box.getHeight();
-
-			float rLimit;
-			float rMax;
-			float rMin;
-
-			float r; // ratio
-			// could use a variable ratio depending on the amount of lines
-
-			float s = 1.f;//scaler
-
-			//Default
-			//_size = r * fSize.get();
-
-			// A. Same lines than expected
-			if (diff == 0)
-			{
-				sEngine = "A";
-
-				// do nothing
-				_size = fSize.get();
-			}
-
-			// B. More lines than expected
-			else if (diff > 0)
-			{
-				sEngine = "B";
-
-				rLimit = 0.5f;
-				rMin = ofMap(resizeResponsive, 0, 1, 1.f, rLimit, true);
-				r = ofMap(diff, 1, amountLinesTarget - 1, 1, rMin, true);
-
-				//--
-
-				_size = r * fSize.get();
-
-				//--
-
-				// Offset substract difference to align to top border.
-				_y += _size - fSize.get();
-			}
-
-			// C. Less lines than expected
-			else if (diff < 0)
-			{
-				sEngine = "C";
-
-				//rLimit = 1.3f;
-				rLimit = 2.5f;
-				rMax = ofMap(resizeResponsive, 0, 1, 1.f, rLimit, true);
-				r = ofMap(abs(diff), 0, amountLinesTarget - 1, 1, rMax, true);
-
-				//--
-
-				_size = r * fSize.get();
-
-				//--
-
-				//TODO:
-				// Extra stuff
-				if (amountLinesDrawn == 1) {
-					_size *= 2.0f;
-					//if(bCenteredV) _y -= fSize.get() * 0.2;
-					_y -= fSize.get() * 0.2;
-				}
-				else if (amountLinesDrawn == 2) {
-					_size *= 1.25f;
-					if (bCenteredV) _y -= fSize.get() * 0.5;
-				}
-
-				//--
-
-				// Offset substract difference to align to top border.
-				//_y -= fSize.get()- _size;
-				_y += _size - fSize.get();
-
-				//if (diff < -1) _y -= getSpacingBetweenLines();
-			}
-		}
-	}
-	if (!bNoDraw)
-	{
-		if ((bAnimatedIn) || (bAnimatedOut))
-		{
-			_color = ofColor(_color, alpha * _color.a);
-			_color2 = ofColor(_color2, alpha * _color2.a);
-		}
+	else {
+		tDEBUG2_ = t;
 	}
 
-	// here upper border is aligned to the center horizontal
-	_y += getOneLineHeight();
-
-	// Fix. 
-	// workaround to hard code calibrate.
-	//_y += 2; 
-
-	//------
-
-	if (!bNoDraw) ofPushStyle();
-	{
-		int iPasses = 0;
-
-#ifdef USE_SHADOW
-		while (iPasses < 2)
-#endif
-		{
-			if (!bNoDraw)
-			{
-
-#ifdef USE_SHADOW
-				if (iPasses == 1) ofSetColor(_color);
-				else if (iPasses == 0) ofSetColor(_color2);
-#else
-				ofSetColor(_color);
-#endif
-			}
-
-			float __x = _x;
-			float __y = _y;
-
-#ifdef USE_SHADOW
-			if (iPasses == 0) // shadow
-			{
-				__x = _x2;
-				__y = _y2;
-			}
-			//else // regular
-			//{
-			//	__x = _x;
-			//	__y = _y;
-			//}
-#endif
-
-			int _numLines = 20;
-			bool _wordsWereCropped = false;
-			bool _bCenter = ((_align == 2) ? true : false);//centered
-
-			/*get the final text formatting (by adding \n's) in the supplied string;
-			BE ARWARE that using TRUE in here will modify your supplied string! */
-			//bool _br = false;
-			bool _br = bForceAddBreakLines;
-
-			if (fAlign != 1) // left or center align
-			{
-				//TODO:
-				//if(bNoDraw)
-				boxDrawn = font.drawMultiLineColumn(
-					_str,					/*string*/
-					_size,					/*size*/
-					//_x, _y,					/*where*/
-					__x, __y,					/*where*/
-					MAX(10, _w),			/*column width*/
-					_numLines,				/*get back the number of lines*/
-					bNoDraw,				/* if true, we wont draw (just get bbox back) */
-					20,						/* max number of lines to draw, crop after that */
-					_br,					/*get the final text formatting (by adding \n's) in the supplied string;
-											BE ARWARE that using TRUE in here will modify your supplied string! */
-					&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
-					_bCenter				/*centered*/
-				);
-			}
-			else // right align
-			{
-				//TODO: 
-				//WIP trying to make work right align
-				if (bForceAddBreakLines)
-				{
-					auto __bbox = font.drawMultiLineColumn(
-						_str,					/*string*/
-						_size,					/*size*/
-						//_x, _y,					/*where*/
-						__x, __y,					/*where*/
-						MAX(10, _w),			/*column width*/
-						_numLines,				/*get back the number of lines*/
-						true,					/* if true, we wont draw (just get bbox back) */
-						20,						/* max number of lines to draw, crop after that */
-						_br,					/*get the final text formatting (by adding \n's) in the supplied string;
-												BE ARWARE that using TRUE in here will modify your supplied string! */
-						&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
-						_bCenter				/*centered*/
-					);
-
-					_str = _str + " ";//fix last char
-					//textCurrent = _str;
-				}
-
-				if (!bNoDraw)
-				{
-					boxDrawn = font.drawMultiLine(
-						_str,					/*string*/
-						_size,					/*size*/
-						_x, _y,					/*where*/
-						OF_ALIGN_HORZ_RIGHT,
-						MAX(10, _w)				/*column width*/
-					);
-				}
-				//TODO: workaround
-				else
-				{
-#ifdef USE_SHADOW
-					if (iPasses == 0)
-#endif
-					{
-						boxDrawn = font.getBBox(
-							_str,					/*string*/
-							_size,					/*size*/
-							//_x, _y,					/*where*/
-							__x, __y,					/*where*/
-							OF_ALIGN_HORZ_RIGHT,
-							MAX(10, _w)				/*column width*/
-						);
-					}
-				}
-			}
-
-#ifdef USE_SHADOW
-			iPasses++;
-#endif
-		}
-	}
-	if (!bNoDraw) ofPopStyle();
-
-	//--
-
-	return boxDrawn;
-}
-#endif
-
-#ifndef USE_SHADOW
-//--------------------------------------------------------------
-ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw)
-{
 	// NOTE that uses only the rectangle width! 
 	// Not the height!
 
@@ -2026,7 +1780,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 					MAX(10, _w),			/*column width*/
 					_numLines,				/*get back the number of lines*/
 					bNoDraw,				/* if true, we wont draw (just get bbox back) */
-					20,						/* max number of lines to draw, crop after that */
+					0,						/* max number of lines to draw, crop after that */
 					_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 											BE ARWARE that using TRUE in here will modify your supplied string! */
 					&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2047,7 +1801,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 						MAX(10, _w),			/*column width*/
 						_numLines,				/*get back the number of lines*/
 						true,					/* if true, we wont draw (just get bbox back) */
-						20,						/* max number of lines to draw, crop after that */
+						0,						/* max number of lines to draw, crop after that */
 						_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 												BE ARWARE that using TRUE in here will modify your supplied string! */
 						&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2089,9 +1843,26 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	//--
 
+	t = ofGetElapsedTimef();
+	if (!bNoDraw) {
+		tDEBUG1 = t - tDEBUG1_;
+
+		static int count1 = 0;
+		count1++;
+
+		cout << "Draw:" << count1 << " frames:" << ofGetFrameNum() + 1 << endl;
+	}
+	else {
+		tDEBUG2 = t - tDEBUG2_;
+
+		static int count2 = 0;
+		count2++;
+
+		cout << "No draw:" << count2 << " frames:" << ofGetFrameNum() + 1 << endl;
+	}
+
 	return boxDrawn;
 }
-#endif
 
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRectangle r)
@@ -2123,7 +1894,7 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 		MAX(10, _w),			/*column width*/
 		_numLines,				/*get back the number of lines*/
 		true,					/* if true, we wont draw (just get bbox back) */
-		20,						/* max number of lines to draw, crop after that */
+		0,						/* max number of lines to draw, crop after that */
 		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 								BE ARWARE that using TRUE in here will modify your supplied string! */
 		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2136,6 +1907,12 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 }
 
 //--------------------------------------------------------------
+float ofxSurfingTextSubtitle::getLineHeightUnit()
+{
+	return getOneLineHeight() + getSpacingBetweenLines();
+}
+
+//--------------------------------------------------------------
 float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 {
 	// Pre calculate line heights. without the spacing
@@ -2144,7 +1921,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 
 	// to get more precise value, we should use 3 lines, 
 	// applying also lines-height and dividing by 3
-	std::string _str1 = "T";// one lines
+	//std::string _str1 = "T";// one line
 
 	int _align;
 	int _size;
@@ -2180,7 +1957,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 		MAX(10, _w),			/*column width*/
 		_numLines,				/*get back the number of lines*/
 		true,					/* if true, we wont draw (just get bbox back) */
-		20,						/* max number of lines to draw, crop after that */
+		0,						/* max number of lines to draw, crop after that */
 		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 								BE ARWARE that using TRUE in here will modify your supplied string! */
 		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2192,9 +1969,9 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 
 	if (!oneOnly)
 	{
-		std::string _str2 = "T\nT";// two lines
-		std::string _str3 = "T\nT\nT";// three lines
-		std::string _str4 = "T\nT\nT\nT";// four lines
+		//std::string _str2 = "T\nT";// two lines
+		//std::string _str3 = "T\nT\nT";// three lines
+		//std::string _str4 = "T\nT\nT\nT";// four lines
 
 		//boxDrawn = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 		_bbox = font.drawMultiLineColumn(_str2,	/*string*/
@@ -2203,7 +1980,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 			MAX(10, _w),			/*column width*/
 			_numLines,				/*get back the number of lines*/
 			true,					/* if true, we wont draw (just get bbox back) */
-			20,						/* max number of lines to draw, crop after that */
+			0,						/* max number of lines to draw, crop after that */
 			_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 									BE ARWARE that using TRUE in here will modify your supplied string! */
 			&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2220,7 +1997,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 			MAX(10, _w),			/*column width*/
 			_numLines,				/*get back the number of lines*/
 			true,					/* if true, we wont draw (just get bbox back) */
-			20,						/* max number of lines to draw, crop after that */
+			0,						/* max number of lines to draw, crop after that */
 			_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 									BE ARWARE that using TRUE in here will modify your supplied string! */
 			&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2237,7 +2014,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 			MAX(10, _w),			/*column width*/
 			_numLines,				/*get back the number of lines*/
 			true,					/* if true, we wont draw (just get bbox back) */
-			20,						/* max number of lines to draw, crop after that */
+			0,						/* max number of lines to draw, crop after that */
 			_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 									BE ARWARE that using TRUE in here will modify your supplied string! */
 			&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2297,7 +2074,7 @@ float ofxSurfingTextSubtitle::getSpacingBetweenLines()
 		MAX(10, _w),			/*column width*/
 		_numLines,				/*get back the number of lines*/
 		true,					/* if true, we wont draw (just get bbox back) */
-		20,						/* max number of lines to draw, crop after that */
+		0,						/* max number of lines to draw, crop after that */
 		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 								BE ARWARE that using TRUE in here will modify your supplied string! */
 		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2316,7 +2093,7 @@ float ofxSurfingTextSubtitle::getSpacingBetweenLines()
 		MAX(10, _w),			/*column width*/
 		_numLines,				/*get back the number of lines*/
 		true,					/* if true, we wont draw (just get bbox back) */
-		20,						/* max number of lines to draw, crop after that */
+		0,						/* max number of lines to draw, crop after that */
 		_br,					/*get the final text formatting (by adding \n's) in the supplied string;
 								BE ARWARE that using TRUE in here will modify your supplied string! */
 		&_wordsWereCropped,		/* this bool will b set to true if the box was to small to fit all text*/
@@ -2530,6 +2307,16 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 
 				ui->Add(bReset, OFX_IM_BUTTON_SMALL);
 
+				if (ui->AddButton("R1", OFX_IM_BUTTON, 2, true))
+				{
+					fSizePrc = fSizePrc.getMin();
+				}
+				if (ui->AddButton("R2", OFX_IM_BUTTON, 2))
+				{
+					bCenteredV = false;
+					bResponsive = false;
+				}
+
 				ui->AddSpacingSeparated();
 
 				if (ui->BeginTree("CONTAINER", false, false))
@@ -2571,6 +2358,12 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 						if (ImGui::SliderFloat("h", &_h, 0, ofGetHeight())) {
 							box.setHeight(_h);
 						}
+					}
+
+					if (ui->AddButton("Reset"))
+					{
+						box.reset();
+						//box.reset(0.9f);
 					}
 
 					ui->PopWidth();
@@ -2792,6 +2585,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddSpacing();
 
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
+
 #ifdef USE_PRESETS__SUBTITLES
 			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
@@ -2802,7 +2596,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 
 			if (!bLive) {
-				ui->AddSpacingSeparated();
+				//ui->AddSpacingSeparated();
 				ui->AddSpacing();
 			}
 
@@ -3280,8 +3074,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-			}
-		}
+}
+}
 #endif
 
 		//workflow
@@ -3297,7 +3091,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		case 2: indexModes_Name.setWithoutEventNotifications("FORCED"); break;
 		case 3: indexModes_Name.setWithoutEventNotifications("MANUAL"); break;
 		}
-	}
+}
 
 	// Dialog index
 	else if (name == currentDialog.getName())

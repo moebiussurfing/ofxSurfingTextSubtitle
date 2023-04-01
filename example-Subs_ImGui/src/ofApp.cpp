@@ -3,8 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofSetWindowPosition(-1920, 25);
-	ofSetFrameRate(60);
+	ofxSurfingHelpers::SurfSetMyMonitor(0);
 
 	subs.setUiPtr(&ui);
 
@@ -12,9 +11,12 @@ void ofApp::setup()
 	subs.setDisableGuiInternal(true);
 #endif
 
-	path = "subs/Huxley.srt";
-	//path = "subs/Alphaville.srt";
-	//path = "subs/spanish.srt";
+	// SRT file path
+	{
+		path = "subs/Huxley.srt";
+		//path = "subs/Alphaville.srt";
+		//path = "subs/spanish.srt";
+	}
 
 	subs.setup(path);
 }
@@ -33,11 +35,31 @@ void ofApp::draw() {
 
 	subs.draw();
 
+	//--
+
 	subs.drawGui();
 	ui.Begin();
 	{
 		if (ui.BeginWindow("ofApp")) {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+
+			if (ui.AddButton("Do Text!"))
+			{
+				string s;
+				static bool b = false;
+				if (b) {
+					b = !b;
+					s = load("files/text3.txt");
+					//s = load("files/text1.txt");
+				}
+				else {
+					b = !b;
+					s = load("files/text1.txt");
+					//s = load("files/text2.txt");
+				}
+
+				subs.doSetTextSlide(s);
+			}
 
 			ui.EndWindow();
 		}
@@ -66,4 +88,34 @@ void ofApp::keyPressed(int key)
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
+}
+
+//--------------------------------------------------------------
+string ofApp::load(string path)
+{
+	string p = ofToDataPath(path, true);
+	//string p = ofFilePath::getAbsolutePath(path);
+
+	string text = "";
+
+	char* fileToEdit;
+	fileToEdit = (char*)(p.c_str());
+
+	//-
+
+	ofLogNotice("ofApp") << "load ifstream fileToEdit: " << ofToString(fileToEdit);
+
+	std::ifstream t(fileToEdit);
+	if (t.good())
+	{
+		string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+		text = str;
+
+		ofLogNotice("ofApp") << "loaded file: " << ofToString(fileToEdit);
+	}
+	else {
+		ofLogNotice("ofApp") << "file not found! " << ofToString(fileToEdit);
+	}
+
+	return text;
 }
