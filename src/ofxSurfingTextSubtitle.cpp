@@ -154,6 +154,10 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 {
 	ui = _ui;
 
+	// Debugger
+	T_CPU_SETUP_PTR(3);
+	T_GPU_SETUP_PTR(4);
+
 #ifdef USE_PRESETS__SUBTITLES
 	presets.setUiPtr(_ui);
 	presets.setPathGlobal("ofxSurfingTextSubtitle");
@@ -759,6 +763,8 @@ void ofxSurfingTextSubtitle::updateFades()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::update()
 {
+	T_CPU_START_PTR(0, "update");
+
 	//--
 
 	//TODO:
@@ -793,11 +799,15 @@ void ofxSurfingTextSubtitle::update()
 	//--
 
 	updateDebug();
+
+	T_CPU_END_PTR(0);
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updateEngine()
 {
+	T_CPU_START_PTR(1, "Engine");
+
 	//--
 
 	updateFades();
@@ -922,11 +932,15 @@ void ofxSurfingTextSubtitle::updateEngine()
 			}
 		}
 	}
+
+	T_CPU_END_PTR(1);
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updateDebug()
 {
+	T_CPU_START_PTR(2, "Debug");
+
 	//--
 
 	// Calculate progress
@@ -1063,10 +1077,13 @@ void ofxSurfingTextSubtitle::updateDebug()
 		}
 #endif
 	}
+
+	T_CPU_END_PTR(2);
 }
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawGui() {
+
 	if (!bGui) return;
 
 	// info
@@ -1081,6 +1098,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.drawGui();
 #endif
+
 }
 
 //--------------------------------------------------------------
@@ -1205,11 +1223,11 @@ void ofxSurfingTextSubtitle::drawRaw()
 	if (bDebug) {
 		tDEBUG0 = t - tDEBUG0_;
 
-		if (bDebugPerformance) {
-			static int count0 = 0;
-			count0++;
-			cout << "Draw0:  " << count0 << " frames:" << ofGetFrameNum() + 1 << endl;
-		}
+		//if (bDebugPerformance) {
+		//	static int count0 = 0;
+		//	count0++;
+		//	cout << "Draw0:  " << count0 << " frames:" << ofGetFrameNum() + 1 << endl;
+		//}
 	}
 }
 
@@ -1597,6 +1615,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::draw()
 {
+	T_GPU_START_PTR(0, "draw");
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.drawVideo();
@@ -1613,6 +1632,8 @@ void ofxSurfingTextSubtitle::draw()
 	if (!bLive) box.draw();
 
 	drawDebug();
+
+	T_GPU_END_PTR(0);
 }
 
 //--
@@ -1624,9 +1645,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	t = ofGetElapsedTimef();
 	if (!bNoDraw) {
 		tDEBUG1_ = t;
+		T_GPU_START_PTR(1, "DRAW");
 	}
 	else {
 		tDEBUG2_ = t;
+		T_GPU_START_PTR(2, "NO-DRAW");
 	}
 
 	//--
@@ -1874,23 +1897,25 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	{
 		if (!bNoDraw) {
 			tDEBUG1 = t - tDEBUG1_;
+			T_GPU_END_PTR(1);
 
-			if (bDebugPerformance)
-			{
-				static int count1 = 0;
-				count1++;
-				cout << "Draw1  :" << count1 << " frames:" << ofGetFrameNum() + 1 << endl;
-			}
+			//if (bDebugPerformance)
+			//{
+			//	static int count1 = 0;
+			//	count1++;
+			//	cout << "Draw1  :" << count1 << " frames:" << ofGetFrameNum() + 1 << endl;
+			//}
 		}
 		else {
 			tDEBUG2 = t - tDEBUG2_;
+			T_GPU_END_PTR(2);
 
-			if (bDebugPerformance)
-			{
-				static int count2 = 0;
-				count2++;
-				cout << "NoDraw2:" << count2 << " frames:" << ofGetFrameNum() + 1 << endl;
-			}
+			//if (bDebugPerformance)
+			//{
+			//	static int count2 = 0;
+			//	count2++;
+			//	cout << "NoDraw2:" << count2 << " frames:" << ofGetFrameNum() + 1 << endl;
+			//}
 		}
 	}
 
@@ -2170,6 +2195,8 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGui()
 {
+	T_GPU_START_PTR(3, "Gui");
+
 	if (!bGui) return;
 	if (ui == NULL) {
 		ofLogError("ofxSurfingTextSubtitle") << " ofxImGui is not instantiated. You should set the parent ui instance as reference!";
@@ -2253,6 +2280,8 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->EndWindow();
 }
 #endif	
+
+	T_GPU_END_PTR(3);
 }
 
 //--------------------------------------------------------------
@@ -2522,6 +2551,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	if (!bMinimize) ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
+	if (!bMinimize) ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
+	bDebugPerformance = ui->bDebugDebugger;
 
 	// manual
 	if (indexModes != 3)
@@ -2614,7 +2645,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				}
 			}
 
-			ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
+			ui->Add(bDraw, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
+			//ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
 
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);

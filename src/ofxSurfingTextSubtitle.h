@@ -73,7 +73,7 @@
 //----
 
 #define USE_WIDGET__SUBTITLES
-// A floating widget to display some info
+// A floating widget to display some info. to be used with ofxGui only.
 
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time conversions. Can be removed.
@@ -122,8 +122,11 @@
 #ifdef USE_IM_GUI__SUBTITLES
 #undef USE_WIDGET__SUBTITLES
 #endif
+
 #ifdef USE_WIDGET__SUBTITLES
+#ifndef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingBoxHelpText.h"
+#endif
 #endif
 
 #define MAX_FONT_SIZE 400
