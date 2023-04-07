@@ -2,7 +2,13 @@
 
 /*
 
-	BUG:
+	PERFORMANCE
+	
+	simplify drawTextBox calculators only once. not every drawn frame.
+	should calculate o new slide loaded but only once.
+	
+
+	BUG
 
 	1. fix broken lines / words...
 		could be related to pre draw rectangles?
@@ -18,7 +24,7 @@
 
 	fix progress in on pause
 
-	fix Forced mode broken ?
+	fix forced mode broken ?
 		fails if external video is playing.
 		should ignore setPos when forcing!
 
