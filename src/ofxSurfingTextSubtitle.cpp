@@ -156,7 +156,7 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 
 	// Debugger
 	T_CPU_SETUP_PTR(3);
-	T_GPU_SETUP_PTR(4);
+	T_GPU_SETUP_PTR(5);
 
 #ifdef USE_PRESETS__SUBTITLES
 	presets.setUiPtr(_ui);
@@ -546,6 +546,7 @@ void ofxSurfingTextSubtitle::startup()
 
 	//TODO: do once
 	oneLineHeight = getOneLineHeight();
+	spacingBetweenLines = getSpacingBetweenLines();
 
 	bDoneStartup = true;
 }
@@ -798,10 +799,9 @@ void ofxSurfingTextSubtitle::update()
 	//--
 
 	updateEngine();
+	updateDebug();
 
 	//--
-
-	updateDebug();
 
 	T_CPU_END_PTR(0);
 }
@@ -810,6 +810,14 @@ void ofxSurfingTextSubtitle::update()
 void ofxSurfingTextSubtitle::updateEngine()
 {
 	T_CPU_START_PTR(1, "Engine");
+
+	//--
+
+	if (box.isChanged())
+	{
+		ofLogNotice("ofxSurfingTextSubtitle") << "Box container changed";
+		bDoRefreshNoDraw = true;
+	}
 
 	//--
 
@@ -1153,18 +1161,31 @@ void ofxSurfingTextSubtitle::drawRaw()
 	//TODO:
 	// 1st pass. Expected approx amount lines of the last current drawn 
 	// Will update amountLinesDrawn! 
-	ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
+	if (bDoRefreshNoDraw) {
+		//bypass bc below there's another drawTextBox/ noDraw call!
+		//bDoRefreshNoDraw = false;//do once
+		ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
+	}
 
 	//--
 
 	bool bNoDraw;
 
 	// 1. No draw
-	// Will update boxDrawn
+	// Will update boxDrawnEstimated
 	// True. No drawing! 
-	// Just calculate and spaciate lines!
+	// Just calculate and distribute lines!
 	bNoDraw = true;
-	drawTextBox(textCurrent, box.getRectangle(), bNoDraw);
+
+	if (bDoRefreshNoDraw) {
+		drawTextBox(textCurrent, box.getRectangle(), bNoDraw);
+		bDoRefreshNoDraw = false;//do once
+		//boxDrawnEstimated will not be refreshed until next slide or box container changes!
+	}
+	else {//workaround to refresh. will be auto set last frozen value if not..
+		T_GPU_START_PTR(2, "TXT_NO-DRAW");
+		T_GPU_END_PTR(2);
+	}
 
 	//--
 
@@ -1174,7 +1195,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 	{
 		ofPushMatrix();
 
-		_offset = -(boxDrawn.getHeight() * 0.5f) + (box.getHeight() * 0.5f);
+		_offset = -(boxDrawnEstimated.getHeight() * 0.5f) + (box.getHeight() * 0.5f);
 
 		/*
 		int _diff = amountLinesTarget - amountLinesDrawn;
@@ -1589,7 +1610,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 			//----
 
-			// Debug boxDrawn
+			// Debug boxDrawnEstimated
 
 			if (bDebug2)
 			{
@@ -1637,7 +1658,9 @@ void ofxSurfingTextSubtitle::draw()
 	//it happens when moving floating preview window sometimes.
 	if (!bLive) box.draw();
 
+	T_GPU_START_PTR(4, "DEBUG-draw");
 	drawDebug();
+	T_GPU_END_PTR(4);
 
 	T_GPU_END_PTR(0);
 }
@@ -1651,11 +1674,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	t = ofGetElapsedTimef();
 	if (!bNoDraw) {
 		tDEBUG1_ = t;
-		T_GPU_START_PTR(1, "DRAW_TXT");
+		T_GPU_START_PTR(1, "TXT_DRAW");
 	}
 	else {
 		tDEBUG2_ = t;
-		T_GPU_START_PTR(2, "NO-DRAW_TXT");
+		if (bDoRefreshNoDraw) T_GPU_START_PTR(2, "TXT_NO-DRAW");
 	}
 
 	//--
@@ -1828,7 +1851,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			{
 				//TODO:
 				//if(bNoDraw)
-				boxDrawn = font.drawMultiLineColumn(
+				boxDrawnEstimated = font.drawMultiLineColumn(
 					_str,					/*string*/
 					_size,					/*size*/
 					//_x, _y,					/*where*/
@@ -1870,7 +1893,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 				if (!bNoDraw)
 				{
-					boxDrawn = font.drawMultiLine(
+					boxDrawnEstimated = font.drawMultiLine(
 						_str,					/*string*/
 						_size,					/*size*/
 						_x, _y,					/*where*/
@@ -1882,7 +1905,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 				else
 				{
 					{
-						boxDrawn = font.getBBox(
+						boxDrawnEstimated = font.getBBox(
 							_str,					/*string*/
 							_size,					/*size*/
 							//_x, _y,					/*where*/
@@ -1901,7 +1924,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	if (bDebug)
 	{
-	t = ofGetElapsedTimef();
+		t = ofGetElapsedTimef();
 
 		if (!bNoDraw) {
 			tDEBUG1 = t - tDEBUG1_;
@@ -1916,7 +1939,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		}
 		else {
 			tDEBUG2 = t - tDEBUG2_;
-			T_GPU_END_PTR(2);
+			if (bDoRefreshNoDraw) T_GPU_END_PTR(2);
 
 			//if (bDebugPerformance)
 			//{
@@ -1927,7 +1950,7 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		}
 	}
 
-	return boxDrawn;
+	return boxDrawnEstimated;
 }
 
 //--------------------------------------------------------------
@@ -1946,7 +1969,7 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 
 	// here upper border is aligned to the center horizontal
 	//_y += getOneLineHeight(); 
-	_y += oneLineHeight; 
+	_y += oneLineHeight;
 
 	//------
 
@@ -1977,7 +2000,8 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 //--------------------------------------------------------------
 float ofxSurfingTextSubtitle::getLineHeightUnit()
 {
-	return oneLineHeight + getSpacingBetweenLines();
+	return oneLineHeight + spacingBetweenLines;
+	//return oneLineHeight + getSpacingBetweenLines();
 	//return getOneLineHeight() + getSpacingBetweenLines();
 }
 
@@ -2000,13 +2024,13 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 
 	//-
 
-	//ofRectangle boxDrawn;
-	//boxDrawn = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
-	//float v2 = MAX(boxDrawn.getHeight(), 1) / 2.0f;
-	//boxDrawn = font.drawMultiLine(_str3, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
-	//float v3 = MAX(boxDrawn.getHeight(), 1) / 3.0f;
-	//boxDrawn = font.drawMultiLine(_str4, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
-	//float v4 = MAX(boxDrawn.getHeight(), 1) / 4.0f;
+	//ofRectangle boxDrawnEstimated;
+	//boxDrawnEstimated = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+	//float v2 = MAX(boxDrawnEstimated.getHeight(), 1) / 2.0f;
+	//boxDrawnEstimated = font.drawMultiLine(_str3, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+	//float v3 = MAX(boxDrawnEstimated.getHeight(), 1) / 3.0f;
+	//boxDrawnEstimated = font.drawMultiLine(_str4, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+	//float v4 = MAX(boxDrawnEstimated.getHeight(), 1) / 4.0f;
 
 	//-
 
@@ -2042,7 +2066,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 		//std::string _str3 = "T\nT\nT";// three lines
 		//std::string _str4 = "T\nT\nT\nT";// four lines
 
-		//boxDrawn = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+		//boxDrawnEstimated = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 		_bbox = font.drawMultiLineColumn(_str2,	/*string*/
 			_size,					/*size*/
 			_x, _y,					/*where*/
@@ -2059,7 +2083,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 
 		//-
 
-		//boxDrawn = font.drawMultiLine(_str3, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+		//boxDrawnEstimated = font.drawMultiLine(_str3, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 		_bbox = font.drawMultiLineColumn(_str3,	/*string*/
 			_size,					/*size*/
 			_x, _y,					/*where*/
@@ -2076,7 +2100,7 @@ float ofxSurfingTextSubtitle::getOneLineHeight(bool oneOnly)
 
 		//-
 
-		//boxDrawn = font.drawMultiLine(_str4, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+		//boxDrawnEstimated = font.drawMultiLine(_str4, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 		_bbox = font.drawMultiLineColumn(_str4,	/*string*/
 			_size,					/*size*/
 			_x, _y,					/*where*/
@@ -2155,7 +2179,7 @@ float ofxSurfingTextSubtitle::getSpacingBetweenLines()
 
 	std::string _str2 = "T\nT";// two lines
 
-	//boxDrawn = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
+	//boxDrawnEstimated = font.drawMultiLine(_str2, _size, 0, 0, OF_ALIGN_HORZ_LEFT, 1000);
 	_bbox = font.drawMultiLineColumn(_str2,	/*string*/
 		_size,					/*size*/
 		_x, _y,					/*where*/
@@ -2520,8 +2544,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #else
 				stime = t / 1000.f + "''";
 #endif
-			}
 		}
+	}
 		else if (indexModes == 1) // standalone
 		{
 			if (bPlayStandalone)
@@ -2557,7 +2581,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+}
 
 	//----
 
@@ -3152,7 +3176,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-			}
+}
 		}
 #endif
 
@@ -3689,6 +3713,8 @@ void ofxSurfingTextSubtitle::pause() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
+	bDoRefreshNoDraw = true;
+
 	bool b = indexModes == 3 && bPlayManual;
 
 	lastTextSlideRaw = s;//store raw to allow hot upper/lower capitalize

@@ -178,6 +178,7 @@ private:
 	float tDEBUG0_;
 public:
 	bool bDebugPerformance = 0;
+	bool bDoRefreshNoDraw = false;
 
 	//--
 
@@ -209,7 +210,6 @@ public:
 	void drawRaw();
 
 private:
-	bool bDoRefreshNoDraw = false;
 
 	void drawDebug();
 	// letters only. without boxes, interaction nor gui
@@ -491,8 +491,10 @@ private:
 	float getSpacingBetweenLines();
 
 	// Useful to memorize last drawn container.
-	// Use with care to avoid some flicks.
-	ofRectangle boxDrawn;
+	// boxDrawnEstimated will not be refreshed until next slide or box container changes!
+	// Must use with care to avoid some weird flicks.
+	ofRectangle boxDrawnEstimated;
+
 	//TODO:
 	ofRectangle boxDrawnReal;
 
@@ -521,7 +523,7 @@ public:
 	void stop();
 	void pause();
 
-	void doSetTextSlide(string s);
+	void doSetTextSlide(string s);//sets the text and start the slide playing..
 
 private:
 
@@ -545,6 +547,7 @@ private:
 	std::string _str3 = "T\nT\nT";// three lines
 	std::string _str4 = "T\nT\nT\nT";// four lines
 	float oneLineHeight = 0;
+	float spacingBetweenLines = 0;
 
 	/*
 	//TODO:
