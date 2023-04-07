@@ -209,6 +209,7 @@ public:
 	void drawRaw();
 
 private:
+	bool bDoRefreshNoDraw = false;
 
 	void drawDebug();
 	// letters only. without boxes, interaction nor gui
@@ -543,6 +544,7 @@ private:
 	std::string _str2 = "T\nT";// two lines
 	std::string _str3 = "T\nT\nT";// three lines
 	std::string _str4 = "T\nT\nT\nT";// four lines
+	float oneLineHeight = 0;
 
 	/*
 	//TODO:

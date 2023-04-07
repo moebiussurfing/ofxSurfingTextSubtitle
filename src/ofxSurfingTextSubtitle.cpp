@@ -544,6 +544,9 @@ void ofxSurfingTextSubtitle::startup()
 	player.startup();
 #endif
 
+	//TODO: do once
+	oneLineHeight = getOneLineHeight();
+
 	bDoneStartup = true;
 }
 
@@ -1148,7 +1151,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 	//box.setLockH();
 
 	//TODO:
-	// 1st pass. Expected aprox amount lines of the last current drawn 
+	// 1st pass. Expected approx amount lines of the last current drawn 
 	// Will update amountLinesDrawn! 
 	ofRectangle r = getTextBoxEstimate(textCurrent, box.getRectangle());
 
@@ -1156,6 +1159,7 @@ void ofxSurfingTextSubtitle::drawRaw()
 
 	bool bNoDraw;
 
+	// 1. No draw
 	// Will update boxDrawn
 	// True. No drawing! 
 	// Just calculate and spaciate lines!
@@ -1185,6 +1189,8 @@ void ofxSurfingTextSubtitle::drawRaw()
 	}
 
 	//--
+
+	// 2. Draw
 
 	// The Real Real drawing!
 
@@ -1645,11 +1651,11 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	t = ofGetElapsedTimef();
 	if (!bNoDraw) {
 		tDEBUG1_ = t;
-		T_GPU_START_PTR(1, "DRAW");
+		T_GPU_START_PTR(1, "DRAW_TXT");
 	}
 	else {
 		tDEBUG2_ = t;
-		T_GPU_START_PTR(2, "NO-DRAW");
+		T_GPU_START_PTR(2, "NO-DRAW_TXT");
 	}
 
 	//--
@@ -1693,7 +1699,8 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			//float rMax = 1.25f;
 			//_size = rMax * fSize.get();
 
-			float ho = getOneLineHeight();
+			float ho = oneLineHeight;
+			//float ho = getOneLineHeight();
 			float hb = box.getHeight();
 
 			float rLimit;
@@ -1786,7 +1793,8 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	}
 
 	// here upper border is aligned to the center horizontal
-	_y += getOneLineHeight();
+	_y += oneLineHeight;
+	//_y += getOneLineHeight();
 
 	// Fix. 
 	// workaround to hard code calibrate.
@@ -1891,10 +1899,10 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	//--
 
-	t = ofGetElapsedTimef();
-
 	if (bDebug)
 	{
+	t = ofGetElapsedTimef();
+
 		if (!bNoDraw) {
 			tDEBUG1 = t - tDEBUG1_;
 			T_GPU_END_PTR(1);
@@ -1936,7 +1944,9 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 	_size = fSize.get();
 	_align = fAlign.get();
 
-	_y += getOneLineHeight(); // here upper border is aligned to the center horizontal
+	// here upper border is aligned to the center horizontal
+	//_y += getOneLineHeight(); 
+	_y += oneLineHeight; 
 
 	//------
 
@@ -1967,7 +1977,8 @@ ofRectangle ofxSurfingTextSubtitle::getTextBoxEstimate(std::string _str, ofRecta
 //--------------------------------------------------------------
 float ofxSurfingTextSubtitle::getLineHeightUnit()
 {
-	return getOneLineHeight() + getSpacingBetweenLines();
+	return oneLineHeight + getSpacingBetweenLines();
+	//return getOneLineHeight() + getSpacingBetweenLines();
 }
 
 //--------------------------------------------------------------
@@ -2278,7 +2289,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif	
 
 	T_GPU_END_PTR(3);
@@ -2452,7 +2463,8 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 						string s;
 						ui->Indent();
 
-						float ho = this->getOneLineHeight();
+						float ho = this->oneLineHeight;
+						//float ho = this->getOneLineHeight();
 						s = "H Line: " + ofToString(ho);
 						ui->AddLabel(s);
 						float hb = box.getHeight();
@@ -2600,7 +2612,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		//if (bMinimize)
 		{
-			ui->Add(bLive, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+			ui->Add(bDraw, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+			ui->Add(bLive, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
 			s = "Live Mode hides some stuff";
 			if (!bLive)
 			{
@@ -2614,38 +2627,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		if (ui->BeginTree("MAIN", false, false))
 		{
-			ui->AddSpacing();
-
-			if (!bModeNoSrt)
-			{
-				if (!bMinimize) // maximized 
-				{
-					//if (!bLive) ui->AddSpacingSeparated();
-
-					std::string n = "FILE";
-					//std::string n = "SRT FILE";
-					//std::string n = name_Srt;
-					if (ui->BeginTree(n))
-					{
-						ui->AddLabel(name_Srt + ".srt");
-						//ui->AddLabel("SRT FILE");
-
-						ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
-						s = "Open an SRT file";
-						ui->AddTooltip(s);
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-						ui->AddSpacingSeparated();
-						ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
-#endif
-						ui->EndTree(false);
-					}
-
-					ui->AddSpacingSeparated();
-				}
-			}
-
-			ui->Add(bDraw, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
+			//ui->Add(bDraw, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
 			//ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
 
@@ -2667,6 +2649,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			//--
 
+			//ui->AddSpacingSeparated();
+
 			if (!bLive)
 			{
 				if (bModeNoSrt)
@@ -2676,10 +2660,37 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					s = "Open an SRT file";
 					ui->AddTooltip(s);
 				}
+				else
+				{
+					if (!bMinimize) // maximized 
+					{
+						//if (!bLive) ui->AddSpacingSeparated();
+
+						std::string n = "FILE";
+						//std::string n = "SRT FILE";
+						//std::string n = name_Srt;
+						if (ui->BeginTree(n))
+						{
+							ui->AddLabel(name_Srt + ".srt");
+							//ui->AddLabel("SRT FILE");
+
+							ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+							s = "Open an SRT file";
+							ui->AddTooltip(s);
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+							ui->AddSpacingSeparated();
+							ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
+							ui->EndTree(false);
+						}
+					}
+				}
+				//ui->AddSpacing();
 
 				if (!bMinimize)
 				{
-					ui->AddSpacingSeparated();
+					//ui->AddSpacingSeparated();
 					ui->AddSpacing();
 
 					ui->Indent();
@@ -2716,7 +2727,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		//--
 
-		ui->AddSpacingSeparated();
+		//ui->AddSpacingSeparated();
 
 		// maximized 
 		//if (!bMinimize)
@@ -2880,8 +2891,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					}
 					ui->PopWidth();
 
-					ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
-					ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
+					ui->Add(colorTextFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
+					ui->Add(colorBgFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
 
 					if (ui->AddButton("Swap")) {
 						ofFloatColor c = colorTextFloat;
@@ -2894,8 +2905,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 			else
 			{
-				ui->Add(colorTextFloat, OFX_IM_COLOR_NO_INPUTS);
-				ui->Add(colorBgFloat, OFX_IM_COLOR_NO_INPUTS_NO_ALPHA);
+				ui->Add(colorTextFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
+				ui->Add(colorBgFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
 			}
 
 			ui->EndTree(false);
@@ -3141,8 +3152,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-}
-	}
+			}
+		}
 #endif
 
 		//workflow
@@ -3158,7 +3169,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		case 2: indexModes_Name.setWithoutEventNotifications("FORCED"); break;
 		case 3: indexModes_Name.setWithoutEventNotifications("MANUAL"); break;
 		}
-}
+	}
 
 	// Dialog index
 	else if (name == currentDialog.getName())
