@@ -169,17 +169,26 @@ private:
 
 #endif
 
-private:
-	float tDEBUG1;
-	float tDEBUG1_;
-	float tDEBUG2;
-	float tDEBUG2_;
-	float tDEBUG0;
-	float tDEBUG0_;
-public:
-	bool bDebugPerformance = 0;
-	bool bDoRefreshNoDraw = false;
+//private:
+//	float tDEBUG1;
+//	float tDEBUG1_;
+//	float tDEBUG2;
+//	float tDEBUG2_;
+//	float tDEBUG0;
+//	float tDEBUG0_;
 
+private:
+	bool bDebugPerformance = 0;
+	bool bDoRefreshNoDraw = false; // To checking expected text formating determined by the box container.
+
+private:
+	ofFbo fbo; // Declare an instance of FBO
+	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
+	void doRefreshDraw(){
+		bDoRefreshNoDraw = true;
+		if (bUseFbo) bDoRefreshFboCapture = true;
+	}
+	
 	//--
 
 public:
@@ -359,6 +368,7 @@ public:
 
 	ofParameter<bool> bGui;
 	ofParameter<bool> bDraw;
+	ofParameter<bool> bUseFbo;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 	ofParameterGroup params_AppSettings;
@@ -420,8 +430,8 @@ private:
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
 	ofParameter<ofFloatColor> colorTextFloat;
-	ofParameter<ofFloatColor> fColorShadow;
-	ofParameter<glm::vec2> offsetShadow;
+	//ofParameter<ofFloatColor> colorTextShadow;
+	//ofParameter<glm::vec2> offsetShadow;
 	ofParameter<ofFloatColor> colorBgFloat;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;

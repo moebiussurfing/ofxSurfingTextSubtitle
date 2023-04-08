@@ -24,7 +24,7 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update() {
 	string name = "example-Subs_ImGui";
-	ofxSurfingHelpers::SurfSetWindowTitleDebugPerformance(name);
+	ofxSurfingHelpers::SurfSetWindowTitleDebugPerformance(name, true);
 
 	subs.update();
 
@@ -38,11 +38,26 @@ void ofApp::update() {
 void ofApp::draw() {
 	ofClear(subs.getColorBg());
 
-	subs.draw();
+	//--
+	
+	// imageBg
+	//if (!image.isAllocated()) image.load("image2.png");
+	ofxSurfingHelpers::SurfDrawImageFullScreenFit(image, OF_SCALEMODE_FILL, 0);
 
 	//--
 
+	subs.draw();
+
+	//--
+	
+	drawGui();
+}
+
+//--------------------------------------------------------------
+void ofApp::drawGui() {
+
 	subs.drawGui();
+
 	ui.Begin();
 	{
 		if (ui.BeginWindow("ofApp"))
@@ -57,7 +72,7 @@ void ofApp::draw() {
 
 			// Tester
 			{
-				ui.AddToggle("Debug", subs.bDebugPerformance);
+				//ui.AddToggle("Debug", subs.bDebugPerformance);
 
 				ui.AddLabel("TEST");
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
@@ -97,10 +112,10 @@ void ofApp::keyPressed(int key)
 	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 
-	if (key == ' ') 
+	if (key == ' ')
 	{
 		//subs.setTogglePlay();
-		
+
 		// manual
 		if (subs.getModePlayer() == 3) doText();
 		else subs.setTogglePlay();

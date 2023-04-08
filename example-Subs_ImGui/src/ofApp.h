@@ -27,7 +27,10 @@ public:
 	void setup();
 	void update();
 	void draw();
+	void drawGui();
 	void keyPressed(int key);
+	
+	ofImage image;
 
 	ofxSurfingTextSubtitle subs;
 	string path;
@@ -36,7 +39,7 @@ public:
 
 	//--
 
-	// Tester
+	// Debug Tester
 	bool bAuto = 1;
 	int td = 2;
 	// function to random populate slides, loading different text files.
