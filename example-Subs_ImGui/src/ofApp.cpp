@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofxSurfingHelpers::SurfSetMyMonitor(0);
+	ofxSurfingHelpers::setMonitorsLayout(0);
 
 	subs.setUiPtr(&ui);
 
@@ -24,11 +24,11 @@ void ofApp::setup()
 //--------------------------------------------------------------
 void ofApp::update() {
 	string name = "example-Subs_ImGui";
-	ofxSurfingHelpers::SurfSetWindowTitleDebugPerformance(name, true);
+	ofxSurfingHelpers::setWindowTitleDebugPerformance(name, true);
 
 	subs.update();
 
-	//tester
+	// Tester
 	if (bAuto && (ofGetFrameNum() % (td * 60) == 0)) {
 		doText();
 	};
@@ -41,8 +41,10 @@ void ofApp::draw() {
 	//--
 	
 	// imageBg
-	//if (!image.isAllocated()) image.load("image2.png");
-	ofxSurfingHelpers::SurfDrawImageFullScreenFit(image, OF_SCALEMODE_FILL, 0);
+	if (0) {
+		if (!image.isAllocated()) image.load("images/image2.png");
+		ofxSurfingHelpers::drawImageFullScreenFit(image, OF_SCALEMODE_FILL, 0);
+	}
 
 	//--
 
@@ -76,7 +78,7 @@ void ofApp::drawGui() {
 
 				ui.AddLabel("TEST");
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
-				ui.AddToggle("auto", bAuto, sz);
+				ui.AddToggle("DoAuto", bAuto, sz);
 				ui.SameLine();
 				if (ui.AddButton("DoText!", sz))
 				{

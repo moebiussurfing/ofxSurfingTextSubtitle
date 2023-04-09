@@ -46,6 +46,8 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	box.setBorderColor(ofColor(bTheme ? colorDebugLight : colorDebugDark, 64));
 
 	box.setup();
+	//box.setType(BOX_TYPE::TYPE_RECTANGLE);//force
+	box.setType(BOX_TYPE::TYPE_BAR_VERTICAL);//force
 
 #ifdef USING_OFX_TIME_CODE
 	timecode.setFPS(fps);
@@ -160,6 +162,9 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 	T_GPU_SETUP_PTR(5);
 
 #ifdef USE_PRESETS__SUBTITLES
+	//startup
+	presets.bGui = false;
+	
 	presets.setUiPtr(_ui);
 	presets.setPathGlobal("ofxSurfingTextSubtitle");
 	presets.setPath("ofxSurfingTextSubtitle");
@@ -270,7 +275,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	colorTextFloat.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//colorTextShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
-	colorBgFloat.set("ColorBg", ofFloatColor::gray, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	colorBgFloat.set("ColorBg", ofFloatColor(50/255.f), ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset", false);
@@ -1329,7 +1334,8 @@ void ofxSurfingTextSubtitle::drawDebug()
 
 		{
 			int padx = 50;
-			int pady = 50;
+			int pady = -50;
+			//int pady = 50;
 
 			//--
 
@@ -1562,6 +1568,7 @@ void ofxSurfingTextSubtitle::drawDebug()
 			if (alpha != 0)
 				if ((bAnimatedIn || bAnimatedOut))
 				{
+					//float pad2 = -60;
 					float pad2 = 60;
 
 					float x = 0;
@@ -3446,12 +3453,14 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		auto _numframes = durationIn / (float)(dt * 1000);
 		float _margin = 1.f; // fade in increment per frame. from 0 to 1 or vice versa.
 		dtAnimIn = _margin / (float)_numframes;
+		doRefreshDraw();
 	}
 	else if (name == durationOut.getName())
 	{
 		auto _numframes = durationOut / (float)(dt * 1000);
 		float _margin = 1.f; // fade out increment per frame. from 0 to 1 or vice versa.
 		dtAnimOut = _margin / (float)_numframes;
+		doRefreshDraw();
 	}
 
 	else if (name == bAnimatedIn.getName())
@@ -3546,21 +3555,25 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		fSize = fSizePrc * fSize.getMax();
 		//fSize = fSizePrc * box.getWidth() / 5;
+		doRefreshDraw();
 	}
 	// spacing
 	else if (name == fSpacing.getName())
 	{
 		font.setCharacterSpacing(fSpacing);
+		doRefreshDraw();
 	}
 	// height
 	else if (name == fLineHeight.getName())
 	{
 		font.setLineHeight(fLineHeight);
+		doRefreshDraw();
 	}
 	// alignment
 	else if (name == fAlign.getName())
 	{
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
+		doRefreshDraw();
 	}
 
 	// reset style
@@ -3597,6 +3610,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		loadFont(fPath.get());
 	}
 
+	// Fbo/redraw engine
 	else if (name == colorTextFloat.getName())
 	{
 		doRefreshDraw();

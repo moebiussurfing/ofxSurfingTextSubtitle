@@ -40,9 +40,9 @@ public:
 	//--
 
 	// Debug Tester
-	bool bAuto = 1;
-	int td = 2;
 	// function to random populate slides, loading different text files.
+	bool bAuto = 1;//enable
+	int td = 2;//frequency in seconds
 	void doText() {
 		string s;
 		static bool b = false;

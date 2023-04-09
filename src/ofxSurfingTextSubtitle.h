@@ -169,14 +169,6 @@ private:
 
 #endif
 
-//private:
-//	float tDEBUG1;
-//	float tDEBUG1_;
-//	float tDEBUG2;
-//	float tDEBUG2_;
-//	float tDEBUG0;
-//	float tDEBUG0_;
-
 private:
 	bool bDebugPerformance = 0;
 	bool bDoRefreshNoDraw = false; // To checking expected text formating determined by the box container.
@@ -475,7 +467,7 @@ private:
 
 	ofColor colorDebugDark = ofColor::black;
 	ofColor colorDebugLight = ofColor::white;
-	ofParameter<bool> bTheme{ "Theme", true };
+	ofParameter<bool> bTheme{ "Theme", 1 };
 
 	string textCurrent = "";
 
