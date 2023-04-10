@@ -3,10 +3,6 @@
 /*
 
 	PERFORMANCE
-	
-	simplify drawTextBox calculators only once. not every drawn frame.
-	should calculate o new slide loaded but only once.
-	
 
 	BUG
 
@@ -93,6 +89,8 @@
 
 #include "ofMain.h"
 
+#include <unordered_set>
+
 // CREDITS:
 // srtparser.h
 // taken from https://github.com/Jonathhhan/ofEmscriptenExamples
@@ -176,11 +174,11 @@ private:
 private:
 	ofFbo fbo; // Declare an instance of FBO
 	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
-	void doRefreshDraw(){
+	void doRefreshDraw() {
 		bDoRefreshNoDraw = true;
 		if (bUseFbo) bDoRefreshFboCapture = true;
 	}
-	
+
 	//--
 
 public:
@@ -326,11 +324,16 @@ private:
 
 	void setupParams();
 	void setupSubs(string _pathSrt);
-	void buildSubsData(); // not really used by the engine. just to preview the SRT window to display all messages.
+	void buildDataSubs(); // not really used by the engine. just to preview the SRT window to display all messages.
 
-	void doOpenFile();
-	void processOpenFileSelection(ofFileDialogResult openFileResult);
+	void doOpenFileSrt();
+	void processOpenFileSrtSelection(ofFileDialogResult openFileResult);
 
+	void doOpenFileText();
+	void processOpenFileTextSelection(ofFileDialogResult openFileResult);
+public:
+	void setupText(string path);
+private:
 	bool bDoneStartup = false;
 	void startup();
 	void exit();
@@ -378,7 +381,8 @@ private:
 	ofParameterGroup params_FadeIn;
 	ofParameterGroup params_FadeOut;
 
-	ofParameter<void> bOpen;
+	ofParameter<void> bOpenSrt;
+	ofParameter<void> bOpenFile;
 	ofParameter<bool> bGui_List;
 	ofParameter<bool> bGui_Paragraph;
 	ofParameter<bool> bEdit;
@@ -437,6 +441,7 @@ private:
 	vector<string> names_Align{ "LEFT", "RIGHT", "CENTER" };
 
 	ofParameter<int> indexModes; // 0, 1, 2, 3
+	// 0 EXTERNAL, 1 STANDALONE, 2 FORCED, 3 MANUAL
 	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
 	ofParameter<string> indexModes_Name;
 
@@ -502,9 +507,13 @@ private:
 
 	void drawInsertionPoint(float _x, float _y, float _w = 0, float _h = 0);
 
-	vector<string> subsDataText;
+	vector<string> dataTextSubs;
 	string path_Srt;//.srt filename
 	string name_Srt;//.srt name
+
+	vector<string> dataTextBlocks;
+	string path_Text;//.txt filename
+	string name_Text;//.txt name
 
 	void doReset();
 	std::string getAlignNameFromIndex(int index) const;
@@ -527,9 +536,11 @@ public:
 
 	void doSetTextSlide(string s);//sets the text and start the slide playing..
 
+	void buildDataTextBlocks(string s);//Create slides from a unique string text.
+
 private:
 
-	string lastTextSlideRaw = "";
+	string lastTextSlideRaw = "";//last loaded text dialog or text block with the original capitalization.
 
 	//--
 
@@ -550,6 +561,8 @@ private:
 	std::string _str4 = "T\nT\nT\nT";// four lines
 	float oneLineHeight = 0;
 	float spacingBetweenLines = 0;
+
+	//--
 
 	/*
 	//TODO:
@@ -582,16 +595,14 @@ public:
 	string loadFileText(string path)
 	{
 		string p = ofToDataPath(path, true);
-		//string p = ofFilePath::getAbsolutePath(path);
 
 		string text = "";
 
-		//path
 		char* pathChars = (char*)(p.c_str());
 
-		//-
+		//--
 
-		ofLogNotice("ofApp") << "load ifstream pathChars: " << ofToString(pathChars);
+		ofLogNotice("ofxSurfingTextSubtitle") << "load ifstream pathChars: " << ofToString(pathChars);
 
 		std::ifstream t(pathChars);
 		if (t.good())
@@ -599,14 +610,81 @@ public:
 			string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 			text = str;
 
-			ofLogNotice("ofApp") << "loaded file: " << ofToString(pathChars);
+			ofLogNotice("ofxSurfingTextSubtitle") << "loaded file: " << ofToString(pathChars);
 		}
 		else
 		{
-			ofLogNotice("ofApp") << "file not found! " << ofToString(pathChars);
+			ofLogNotice("ofxSurfingTextSubtitle") << "file not found! " << ofToString(pathChars);
 		}
 
 		return text;
-	}
+	};
 
+	//----
+
+private:
+
+	//TODO:
+	// we have two main modes, srt or text blocks modes.
+	bool bModeTextBlocks = false;
+
+	// String blocks processors:
+
+	//TODO:
+	std::vector<std::string>* dataTextPtr = new std::vector<std::string>();
+
+	//#include <unordered_set>
+	//--------------------------------------------------------------
+	std::vector<std::string> splitTextBlocks(const std::string& s) {
+		std::vector<std::string> blocks;
+		std::string current_block;
+		bool inside_block = false; // Keeps track of whether we're currently inside a block
+
+		std::unordered_set<std::string> exceptions{ " s.", " d.", " C." }; // List of exceptions to ignore
+		// exceptions will by pass the separation of text blocks.
+		//TODO: must add more cases from English. these above exceptions are from Spanish language.
+
+		for (char c : s) {
+			if (c == '\n' || c == '\r') {
+				continue; // Ignore newline characters
+			}
+
+			current_block += c;
+
+			if (c == '.') {
+				if (exceptions.count(current_block.substr(current_block.length() - 3)) > 0) { // Check if the current block ends with an exception
+					continue; // Skip the block termination and keep reading
+				}
+				else {
+					inside_block = false;
+					blocks.push_back(current_block);
+					current_block.clear();
+				}
+			}
+			else {
+				inside_block = true;
+			}
+
+			if (current_block.length() > 10000) {
+				std::cerr << "Block size limit exceeded" << std::endl;
+				break;
+			}
+		}
+
+		if (!current_block.empty()) {
+			blocks.push_back(current_block);
+		}
+
+		// remove starting spaces on each text blocks
+		removeLeadingSpaces(blocks);
+
+		return blocks;
+	};
+
+	//--------------------------------------------------------------
+	void removeLeadingSpaces(std::vector<std::string>& vec) {
+		for (auto& str : vec) {
+			str.erase(0, str.find_first_not_of(' '));
+		}
+	};
 };

@@ -14,6 +14,8 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 
 //--------------------------------------------------------------
 ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
+	//delete dataTextPtr;
+
 	exit();
 };
 
@@ -164,7 +166,7 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 #ifdef USE_PRESETS__SUBTITLES
 	//startup
 	presets.bGui = false;
-	
+
 	presets.setUiPtr(_ui);
 	presets.setPathGlobal("ofxSurfingTextSubtitle");
 	presets.setPath("ofxSurfingTextSubtitle");
@@ -232,7 +234,8 @@ void ofxSurfingTextSubtitle::setupParams()
 
 	// Control
 	bStop.set("Stop");
-	bOpen.set("Open");
+	bOpenSrt.set("Open SRT");
+	bOpenFile.set("Open Text");
 	bDraw.set("DRAW", true);
 	bLive.set("LIVE!", false);
 	bEdit.set("Edit", true);
@@ -275,7 +278,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	colorTextFloat.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//colorTextShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
-	colorBgFloat.set("ColorBg", ofFloatColor(50/255.f), ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	colorBgFloat.set("ColorBg", ofFloatColor(50 / 255.f), ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset", false);
@@ -330,7 +333,8 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	params_Control.setName("Control");
-	params_Control.add(bOpen);
+	params_Control.add(bOpenSrt);
+	params_Control.add(bOpenFile);
 	params_Control.add(bDraw);
 	params_Control.add(bLive);
 	params_Control.add(bEdit);
@@ -491,7 +495,7 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	currentDialog.setMax(sub.size() - 1);
 
 	// pre read all subs on a vector
-	buildSubsData();
+	buildDataSubs();
 
 	//TODO: not sure if .srt file is loaded before the first frame!
 
@@ -509,20 +513,20 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::buildSubsData()
+void ofxSurfingTextSubtitle::buildDataSubs()
 {
 	ofLogNotice(__FUNCTION__) << " " << path_Srt;
 
 	//not used yet
 	int i = 0;
-	subsDataText.clear();
+	dataTextSubs.clear();
 	for (SubtitleItem* element : sub)
 	{
 		string s = element->getDialogue();
 		if (bCapitalize) s = ofToUpper(s);
 
 		ofLogNotice("ofxSurfingTextSubtitle") << i++ << " " << s;
-		subsDataText.push_back(s);
+		dataTextSubs.push_back(s);
 	}
 }
 
@@ -802,22 +806,24 @@ void ofxSurfingTextSubtitle::update()
 	player.update();
 #endif
 
-	//TODO:
-	//trick fix to example-SubtitleWhisper app
-#ifdef USE_PRESETS__SUBTITLES
-	if (presets.isChangedIndex())
-	{
-		ui->ClearLogDefaultTags();
-		ofColor c = ofColor(getColorText(), 255);
-		ui->AddLogTag(c);
-	};
-#endif
+	//	//TODO:
+	//	//trick improve to example-SubtitleWhisper app
+	//	//set the text color for the log..
+	//#ifdef USE_PRESETS__SUBTITLES
+	//	if (presets.isChangedIndex())
+	//	{
+	//		ui->ClearLogDefaultTags();
+	//		ofColor c = ofColor(getColorText(), 255);
+	//		ui->AddLogTag(c);
+	//	};
+	//#endif
 
 	//if (!bDraw) return;
 
 	//--
 
 	updateEngine();
+
 	updateDebug();
 
 	//--
@@ -848,20 +854,20 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	uint64_t t = 0;
 
-	if (indexModes == 0) // external
+	if (indexModes == 0) // EXTERNAL
 	{
 		//if (bPlayExternal) t = positionExternal * (float)tEndSubsFilm;
 		t = positionExternal * (float)tEndSubsFilm;
 	}
-	else if (indexModes == 1) // standalone
+	else if (indexModes == 1) // STANDALONE
 	{
 		//if (bPlayStandalone) t = ofGetElapsedTimeMillis() - tPlay;
 		t = ofGetElapsedTimeMillis() - tPlay;
 	}
-	else if (indexModes == 2) // forced
+	else if (indexModes == 2) // FORCED
 	{
 	}
-	else if (indexModes == 3) // manual
+	else if (indexModes == 3) // MANUAL
 	{
 		////if (bPlayExternal) t = positionExternal * (float)tEndSubsFilm;
 		//t = positionExternal * (float)tEndSubsFilm;
@@ -869,36 +875,49 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	//--
 
-	if (sub.size() > 0)
-	{
-		// Pre start. 
-		// Waiting first dialog in.
-		// clear text before first dialog
-		if (t < sub[0]->getStartTime())
-		{
-			textCurrent = "";
-			isPrecoutingStart = true;
-		}
-		else
-		{
-			isPrecoutingStart = false;
+	// 1. Mode text blocks
 
-			// find the dialog relative to current time
-			int k = 0;
-			for (SubtitleItem* element : sub)
+	if (bModeTextBlocks)
+	{
+		////TODO:
+		//tPlayStartSlide = ofGetElapsedTimeMillis();
+		//isSlidePlaying = true;
+	}
+	else
+	{
+		// 2. Mode srt
+
+		if (sub.size() > 0)
+		{
+			// Fix. Pre start. 
+			// Waiting first dialog in.
+			// clear text before first dialog
+			if (t < sub[0]->getStartTime())
 			{
-				if (t > element->getStartTime() && t <= element->getEndTime())
+				textCurrent = "";
+				isPrecoutingStart = true;
+			}
+			else
+			{
+				isPrecoutingStart = false;
+
+				// find the dialog relative to current time
+				int k = 0;
+				for (SubtitleItem* element : sub)
 				{
-					// To apply only once if currentDialog changed!
-					if (currentDialog.get() != k)
+					if (t > element->getStartTime() && t <= element->getEndTime())
 					{
-						// changed
-						currentDialog = k; // will trig the callback!
-						doUpdateSlidePlay(element);
+						// To apply only once if currentDialog changed!
+						if (currentDialog.get() != k)
+						{
+							// changed
+							currentDialog = k; // will trig the callback!
+							doUpdateSlidePlay(element);
+						}
+						break;//done found
 					}
-					break;//done found
+					k++;
 				}
-				k++;
 			}
 		}
 	}
@@ -920,19 +939,19 @@ void ofxSurfingTextSubtitle::updateEngine()
 
 	//--
 
-	if (indexModes == 0) // external
+	if (indexModes == 0) // EXTERNAL
 	{
 		if (bPlayExternal)
 		{
 		}
 	}
-	else if (indexModes == 1) // standalone
+	else if (indexModes == 1) // STANDALONE
 	{
 		//if(bPlayStandalone) {
 		//	positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlay, 0, tEndSubsFilm, 0, 1, false);
 		//}
 	}
-	else if (indexModes == 2) // forced
+	else if (indexModes == 2) // FORCED
 	{
 		if (bPlayForced)
 		{
@@ -947,7 +966,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 			//positionExternal = ofMap(ofGetElapsedTimeMillis() - tPlayForceFilm, 0, tEndSubsFilm, 0, 1, false);
 		}
 	}
-	else if (indexModes == 3) // manual
+	else if (indexModes == 3) // MANUAL
 	{
 		if (bPlayManual)
 		{
@@ -1135,7 +1154,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 #endif
 
 	T_GPU_END_PTR(3);
-	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::draw(ofRectangle view) {
@@ -1158,12 +1177,6 @@ void ofxSurfingTextSubtitle::draw(ofRectangle view) {
 void ofxSurfingTextSubtitle::drawRaw()
 {
 	if (!bDraw) return;
-
-	//float t;
-	//if (bDebug) {
-	//	t = ofGetElapsedTimef();
-	//	tDEBUG0_ = t;
-	//}
 
 	//--
 
@@ -1274,16 +1287,6 @@ void ofxSurfingTextSubtitle::drawRaw()
 		}
 		*/
 	}
-
-	//t = ofGetElapsedTimef();
-	//if (bDebug) {
-	//	tDEBUG0 = t - tDEBUG0_;
-	//	//if (bDebugPerformance) {
-	//	//	static int count0 = 0;
-	//	//	count0++;
-	//	//	cout << "Draw0:  " << count0 << " frames:" << ofGetFrameNum() + 1 << endl;
-	//	//}
-	//}
 }
 
 //--------------------------------------------------------------
@@ -1319,16 +1322,16 @@ void ofxSurfingTextSubtitle::drawDebug()
 		// A. Attached to box
 		ofRectangle bb = box.getRectangle();
 
-		//TODO:
-		// improve getting the bigger rectangle.. 
-		if (1) {
-			float diff = boxDrawnReal.getHeight() - bb.getHeight();
-			bool b = (diff > 0);
-			if (b) {
-				bb.setHeight(boxDrawnReal.getHeight());
-				bb.translateY(-diff / 2);
-			}
-		}
+		////TODO:
+		//// improve getting the bigger rectangle.. 
+		//if (0) {
+		//	float diff = boxDrawnReal.getHeight() - bb.getHeight();
+		//	bool b = (diff > 0);
+		//	if (b) {
+		//		bb.setHeight(boxDrawnReal.getHeight());
+		//		bb.translateY(-diff / 2);
+		//	}
+		//}
 
 		//--
 
@@ -1568,36 +1571,40 @@ void ofxSurfingTextSubtitle::drawDebug()
 			if (alpha != 0)
 				if ((bAnimatedIn || bAnimatedOut))
 				{
-					//float pad2 = -60;
-					float pad2 = 60;
+					float xpadDebug = 10;
+					float ypadDebug = 10;
 
 					float x = 0;
 					float y = 0;
 
 					float x1 = 0;
 					float x2 = 0;
-					float y1 = 6;
+					float y1 = 0;
 					float y2 = 0;
 
 					float w = 3;
-					float h = -bb.getHeight();
+
+					float h = bb.getHeight() - (2 * ypadDebug);
 
 					static ofBitmapFont f;
-					float o = 3;//correct font
+					//float o = 0;//correct font
+					float o = 3;//offset1 correct font
+					float o2 = 10;//offset2
 
 					glm::vec2 p;
 					string s;
 
 					//--
 
-					if (bLeft) x = bb.getTopLeft().x - pad2;
-					else x = bb.getTopRight().x + pad2;
+					if (bLeft) x = bb.getTopLeft().x - xpadDebug;
+					else x = bb.getTopRight().x + xpadDebug;
 
-					y = bb.getTopLeft().y;
+					y = bb.getTopLeft().y + ypadDebug + h;
 
 					s = "ALPHA";
 					auto bb1 = f.getBoundingBox(s, 0, 0);
-					x1 = bb1.getWidth() / 2 - o;
+					x1 = bb1.getWidth() + o + o2;
+					//x1 = bb1.getWidth() / 2 - o;
 
 					ofDrawBitmapStringHighlight(s, x - x1, y - y1,
 						(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
@@ -1607,20 +1614,21 @@ void ofxSurfingTextSubtitle::drawDebug()
 					if (bLeft)
 					{
 						p = bb.getTopLeft();
-						x = p.x - pad2;
+						x = p.x - xpadDebug;
 					}
 					else
 					{
 						p = bb.getTopRight();
-						x = p.x + pad2;
+						x = p.x + xpadDebug;
 					}
 
-					y = p.y + bb.getHeight();
+					y = p.y + ypadDebug + h;
 
+					// bar
 					ofColor c = ofColor(colorTextFloat.get(), alpha * colorTextFloat.get().a * 255);
 					ofSetColor(c);
 					ofFill();
-					ofRectangle r(x, y, w, h * alpha);
+					ofRectangle r(x, y, w, -h * alpha);
 					ofDrawRectangle(r);
 
 					//--
@@ -1631,9 +1639,13 @@ void ofxSurfingTextSubtitle::drawDebug()
 						else if (bAnimatedOut && isAnimOut) s = "OUT";
 
 						auto bb2 = f.getBoundingBox(s, 0, 0);
-						x2 = bb2.getWidth() / 2 - o;
-						y2 = bb2.getHeight();
-						ofDrawBitmapStringHighlight(s, x - x2, y + y2,
+
+						//x2 = bb2.getWidth() / 2 - o;
+						x2 = bb2.getWidth() + o + o2;
+						if (bTop) y2 = ypadDebug + o2;
+						else y2 = ypadDebug + h - 20;
+
+						ofDrawBitmapStringHighlight(s, x - x2, y2,
 							(bTheme.get() ? 255 : 0), (bTheme.get() ? 0 : 255));
 					}
 				}
@@ -1652,21 +1664,6 @@ void ofxSurfingTextSubtitle::drawDebug()
 		}
 	}
 	ofPopStyle();
-
-	//--
-
-	////if (0)
-	//{
-	//	string s = "";
-	//	s += "Draw: " + ofToString(tDEBUG0 * 1000, 0) + "ms";
-	//	if (bDebugPerformance) {
-	//		s += "\n";
-	//		s += "DrawPass: " + ofToString(tDEBUG1 * 1000, 0) + "ms";
-	//		s += "\n";
-	//		s += "NoDraw: " + ofToString(tDEBUG2 * 1000, 0) + "ms";
-	//	}
-	//	ofDrawBitmapStringHighlight(s, 4, 15);
-	//}
 }
 
 //--------------------------------------------------------------
@@ -1678,9 +1675,12 @@ void ofxSurfingTextSubtitle::draw()
 	player.drawVideo();
 #endif
 
-	if (!bDraw) return;
+	if (!bDraw) {
+		T_GPU_END_PTR(0);
+		return;
+	}
 
-	bool b = bUseFbo && fbo.isAllocated();
+	bool b = (bUseFbo && fbo.isAllocated());
 	if (b)
 	{
 		if (bDoRefreshFboCapture) {
@@ -1688,9 +1688,9 @@ void ofxSurfingTextSubtitle::draw()
 
 			fbo.begin();
 
+			//draw into fbo with full alpha
 			ofClear(colorBgFloat.get());
 			ofSetColor(colorTextFloat.get());
-
 			drawRaw();
 
 			fbo.end();
@@ -1703,6 +1703,7 @@ void ofxSurfingTextSubtitle::draw()
 		}
 
 		T_GPU_START_PTR(1, "TXT_DRAW");
+		// draw fbo with alpha
 		ofSetColor(255, a);
 		fbo.draw(0, 0);
 		T_GPU_END_PTR(1);
@@ -1721,9 +1722,7 @@ void ofxSurfingTextSubtitle::draw()
 	if (!bLive) box.draw();
 
 	T_GPU_START_PTR(4, "DEBUG-draw");
-
 	drawDebug();
-
 	T_GPU_END_PTR(4);
 
 	T_GPU_END_PTR(0);
@@ -1734,14 +1733,10 @@ void ofxSurfingTextSubtitle::draw()
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw)
 {
-	//float t;
-	//t = ofGetElapsedTimef();
 	if (!bNoDraw) {
-		//tDEBUG1_ = t;
 		T_GPU_START_PTR(1, "TXT_DRAW");
 	}
 	else {
-		//tDEBUG2_ = t;
 		if (bDoRefreshNoDraw) T_GPU_START_PTR(2, "TXT_NO-DRAW");
 	}
 
@@ -1983,14 +1978,10 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 
 	if (bDebug)
 	{
-		//t = ofGetElapsedTimef();
-
 		if (!bNoDraw) {
-			//tDEBUG1 = t - tDEBUG1_;
 			T_GPU_END_PTR(1);
 		}
 		else {
-			//tDEBUG2 = t - tDEBUG2_;
 			if (bDoRefreshNoDraw) T_GPU_END_PTR(2);
 		}
 	}
@@ -2349,7 +2340,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif
 
 	T_GPU_END_PTR(4);
@@ -2566,11 +2557,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	if (bLoaded)
 	{
 		// filename
-		sfile = name_Srt;
+		if (bModeTextBlocks) sfile = name_Text;
+		else sfile = name_Srt;
 
 		// Elapsed time 
 
-		if (indexModes == 0) // external
+		if (indexModes == 0) // EXTERNAL
 		{
 			if (bPlayExternal)
 			{
@@ -2582,7 +2574,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 			}
 		}
-		else if (indexModes == 1) // standalone
+		else if (indexModes == 1) // STANDALONE
 		{
 			if (bPlayStandalone)
 			{
@@ -2595,14 +2587,18 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 			}
 		}
-		else if (indexModes == 2) // forced
+		else if (indexModes == 2) // FORCED
 		{
 			if (bPlayForced)
 			{
-				stime = sub[currentDialog]->getStartTimeString();
+				if (bModeTextBlocks)
+				{
+					// not included times. just a text file.
+				}
+				else stime = sub[currentDialog]->getStartTimeString();
 			}
 		}
-		else if (indexModes == 3)  // manual
+		else if (indexModes == 3)  // MANUAL
 		{
 			if (bPlayManual)
 			{
@@ -2611,7 +2607,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		if (!bPlayStandalone && !bPlayForced && !bPlayExternal && !bPlayManual)
 		{
-			stime = sub[currentDialog]->getStartTimeString();
+			if (bModeTextBlocks) stime = "";
+			else stime = sub[currentDialog]->getStartTimeString();
 			//stime = timecode.timecodeForMillis(0);
 		}
 
@@ -2636,7 +2633,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			if (!bMinimize)
 			{
 				ui->AddLabelBig(sfile);
-				s = path_Srt;
+				if (bModeTextBlocks) s = path_Text;
+				else s = path_Srt;
 				ui->AddTooltip(s);
 			}
 			ui->AddLabelBig(stime);
@@ -2656,8 +2654,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddLabelBig("SRT FILE NOT LOADED!");
 			ui->EndBlinkText();
 			ui->AddSpacing();
-			ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+			ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
 			s = "Open an SRT file";
+			ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
+			s = "Open an Text file";
 			ui->AddTooltip(s);
 		}
 	}
@@ -2702,7 +2702,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			}
 
-			if (!bLive) {
+			if (!bLive)
+			{
 				//ui->AddSpacingSeparated();
 				ui->AddSpacing();
 			}
@@ -2713,8 +2714,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			{
 				if (bModeNoSrt)
 				{
-					ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+					ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
 					s = "Open an SRT file";
+					ui->AddTooltip(s);
+
+					ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
+					s = "Open an Text file";
 					ui->AddTooltip(s);
 				}
 				else
@@ -2729,11 +2734,16 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 						if (ui->BeginTree(n))
 						{
-							ui->AddLabel(name_Srt + ".srt");
-							//ui->AddLabel("SRT FILE");
-
-							ui->Add(bOpen, OFX_IM_BUTTON_SMALL);
+							if (name_Srt != "") ui->AddLabel(name_Srt + ".srt");
+							ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
 							s = "Open an SRT file";
+							ui->AddTooltip(s);
+
+							ui->AddSpacing();
+
+							if (name_Text != "") ui->AddLabel(name_Text + ".txt");
+							ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
+							s = "Open an Text file";
 							ui->AddTooltip(s);
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -2810,7 +2820,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->AddTooltip(s);
 				}
 
-				if (indexModes == 0) // external
+				if (indexModes == 0) // EXTERNAL
 				{
 					ui->Add(positionExternal, OFX_IM_HSLIDER_MINI);
 					s = "Local time linked to parent player.";
@@ -2818,7 +2828,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 				}
-				else if (indexModes == 1) // standalone
+				else if (indexModes == 1) // STANDALONE
 				{
 					ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 					s = "Time linked to .srt file times.";
@@ -2827,7 +2837,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 					s = "Dialog \n#" + ofToString(currentDialog.get());
 				}
-				else if (indexModes == 2) // forced
+				else if (indexModes == 2) // FORCED
 				{
 					ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 					s = "Local time linked to his timer.";
@@ -2847,7 +2857,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
 					ui->PopButtonRepeat();
 				}
-				else if (indexModes == 3) // manual
+				else if (indexModes == 3) // MANUAL
 				{
 					ui->Add(bPlayManual, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
@@ -2936,7 +2946,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		{
 			if (!bMinimize)
 			{
-				ui->Add(bCapitalize, OFX_IM_TOGGLE);
+				ofxImGuiSurfing::AddToggleNamed(bCapitalize, "CAPITALIZE", "Capitalize");
+				//ui->Add(bCapitalize, OFX_IM_TOGGLE);
 				ui->AddSpacing();
 
 				if (ui->BeginTree("COLORS", false, false))
@@ -3012,13 +3023,28 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 		ofxImGuiSurfing::SetWindowContraints(ImVec2(width.x, height.x), ImVec2(width.y, height.y));
 		*/
 
+		//TODO:
+		// Alternate modes: 
+		// srt file or block text from files.
+		// EXTERNAL, STANDALONE
+		if (!bModeTextBlocks || indexModes == 1 || indexModes == 0)
+		{
+			dataTextPtr = &dataTextSubs;
+		}
+		else
+		{
+			dataTextPtr = &dataTextBlocks;
+		}
+
 		//--
 
 		if (ui->BeginWindow(bGui_List, ImGuiWindowFlags_None))
 		{
-			if (!bMinimize) {
-				//ui->AddLabelBig(path_Srt);
-				ui->AddLabelBig(name_Srt + ".srt");
+			if (!bMinimize)
+			{
+				if (bModeTextBlocks) ui->AddLabelBig(name_Text + ".txt");
+				else ui->AddLabelBig(name_Srt + ".srt");
+
 				ui->AddSpacing();
 
 				ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
@@ -3031,10 +3057,15 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 				//ui->AddSpacingBigSeparated();
 			}
 
-			ImGui::BeginChild("_");
+			ImVec2 sz(0, 0);
+			bool border = true;
+			ImGuiWindowFlags extra_flags = ImGuiWindowFlags_None;
+			if (bAutoScroll) extra_flags += ImGuiWindowFlags_NoScrollbar;
+
+			ImGui::BeginChild("_", sz, border, extra_flags);
 			{
 				// iterate all srt dialogs
-				for (int n = 0; n < subsDataText.size(); n++)
+				for (int n = 0; n < dataTextPtr->size(); n++)
 				{
 					/*if (currentDialog == n)*/ ui->AddSeparated();
 
@@ -3079,8 +3110,9 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 
 					if (currentDialog == n)
 					{
-						//ImGui::ButtonEx(subsDataText[n].c_str(), ImVec2(w, 40));
-						ui->AddLabelBig(subsDataText[n]);//bigger if selected
+						//ImGui::ButtonEx(dataTextSubs[n].c_str(), ImVec2(w, 40));
+						//ui->AddLabelBig(dataTextSubs[n]);//bigger if selected
+						ui->AddLabelBig((*dataTextPtr)[n]);//bigger if selected
 
 						if (bAutoScroll)
 						{
@@ -3091,13 +3123,20 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 
 						//--
 					}
-					else ui->AddLabelBig(subsDataText[n]);
+					//else ui->AddLabelBig(dataTextSubs[n]);
+					else ui->AddLabelBig((*dataTextPtr)[n]);
 
 					if (!bMinimize || currentDialog == n)
 					{
-						string s = sub[n]->getStartTimeString();
-						s += "   ";
-						s += sub[n]->getEndTimeString();
+						string s;
+
+						if (!bModeTextBlocks)
+						{
+							s = sub[n]->getStartTimeString();
+							s += "   ";
+							s += sub[n]->getEndTimeString();
+						}
+
 						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(s.c_str()).x
 							- ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
 
@@ -3187,7 +3226,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		name == positionExternal.getName())
 		return;
 
-	ofLogNotice("ofxSurfingTextSubtitle") << " Changed " << name << " : " << e;
+	ofLogNotice("ofxSurfingTextSubtitle") << "Changed " << name << " : " << e;
 
 	//--
 
@@ -3216,7 +3255,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-}
+			}
 		}
 #endif
 
@@ -3231,66 +3270,125 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		case 0: indexModes_Name.setWithoutEventNotifications("EXTERNAL"); break;
 		case 1: indexModes_Name.setWithoutEventNotifications("STANDALONE"); break;
 		case 2: indexModes_Name.setWithoutEventNotifications("FORCED"); break;
-		case 3: indexModes_Name.setWithoutEventNotifications("MANUAL"); break;
+		case 3: {
+			indexModes_Name.setWithoutEventNotifications("MANUAL");
+			//workflow
+			if (bGui_List) bGui_List = false;
+			break;
+		}
 		}
 	}
 
-	// Dialog index
+	//--
+
+	// Dialog / text block index
+
 	else if (name == currentDialog.getName())
 	{
-		if (indexModes == 3 && bPlayManual) return;
+		//if (indexModes == 3 && bPlayManual) return; // MANUAL
 
-		//return;//bypass
+		// 1. Mode text blocks
 
-		// Avoid / clamp errors
-		if (sub.size() == 0)
+		if (bModeTextBlocks)
 		{
-			currentDialog.setWithoutEventNotifications(0);
-			textCurrent = "NO_TEXT";
-			ofLogError("ofxSurfingTextSubtitle") << "Not loaded subs file or it's empty or wrong format.";
-			return;
-		}
-		if (currentDialog < 0)
-		{
-			currentDialog.setWithoutEventNotifications(0);//go to first
-			//currentDialog.setWithoutEventNotifications(sub.size() - 1);//last. cycled
-			return;
-		}
-		else if (currentDialog > sub.size() - 1)
-		{
-			currentDialog.setWithoutEventNotifications(0);//go to first
-			textCurrent = "NO_TEXT";
-			ofLogError("ofxSurfingTextSubtitle") << "Current sub index out of range!";
-			return;
-		}
-
-		//--
-
-		// Get dialog
-		if (currentDialog.get() < sub.size())
-		{
-			string s = sub[currentDialog.get()]->getDialogue();
-			if (bCapitalize) textCurrent = ofToUpper(s);
-			else textCurrent = s;
-
-			//TODO: fail
-			/*
-			if (indexModes==0)
-			//if (bPlayExternal)
+			if (dataTextBlocks.size() > 0) 
 			{
-				// get the position normalized
-				auto t = sub[currentDialog.get()]->getStartTime();
-				auto pos = t / (float)tEndSubsFilm;
-				if (pos != positionExternal) positionExternal = pos;
-				//positionExternal.setWithoutEventNotifications(pos);
+				if (currentDialog.get() < dataTextBlocks.size())
+				{
+					bool bCycle = 0;
+					if (currentDialog.get() == dataTextBlocks.size() - 1)
+					{
+						if(bCycle) currentDialog.setWithoutEventNotifications(0);
+
+						else 
+						{ 
+							//TODO:
+							// stop
+							if (bPlayForced) bPlayForced = false;
+							//else if (bPlayStandalone) bPlayStandalone = false;
+							//else if (bPlayExternal) bPlayExternal = false;
+						
+							currentDialog.set(0);
+
+							return;
+						}
+					}
+
+					string s = dataTextBlocks[currentDialog.get()];
+					lastTextSlideRaw = s;
+
+					if (bCapitalize) textCurrent = ofToUpper(s);
+					else textCurrent = s;
+
+					doSetTextSlide(textCurrent);
+				}
 			}
-			*/
+		}
+		else
+		{
+			// 2. Mode srt
+
+			if (indexModes == 3 && bPlayManual) return; // MANUAL
+
+			// Avoid / clamp errors
+			if (sub.size() == 0)
+			{
+				currentDialog.setWithoutEventNotifications(0);
+				textCurrent = "NO_TEXT";
+				ofLogError("ofxSurfingTextSubtitle") << "Not loaded subs file or it's empty or wrong format.";
+
+				return;
+			}
+			if (currentDialog < 0)
+			{
+				currentDialog.setWithoutEventNotifications(0);//go to first
+				//currentDialog.setWithoutEventNotifications(sub.size() - 1);//last. cycled
+
+				return;
+			}
+			else if (currentDialog > sub.size() - 1)
+			{
+				currentDialog.setWithoutEventNotifications(0);//go to first
+				textCurrent = "NO_TEXT";
+				ofLogError("ofxSurfingTextSubtitle") << "Current sub index out of range!";
+
+				return;
+			}
+
+			//--
+
+			// Get dialog
+			if (currentDialog.get() < sub.size())
+			{
+				string s = sub[currentDialog.get()]->getDialogue();
+
+				//TODO:
+				lastTextSlideRaw = s;
+
+				if (bCapitalize) textCurrent = ofToUpper(s);
+				else textCurrent = s;
+
+
+				//TODO: fail
+				/*
+				if (indexModes==0)
+				//if (bPlayExternal)
+				{
+					// get the position normalized
+					auto t = sub[currentDialog.get()]->getStartTime();
+					auto pos = t / (float)tEndSubsFilm;
+					if (pos != positionExternal) positionExternal = pos;
+					//positionExternal.setWithoutEventNotifications(pos);
+				}
+				*/
+			}
 		}
 
 		//--
 
 		// Fades
 
+		// start
 		if (bAnimatedIn && bAnimatedOut)
 		{
 			isAnimIn = true;
@@ -3541,7 +3639,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		{
 			if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
 			else textCurrent = sub[currentDialog.get()]->getDialogue();
-			buildSubsData();
+			buildDataSubs();
 		}
 		else if (bModeNoSrt && indexModes == 3)//manual mode
 		{
@@ -3596,12 +3694,22 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	}
 
-	// Open
-	else if (name == bOpen.getName())
+	// Open srt
+	else if (name == bOpenSrt.getName())
 	{
-		doOpenFile();
+		doOpenFileSrt();
 
+		//workflow
 		if (bModeNoSrt) bModeNoSrt = false;
+	}
+
+	// Open text
+	else if (name == bOpenFile.getName())
+	{
+		doOpenFileText();
+
+		//workflow
+		if (bModeNoSrt) bModeNoSrt = true;
 	}
 
 	// Font
@@ -3634,7 +3742,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		if (bCenteredV) bResponsive = false;
 	}
 	*/
-	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
@@ -3662,9 +3770,10 @@ void ofxSurfingTextSubtitle::keyPressed(int key)
 	if (key == ' ') { setTogglePlay(); }
 }
 
+//--
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::doOpenFile()
+void ofxSurfingTextSubtitle::doOpenFileSrt()
 {
 	//Open the Open File Dialog
 	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a .srt file.");
@@ -3672,31 +3781,32 @@ void ofxSurfingTextSubtitle::doOpenFile()
 	//Check if the user opened a file
 	if (openFileResult.bSuccess) {
 
-		ofLogNotice("ofxSurfingTextSubtitle") << ("User selected a file");
+		ofLogNotice("ofxSurfingTextSubtitle") << "User selected a file";
 
 		//We have a file, check it and process it
-		processOpenFileSelection(openFileResult);
+		processOpenFileSrtSelection(openFileResult);
 	}
 	else {
-		ofLogNotice("ofxSurfingTextSubtitle") << ("User hit cancel");
+		ofLogNotice("ofxSurfingTextSubtitle") << "User hit cancel";
 	}
 
 	//TODO:
+	//refresh
 	indexModes = indexModes.get();
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::processOpenFileSelection(ofFileDialogResult openFileResult) {
+void ofxSurfingTextSubtitle::processOpenFileSrtSelection(ofFileDialogResult openFileResult) {
 
-	ofLogNotice("ofxSurfingTextSubtitle") << ("Name: " + openFileResult.getName());
-	ofLogNotice("ofxSurfingTextSubtitle") << ("Path: " + openFileResult.getPath());
+	ofLogNotice("ofxSurfingTextSubtitle") << "Name: " + openFileResult.getName();
+	ofLogNotice("ofxSurfingTextSubtitle") << "Path: " + openFileResult.getPath();
 
 	string path = openFileResult.getPath();
 	ofFile file(openFileResult.getPath());
 
 	if (file.exists()) {
 
-		ofLogNotice("ofxSurfingTextSubtitle") << ("The file exists - now checking the type via file extension");
+		ofLogNotice("ofxSurfingTextSubtitle") << "The file exists - now checking the type via file extension";
 		string fileExtension = ofToUpper(file.getExtension());
 
 		//We only want 
@@ -3708,6 +3818,94 @@ void ofxSurfingTextSubtitle::processOpenFileSelection(ofFileDialogResult openFil
 			//workflow
 			//bPlayStandalone = true;
 			//bPlayForced = true;
+		}
+	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doOpenFileText()
+{
+	//Open the Open File Dialog
+	ofFileDialogResult openFileResult = ofSystemLoadDialog("Select a .txt file.");
+
+	//Check if the user opened a file
+	if (openFileResult.bSuccess) {
+
+		ofLogNotice("ofxSurfingTextSubtitle") << "User selected a file";
+
+		//We have a file, check it and process it
+		processOpenFileTextSelection(openFileResult);
+	}
+	else {
+		ofLogNotice("ofxSurfingTextSubtitle") << "User hit cancel";
+	}
+
+	//TODO:
+	//refresh
+	indexModes = indexModes.get();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::processOpenFileTextSelection(ofFileDialogResult openFileResult) {
+
+	ofLogNotice("ofxSurfingTextSubtitle") << "Name: " + openFileResult.getName();
+	ofLogNotice("ofxSurfingTextSubtitle") << "Path: " + openFileResult.getPath();
+
+	string path = openFileResult.getPath();
+	ofFile file(openFileResult.getPath());
+
+	if (file.exists())
+	{
+		ofLogNotice("ofxSurfingTextSubtitle") << "The file exists - now checking the type via file extension";
+		string fileExtension = ofToUpper(file.getExtension());
+
+		//We only want 
+		if (fileExtension == "TXT")
+		{
+			//load text
+			string s = loadFileText(path);
+			buildDataTextBlocks(s);
+
+			//workflow
+			//bPlayStandalone = true;
+			//bPlayForced = true;
+
+			path_Text = path;
+			ofFile file(ofToDataPath(path));
+			name_Text = file.getBaseName();
+		}
+	}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::setupText(string path) {
+
+	ofLogNotice("ofxSurfingTextSubtitle:setupText") << "path: " + path;
+
+	ofFile file(path);
+
+	if (file.exists())
+	{
+		ofLogNotice("ofxSurfingTextSubtitle:setupText") << "The file exists - now checking the type via file extension";
+		string fileExtension = ofToUpper(file.getExtension());
+
+		//We only want 
+		if (fileExtension == "TXT")
+		{
+			//load text
+			string s = loadFileText(path);
+			buildDataTextBlocks(s);
+
+			path_Text = path;
+			ofFile file(ofToDataPath(path));
+			name_Text = file.getBaseName();
+
+			bModeTextBlocks = true;
+
+			//workflow
+			//bPlayStandalone = true;
+			//bPlayForced = true;
+			currentDialog = 0;
 		}
 	}
 }
@@ -3770,20 +3968,43 @@ void ofxSurfingTextSubtitle::pause() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::buildDataTextBlocks(string s) {
+	ofLogNotice("ofxSurfingTextSubtitle") << "buildDataTextBlocks()";
+
+	dataTextBlocks = splitTextBlocks(s);
+
+	ofLogNotice("ofxSurfingTextSubtitle") << "Print Blocks";
+	for (size_t i = 0; i < dataTextBlocks.size(); i++)
+	{
+		ofLogNotice("ofxSurfingTextSubtitle") << "#" << i << ": " << dataTextBlocks[i];
+	}
+
+	if (dataTextBlocks.size() > 0) bModeTextBlocks = true;
+	else ofLogError("ofxSurfingTextSubtitle") << "blocks are empty";
+
+	currentDialog.setMax(dataTextBlocks.size() - 1);
+
+	//workflow
+	currentDialog = 0;
+	//bPlayStandalone = true;
+	bPlayForced = true;
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
 	doRefreshDraw();
 
-	bool b = indexModes == 3 && bPlayManual;
+	bool b = (indexModes == 3 && bPlayManual); // MANUAL
 
 	lastTextSlideRaw = s;//store raw to allow hot upper/lower capitalize
 
-	// workflow
-	// A.force mode
-	if (!b)
-	{
-		if (indexModes != 3) indexModes = 3;
-		if (!bPlayManual) bPlayManual = true;
-	}
+	//// workflow
+	//// A. Force mode manual
+	//if (!b)
+	//{
+	//	if (indexModes != 3) indexModes = 3;
+	//	if (!bPlayManual) bPlayManual = true;
+	//}
 
 	// workflow
 	// B. Lock if wrong mode

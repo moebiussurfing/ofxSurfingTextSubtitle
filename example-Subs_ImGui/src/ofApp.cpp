@@ -14,8 +14,6 @@ void ofApp::setup()
 	// SRT file path
 	{
 		path = "subs/Huxley.srt";
-		//path = "subs/Alphaville.srt";
-		//path = "subs/spanish.srt";
 	}
 
 	subs.setup(path);
@@ -29,9 +27,10 @@ void ofApp::update() {
 	subs.update();
 
 	// Tester
-	if (bAuto && (ofGetFrameNum() % (td * 60) == 0)) {
-		doText();
-	};
+	if (bAuto && (ofGetFrameNum() % (d * 60) == 0)) 
+	{
+		doLoadText();
+	}
 }
 
 //--------------------------------------------------------------
@@ -39,9 +38,10 @@ void ofApp::draw() {
 	ofClear(subs.getColorBg());
 
 	//--
-	
+
 	// imageBg
-	if (0) {
+	if (0) 
+	{
 		if (!image.isAllocated()) image.load("images/image2.png");
 		ofxSurfingHelpers::drawImageFullScreenFit(image, OF_SCALEMODE_FILL, 0);
 	}
@@ -51,7 +51,7 @@ void ofApp::draw() {
 	subs.draw();
 
 	//--
-	
+
 	drawGui();
 }
 
@@ -74,20 +74,24 @@ void ofApp::drawGui() {
 
 			// Tester
 			{
-				//ui.AddToggle("Debug", subs.bDebugPerformance);
-
 				ui.AddLabel("TEST");
+
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
 				ui.AddToggle("DoAuto", bAuto, sz);
 				ui.SameLine();
-				if (ui.AddButton("DoText!", sz))
+				if (ui.AddButton("DoText", sz))
 				{
-					doText();
-				};
+					doLoadText();
+				}
 				if (bAuto) {
 					ImGui::PushItemWidth(100);
-					ImGui::SliderInt("T", &td, 1, 10);
+					ImGui::SliderInt("T", &d, 1, 10);
 					ImGui::PopItemWidth();
+				}
+
+				if (ui.AddButton("DoBlocks", sz))
+				{
+					doLoadTextBlocks();
 				}
 			}
 
@@ -119,7 +123,7 @@ void ofApp::keyPressed(int key)
 		//subs.setTogglePlay();
 
 		// manual
-		if (subs.getModePlayer() == 3) doText();
+		if (subs.getModePlayer() == 3) doLoadText();
 		else subs.setTogglePlay();
 	}
 
@@ -128,4 +132,4 @@ void ofApp::keyPressed(int key)
 	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
 	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
-}
+	}
