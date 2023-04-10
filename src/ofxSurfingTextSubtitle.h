@@ -2,17 +2,17 @@
 
 /*
 
-	PERFORMANCE
-
 	BUG
 
-	1. fix broken lines / words...
-		could be related to pre draw rectangles?
+	fix debug layout marks
 
-	add container center to preset settings ?
+	fix fbo draw flick
 
-	fix fades styling.
-	ui looks not perfect..
+	fix block 0 loading when text mode
+
+	fix fades styling. 
+		timeline is broken in some modes.
+		ui looks not perfect..
 
 	fix too short duration fades breaks trouble
 
@@ -26,20 +26,22 @@
 
 	--
 
-	TODO:
+	TODO
+
+	fix responsive engine a bit. calibration. jumps when enable.
+		should measure how much lines are being drawn.
+
+	add container center to preset settings ?
+		add y only?
+
+	add fonts list and set custom fonts on runtime
+
+	make unique play toggle for all modes
 
 	make imgui internal, not pointer referenced!
 		to help on special windows workflow
 
 	fix overlap paths for different instances
-
-	add bDoingNew workflow to allow populate presets faster
-		by doing new+new+new..
-
-	fix responsive engine a bit. calibration. jumps when enable.
-		should measure how much lines are being drawn.
-
-	add fonts list and set custom fonts on runtime
 
 	bPlay workflow is a bit messy,
 		bc mode index selector forces play.
@@ -47,7 +49,6 @@
 	store srt file path to settings to be persistent too,
 
 	test video player encoding problems...
-	bad frame rate on Debug compilation.
 
 */
 
@@ -535,6 +536,7 @@ public:
 	void pause();
 
 	void doSetTextSlide(string s);//sets the text and start the slide playing..
+	void doSetTextSlideFile(string path);
 
 	void buildDataTextBlocks(string s);//Create slides from a unique string text.
 
@@ -589,7 +591,11 @@ private:
 	}
 	*/
 
-public:
+	//----
+	
+	// String Helpers
+
+private:
 
 	//--------------------------------------------------------------
 	string loadFileText(string path)

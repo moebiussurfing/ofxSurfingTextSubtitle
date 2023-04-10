@@ -885,7 +885,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 	}
 	else
 	{
-		// 2. Mode srt
+		// 2. Mode Srt
 
 		if (sub.size() > 0)
 		{
@@ -3285,6 +3285,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == currentDialog.getName())
 	{
+		currentDialog = ofClamp(currentDialog, currentDialog.getMin(), currentDialog.getMax());
+
 		//if (indexModes == 3 && bPlayManual) return; // MANUAL
 
 		// 1. Mode text blocks
@@ -3988,6 +3990,12 @@ void ofxSurfingTextSubtitle::buildDataTextBlocks(string s) {
 	currentDialog = 0;
 	//bPlayStandalone = true;
 	bPlayForced = true;
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doSetTextSlideFile(string path)
+{
+	doSetTextSlide(loadFileText(path));
 }
 
 //--------------------------------------------------------------
