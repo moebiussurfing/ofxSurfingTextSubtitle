@@ -93,9 +93,9 @@ void ofApp::draw()
 * **Windows 10** / **VS 2022** / **OF ~0.11**
 
 ## THANKS
-* SRT parser: file `srtparser.h`. Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks `@Jonathhhan`. Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
+* SRT parser: file `srtparser.h`. Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks to [@Jonathhhan](https://github.com/Jonathhhan). Originally by [@saurabhshri](https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp).  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
-* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) from [ggerganov](https://github.com/ggerganov).  
+* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) from [@ggerganov](https://github.com/ggerganov).  
 * [ofxChatGPT](https://github.com/tettou771/ofxChatGPT) from [@tettou771](https://github.com/tettou771).   
 
 ## LICENSE
