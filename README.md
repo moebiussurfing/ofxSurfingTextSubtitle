@@ -5,23 +5,24 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 ## FEATURES
 
 - Full `.SRT` file browser for exploring the dialogs.
+- `Text Mode` for importing `.txt`. files. Split file in blocks then used as slides.
 - Fast `FontStash` render.
-- Custom `paragraph styles`.
+- Custom `Paragraph Styles`.
 - Scalable and draggable `rectangle container`.
 - All `settings are persistent`.
-- Animated `fade In/Out` for transparency.
+- Animated `Fade In/Out` for transparency.
 - `Transport time player` with four modes: 
 	- **STANDALONE**  
 	  - Dialogs following the original `SRT` times and durations.
 	- **FORCED** 
-	  - Customizable dialogs duration. Ignoring `SRT` times.
+	  - Customizable dialogs duration. Ignoring `SRT` times. Ideal for `Text` mode.
 	- **EXTERNAL** 
 	  - Time is controlled by a video player or linked to one external control.  
 	- **MANUAL** 
 	  - To work without loading any `SRT` file. Just pass the text slides manually.
 - `Presets Engine` for all the settings. 
 	
-## SCREENCAST VIDEO
+## SCREENCASTS
 
 [VIDEO](https://youtu.be/kcObeooL3Pc)
 
@@ -64,11 +65,14 @@ ofxSurfingTextSubtitle subs;
 
 #### ofApp.cpp
 ```.cpp
-void ofApp::setup() {
-	subs.setup("Alphaville.srt");
+void ofApp::setup() 
+{
+	//subs.setup("Alphaville.srt"); // Optional
 }
-void ofApp::draw() {
+void ofApp::draw()
+ {
 	subs.draw();
+
 	subs.drawGui();
 }
 ```
@@ -77,14 +81,13 @@ void ofApp::draw() {
 - [ofxFontStash](https://github.com/armadillu/ofxFontStash)
 - [ofxSurfingBox](https://github.com/moebiussurfing/ofxSurfingBox)
 - [ofxSurfingHelpers](https://github.com/moebiussurfing/ofxSurfingHelpers)
-- **ofxGui** / oF core
+- [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### OPTIONAL
-- [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
+- **ofxGui** / Optional (oF core)
 - [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (Only for the example)
 
 ### TODO
-- [ **BUG** ] Fix some words remove when building the paragraph.
 - List and load different render fonts files on runtime.  
 - macOS testing.
 
