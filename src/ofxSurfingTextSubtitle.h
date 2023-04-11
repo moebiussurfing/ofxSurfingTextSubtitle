@@ -5,6 +5,8 @@
 	BUG
 
 	fix paragraph dividing from fontstash hides some chars..
+		'.' starting a new line
+		borken words
 
 	fix debug layout marks
 
@@ -30,13 +32,17 @@
 
 	TODO
 
+	persistent file paths
+
+	add fonts list and set custom fonts on runtime
+
+	add directive for ofxGui
+
 	fix responsive engine a bit. calibration. jumps when enable.
 		should measure how much lines are being drawn.
 
 	add container center to preset settings ?
 		add y only?
-
-	add fonts list and set custom fonts on runtime
 
 	make unique play toggle for all modes
 
@@ -178,7 +184,8 @@ private:
 private:
 	ofFbo fbo; // Declare an instance of FBO
 	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
-	void doRefreshDraw() {//don't draws explicitly. it flags to do it on next frame/update/draw!
+	// Note that it will not draws explicitly and immediately. However it will flag to do it on next frame/update/draw!
+	void doRefreshDraw() {
 		bDoRefreshNoDraw = true;
 		if (bUseFbo) bDoRefreshFboCapture = true;
 	}
@@ -189,6 +196,9 @@ public:
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
 
+private:
+	bool bDoneSetup = false;
+public:
 	void setup();
 	void setup(string _pathSrt);
 	// pass the .srt file path to load
@@ -209,13 +219,11 @@ private:
 	void updateDebug();
 
 public:
-
 	void draw();
 	void draw(ofRectangle view);
 	void drawRaw();
 
 private:
-
 	void drawDebug();
 	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
@@ -228,7 +236,6 @@ private:
 	//bool bModeNoSrt = false; // use manual mode. don't load the srt file
 
 public:
-
 	void drawGui();
 
 #ifndef USE_IM_GUI__SUBTITLES
@@ -243,11 +250,11 @@ private:
 	void keyPressed(int key);
 	void keyPressed(ofKeyEventArgs& eventArgs);
 
-public:
 	ofParameter<bool> bKeys{ "Keys", true };
 
 	//--
 
+public:
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setVisibleGui(bool b) { bGui = b; }
 	bool getVisibleGui() { return bGui; }
@@ -274,7 +281,7 @@ public:
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
-	void load(string path) {
+	void loadFileSubs(string path) {
 		setupSubs(path);
 
 		//TODO:
@@ -342,8 +349,10 @@ private:
 
 	void doOpenFileText();
 	void processOpenFileTextSelection(ofFileDialogResult openFileResult);
+
 public:
 	void setupText(string path);
+
 private:
 	bool bDoneStartup = false;
 	void startup();
@@ -366,8 +375,7 @@ private:
 #endif
 
 public:
-
-	void setFps(float _fps) {
+	void setFps(float _fps) {//default is 60 fps
 		fps = _fps;
 		dt = 1 / fps;
 	}
@@ -377,12 +385,11 @@ public:
 	ofParameter<bool> bUseFbo;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
-	ofParameterGroup params_AppSettings;
-	ofxAutosaveGroupTimer gt;
-
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
 
 private:
+	ofParameterGroup params_AppSettings;
+	ofxAutosaveGroupTimer gt;
 
 	ofParameterGroup params; // for the gui and callback
 	ofParameterGroup params_Transport;
@@ -437,14 +444,14 @@ private:
 	ofParameter<float> fSize; // real font raw size in px
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
+	ofParameter<ofFloatColor> colorBgFloat;
 	ofParameter<ofFloatColor> colorTextFloat;
 	//ofParameter<ofFloatColor> colorTextShadow;
 	//ofParameter<glm::vec2> offsetShadow;
-	ofParameter<ofFloatColor> colorBgFloat;
 	ofParameter<int> fAlign;
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bCapitalize;
-	ofParameter<bool> bReset;
+	ofParameter<void> bReset;
 
 private:
 
@@ -489,7 +496,6 @@ private:
 	ofParameter<bool> bTheme{ "Theme", 1 };
 
 	string textCurrent = "";
-
 
 #ifndef USE_IM_GUI__SUBTITLES
 	ofxPanel gui;
@@ -577,7 +583,11 @@ private:
 	float oneLineHeight = 0;
 	float spacingBetweenLines = 0;
 
-	//--
+	//----
+
+private:
+
+	// String Helpers
 
 	/*
 	//TODO:
@@ -603,10 +613,6 @@ private:
 		return result;
 	}
 	*/
-
-	//----
-
-	// String Helpers
 
 private:
 
@@ -653,7 +659,7 @@ private:
 	//TODO:
 	std::vector<std::string>* dataTextPtr = new std::vector<std::string>();
 
-	//#include <unordered_set>
+	//#include <unordered_set>//required
 	//--------------------------------------------------------------
 	std::vector<std::string> splitTextBlocks(const std::string& s) {
 		std::vector<std::string> blocks;

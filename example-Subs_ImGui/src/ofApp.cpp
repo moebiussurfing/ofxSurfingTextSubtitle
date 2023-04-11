@@ -6,8 +6,8 @@ void ofApp::setup()
 	ofxSurfingHelpers::setMonitorsLayout(0);
 
 	subs.setUiPtr(&ui);
-	path = "files/srt/Huxley.srt"; // Srt file path
-	subs.setup(path);
+	//path = "files/srt/Huxley.srt"; // Srt file path
+	//subs.setup(path);
 }
 
 //--------------------------------------------------------------
@@ -54,14 +54,19 @@ void ofApp::drawGui() {
 	{
 		if (ui.BeginWindow("ofApp"))
 		{
-			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
+			//ui.AddAutoResizeToggle();
+
 			ui.AddSpacingSeparated();
 
 			//--
 
 			// Tester
 			{
+				ui.BeginChild(ImVec2{ -1, 110 });
+
 				ui.AddLabelBig("TEST", 1, 1);
+				ui.AddSpacing();
 
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
 				ui.AddToggle("DoAuto", bAuto, sz);
@@ -70,16 +75,18 @@ void ofApp::drawGui() {
 				{
 					doLoadText();
 				}
-				if (bAuto) {
+				if (bAuto)
+				{
 					ImGui::PushItemWidth(100);
 					ImGui::SliderInt("T", &d, 1, 10);
 					ImGui::PopItemWidth();
 				}
-
 				if (ui.AddButton("DoBlocks", sz))
 				{
 					doLoadTextBlocks();
 				}
+
+				ui.EndChild();
 			}
 
 			//--
@@ -102,4 +109,4 @@ void ofApp::keyPressed(int key)
 #endif
 	}
 
-	}
+}

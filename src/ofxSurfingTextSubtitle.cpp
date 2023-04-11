@@ -4,9 +4,10 @@
 ofxSurfingTextSubtitle::ofxSurfingTextSubtitle()
 {
 	bGui.set("SUBTITLES", true);
-	bUseFbo.set("Fbo", false);
 	bGui_List.set("LIST", false);
 	bGui_Paragraph.set("PARAGRAPH", true);
+
+	bUseFbo.set("Fbo", true);
 
 #ifndef USE_IM_GUI__SUBTITLES
 	bGui_Internal.set("Gui Internal", true);
@@ -32,7 +33,7 @@ void ofxSurfingTextSubtitle::setup() {
 	setup("");
 	//bModeNoSrt = true;
 
-	// A.force mode
+	// A. Force default mode
 	if (indexModes != 3) indexModes = 3;
 	if (!bPlayManual) bPlayManual = true;
 }
@@ -138,6 +139,8 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 //#ifdef USE_IM_GUI__SUBTITLES
 //	bMinimize.makeReferenceTo(ui->bMinimize);
 //#endif
+
+	bDoneSetup = true;
 
 	//--
 
@@ -256,7 +259,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	currentDialog.set("Dialog", 0, 0, 0);
 	bPlayStandalone.set("Play Standalone", false);
 	bPlayForced.set("Play Forced", false);
-	durationPlayForced.set("Duration Forced", 2000, 100, 4000);
+	durationPlayForced.set("Duration Forced", 2000, 200, 10000);
 	bPrev.set("<", false);
 	bNext.set(">", false);
 	//speedPlayForce.set("Speed", 0, 0, 1);
@@ -289,7 +292,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	colorBgFloat.set("ColorBg", ofFloatColor(50 / 255.f), ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
-	bReset.set("Reset", false);
+	bReset.set("Reset");
 
 	bCenteredV.set("y Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
@@ -319,10 +322,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	//bPlayStandalone.setSerializable(false);//!
 	//bPlayForced.setSerializable(false);
 
-	fName.setSerializable(false);
 	//fPath.setSerializable(false);
+	fName.setSerializable(false);
 	fAlign_str.setSerializable(false);
-	bReset.setSerializable(false);
 	bResetFades.setSerializable(false);
 	bNext.setSerializable(false);
 	bPrev.setSerializable(false);
@@ -394,22 +396,24 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Fade.add(bAnimatedIn);
 	params_Fade.add(bAnimatedOut);
 	params_Fade.add(progressPlaySlide);
+
 	params_FadeIn.setName("F In");
 	params_FadeOut.setName("F Out");
 	//params_FadeIn.add(speedFadeIn);
 	params_FadeIn.add(progressIn);//TODO: should change speed mode to time duration. like on fade out!
 	params_FadeIn.add(durationIn);
+
 	//params_FadeOut.add(speedFadeOut);
 	params_FadeOut.add(progressOut);
 	params_FadeOut.add(durationOut);
+
 	params_Fade.add(params_FadeIn);
 	params_Fade.add(params_FadeOut);
 	params_Fade.add(bResetFades);
-	//params_Transport.add(params_Fade);
 
 	params_Style.setName("Style");
-	//params_Style.add(fName);
 	params_Style.add(fPath);
+	//params_Style.add(fName);
 	params_Style.add(colorTextFloat);
 	//#ifdef USE_SHADOW
 	//	params_Style.add(colorTextShadow);
@@ -538,7 +542,9 @@ void ofxSurfingTextSubtitle::buildDataSubs()
 	for (SubtitleItem* element : sub)
 	{
 		string s = element->getDialogue();
-		if (bCapitalize) s = ofToUpper(s);
+
+		//TODO:
+		//if (bCapitalize) s = ofToUpper(s);
 
 		ofLogNotice("ofxSurfingTextSubtitle") << i++ << " " << s;
 		dataTextSubs.push_back(s);
@@ -810,6 +816,11 @@ void ofxSurfingTextSubtitle::update(ofEventArgs& args) {
 void ofxSurfingTextSubtitle::update()
 {
 	T_CPU_START_PTR(0, "update");
+
+	if (!bDoneSetup) {
+		bDoneSetup = true;
+		setup();
+	}
 
 	//--
 
@@ -2359,7 +2370,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-}
+	}
 #endif
 
 	T_GPU_END_PTR(4);
@@ -2660,7 +2671,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	//--
 
 	// Manual
-	if (indexModes != 3)
+	//if (indexModes != 3)
 	{
 		if (!bMinimize) // maximized 
 		{
@@ -2696,7 +2707,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		//--
 
-		if (bLoadedFileSubs)
+		if (bLoadedFileSubs || bLoadedFileText)
 		{
 			if (!bModeTextBlocks)
 			{
@@ -2735,20 +2746,20 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		}
 	}
 
+	//----
+
 	//TODO:
 	//if (bLoaded || (indexModes == 3) || bModeNoSrt)
 	//if (bLoaded)
 	{
 		ui->AddSpacingSeparated();
 
-		//----
-
 		//if (bMinimize)
 		{
 			ui->Add(bDraw, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
 			ui->Add(bLive, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
 			s = "Live Mode hides some stuff";
-			if (!bLive)
+			if ((!bLive && !bEdit) || bEdit)
 			{
 				ui->Add(bEdit, OFX_IM_TOGGLE);
 				s = "Edit container";
@@ -2765,7 +2776,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 
 			// not manual
-			if (indexModes != 3)
+			//if (indexModes != 3)
 			{
 				ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			}
@@ -2936,7 +2947,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			if (!bMinimize)
 			{
 				ofxImGuiSurfing::AddToggleNamed(bCapitalize, "CAPITALIZE", "Capitalize");
-				//ui->Add(bCapitalize, OFX_IM_TOGGLE);
 
 				ui->AddSpacing();
 
@@ -3062,11 +3072,15 @@ void ofxSurfingTextSubtitle::drawImGuiWindowList()
 		ofxImGuiSurfing::SetWindowContraints(ImVec2(width.x, height.x), ImVec2(width.y, height.y));
 		*/
 
+		ImVec2 sz = ImVec2(300, 600);
+		ImGui::SetNextWindowSize(sz, ImGuiCond_FirstUseEver);
+
+		//--
+
 		//TODO:
 		// Alternate modes: 
-		// srt file or block text from files.
-		// EXTERNAL, STANDALONE
-		//|| indexModes == 1 || indexModes == 0
+		// Pick text data from srt file or from text block files:
+
 		if (bModeTextBlocks)
 		{
 			dataTextPtr = &dataTextBlocks;
@@ -3114,12 +3128,10 @@ void ofxSurfingTextSubtitle::drawImGuiWindowList()
 				{
 					/*if (currentDialog == n)*/ ui->AddSeparated();
 
-					//float h = ImGui::GetContentRegionAvail().y;
-					float h = 2 * ui->getWidgetsHeightUnit();
-					float w = ImGui::GetContentRegionAvail().x;
-					//float w = ui->getWidgetsWidth(1);
+					float w = ui->getWidgetsWidth(1);
+					float h = 1.5 * ui->getWidgetsHeightUnit();
 
-					float w1 = 50;
+					float w1 = 40;
 					float w2 = w - w1;
 
 					ImGui::Columns(2, "t", false);
@@ -3309,7 +3321,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 			}
-	}
+		}
 #endif
 
 		//workflow
@@ -3330,7 +3342,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			break;
 		}
 		}
-}
+	}
 
 	//--
 
@@ -3747,9 +3759,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	}
 
 	// reset style
-	else if (name == bReset.getName() && bReset.get())
+	else if (name == bReset.getName())
 	{
-		bReset = false;
 		doReset();
 	}
 	// reset fades
