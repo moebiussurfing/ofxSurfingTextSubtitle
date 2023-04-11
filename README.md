@@ -57,9 +57,6 @@ Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhispe
 ```.cpp
 #include "ofxSurfingTextSubtitle.h"
 
-// Remember to comment to use ofxGui only and to disable ImGui!
-// #define USE_IM_GUI__SUBTITLES
-
 ofxSurfingTextSubtitle subs;
 ```
 
