@@ -49,20 +49,20 @@ public:
 		static bool b = false;
 		if (b) {
 			b = !b;
-			if (ofRandom(1) < 0.5) subs.doSetTextSlideFile("files/text1.txt");
-			else subs.doSetTextSlideFile("files/text2.txt");
+			if (ofRandom(1) < 0.5) subs.doSetTextSlideStartFile("files/txt/text1.txt");
+			else subs.doSetTextSlideStartFile("files/txt/text2.txt");
 		}
 		else {
 			b = !b;
-			if (ofRandom(1) < 0.5) subs.doSetTextSlideFile("files/text3.txt");
-			else subs.doSetTextSlideFile("files/text4.txt");
+			if (ofRandom(1) < 0.5) subs.doSetTextSlideStartFile("files/txt/text3.txt");
+			else subs.doSetTextSlideStartFile("files/txt/text4.txt");
 		}
 	};
 
 	// Function to process a full file and split into slides.
 	//--------------------------------------------------------------
 	void doLoadTextBlocks() {
-		string path = "files/text2.txt";
+		string path = "files/txt/text2.txt";
 		subs.setupText(path);
 	};
 };

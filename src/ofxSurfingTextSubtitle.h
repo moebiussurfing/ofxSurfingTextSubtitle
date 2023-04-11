@@ -4,13 +4,15 @@
 
 	BUG
 
+	fix paragraph dividing from fontstash hides some chars..
+
 	fix debug layout marks
 
 	fix fbo draw flick
 
 	fix block 0 loading when text mode
 
-	fix fades styling. 
+	fix fades styling.
 		timeline is broken in some modes.
 		ui looks not perfect..
 
@@ -157,9 +159,10 @@ public:
 	void drawImGui();
 
 private:
+	void drawImGuiWindowMain();
 	void drawImGuiWidgets();
 	void drawImGuiWindowParagraph();
-	void drawImGuiList();
+	void drawImGuiWindowList();
 
 #ifdef USE_PRESETS__SUBTITLES
 private:
@@ -175,7 +178,7 @@ private:
 private:
 	ofFbo fbo; // Declare an instance of FBO
 	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
-	void doRefreshDraw() {
+	void doRefreshDraw() {//don't draws explicitly. it flags to do it on next frame/update/draw!
 		bDoRefreshNoDraw = true;
 		if (bUseFbo) bDoRefreshFboCapture = true;
 	}
@@ -194,9 +197,11 @@ public:
 
 	// call only one of both update methods
 	void updatePosition(float position); // to be used by the external mode
-	void update();
 
 private:
+	void update();
+	void update(ofEventArgs& args);
+
 	void updateFrame(uint64_t frame);//TODO:
 
 	void updateFades();
@@ -218,8 +223,9 @@ private:
 	string sEngine;
 	int diff;
 
-	bool bLoaded = false; // srt file is loaded or not
-	bool bModeNoSrt = false; // use manual mode. don't load the srt file
+	bool bLoadedFileSubs = false; // srt file is loaded or not
+	bool bLoadedFileText = false; // text file is loaded or not
+	//bool bModeNoSrt = false; // use manual mode. don't load the srt file
 
 public:
 
@@ -233,7 +239,11 @@ public:
 #endif
 	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
+private:
 	void keyPressed(int key);
+	void keyPressed(ofKeyEventArgs& eventArgs);
+
+public:
 	ofParameter<bool> bKeys{ "Keys", true };
 
 	//--
@@ -264,8 +274,8 @@ public:
 	//void setDuration(uint64_t duration) { tEndSubsFilm = duration; }
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
-	void load(string _pathSrt) {
-		setupSubs(_pathSrt);
+	void load(string path) {
+		setupSubs(path);
 
 		//TODO:
 		//indexModes = indexModes.get();
@@ -383,7 +393,7 @@ private:
 	ofParameterGroup params_FadeOut;
 
 	ofParameter<void> bOpenSrt;
-	ofParameter<void> bOpenFile;
+	ofParameter<void> bOpenText;
 	ofParameter<bool> bGui_List;
 	ofParameter<bool> bGui_Paragraph;
 	ofParameter<bool> bEdit;
@@ -403,6 +413,7 @@ private:
 
 	ofParameter<bool> bResponsive;
 	ofParameter<float> resizeResponsive;
+	ofParameter<float> yOffset;
 
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> positionExternal;
@@ -466,6 +477,8 @@ private:
 	ofParameter<float> progressIn;
 	ofParameter<float> progressOut;
 
+	bool bCycled = 0;
+
 	uint64_t tPlayStartSlide = 0;
 	uint64_t tPlayForce = 0;
 	uint64_t tPlayForceFilm = 0;
@@ -520,7 +533,7 @@ private:
 	std::string getAlignNameFromIndex(int index) const;
 
 	void doResetFades();
-	void doUpdateSlidePlay(SubtitleItem* element);
+	void doSetSrtSlideStart(SubtitleItem* element);
 
 	//--
 
@@ -535,8 +548,8 @@ public:
 	void stop();
 	void pause();
 
-	void doSetTextSlide(string s);//sets the text and start the slide playing..
-	void doSetTextSlideFile(string path);
+	void doSetTextSlideStartFile(string s);//sets the text and start the slide playing..
+	void doSetTextSlideStart(string path);
 
 	void buildDataTextBlocks(string s);//Create slides from a unique string text.
 
@@ -592,7 +605,7 @@ private:
 	*/
 
 	//----
-	
+
 	// String Helpers
 
 private:
@@ -632,6 +645,7 @@ private:
 
 	//TODO:
 	// we have two main modes, srt or text blocks modes.
+	//disabled for srt mode. enabled for text blocks mode
 	bool bModeTextBlocks = false;
 
 	// String blocks processors:

@@ -6,16 +6,7 @@ void ofApp::setup()
 	ofxSurfingHelpers::setMonitorsLayout(0);
 
 	subs.setUiPtr(&ui);
-
-#ifndef USE_IM_GUI__SUBTITLES
-	subs.setDisableGuiInternal(true);
-#endif
-
-	// SRT file path
-	{
-		path = "subs/Huxley.srt";
-	}
-
+	path = "files/srt/Huxley.srt"; // Srt file path
 	subs.setup(path);
 }
 
@@ -24,10 +15,8 @@ void ofApp::update() {
 	string name = "example-Subs_ImGui";
 	ofxSurfingHelpers::setWindowTitleDebugPerformance(name, true);
 
-	subs.update();
-
 	// Tester
-	if (bAuto && (ofGetFrameNum() % (d * 60) == 0)) 
+	if (bAuto && (ofGetFrameNum() % (d * 60) == 0))
 	{
 		doLoadText();
 	}
@@ -40,7 +29,8 @@ void ofApp::draw() {
 	//--
 
 	// imageBg
-	if (0) 
+	// to test how fbo's alpha behave
+	if (0)
 	{
 		if (!image.isAllocated()) image.load("images/image2.png");
 		ofxSurfingHelpers::drawImageFullScreenFit(image, OF_SCALEMODE_FILL, 0);
@@ -67,14 +57,11 @@ void ofApp::drawGui() {
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED);
 			ui.AddSpacingSeparated();
 
-			ui.Add(ui.bDebugDebugger, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-			ui.AddSpacing();
-
 			//--
 
 			// Tester
 			{
-				ui.AddLabel("TEST");
+				ui.AddLabelBig("TEST", 1, 1);
 
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
 				ui.AddToggle("DoAuto", bAuto, sz);
@@ -108,28 +95,11 @@ void ofApp::drawGui() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
-	if (key == 'g') {
-		subs.setToggleVisibleGui();
+	if (key == 'g')
+	{
 #ifdef USE_PRESETS
 		presets.setVisibleGui(subs.getVisibleGui());
 #endif
 	}
 
-	if (key == 'l') { subs.setToggleLive(); }
-	if (key == 'e') { subs.setToggleEdit(); }
-
-	if (key == ' ')
-	{
-		//subs.setTogglePlay();
-
-		// manual
-		if (subs.getModePlayer() == 3) doLoadText();
-		else subs.setTogglePlay();
-	}
-
-	if (key == OF_KEY_RETURN) { subs.setTogglePlayForced(); }
-
-	if (key == OF_KEY_LEFT) { subs.setSubtitlePrevious(); }
-	if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
-	if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
 	}

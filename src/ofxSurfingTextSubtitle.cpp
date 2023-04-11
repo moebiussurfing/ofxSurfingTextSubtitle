@@ -1,7 +1,8 @@
 #include "ofxSurfingTextSubtitle.h"
 
 //--------------------------------------------------------------
-ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
+ofxSurfingTextSubtitle::ofxSurfingTextSubtitle()
+{
 	bGui.set("SUBTITLES", true);
 	bUseFbo.set("Fbo", false);
 	bGui_List.set("LIST", false);
@@ -10,11 +11,18 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 #ifndef USE_IM_GUI__SUBTITLES
 	bGui_Internal.set("Gui Internal", true);
 #endif
+
+	ofAddListener(ofEvents().update, this, &ofxSurfingTextSubtitle::update);
+	ofAddListener(ofEvents().keyPressed, this, &ofxSurfingTextSubtitle::keyPressed);
 };
 
 //--------------------------------------------------------------
-ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
+ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle()
+{
 	//delete dataTextPtr;
+
+	ofRemoveListener(ofEvents().update, this, &ofxSurfingTextSubtitle::update);
+	ofRemoveListener(ofEvents().keyPressed, this, &ofxSurfingTextSubtitle::keyPressed);
 
 	exit();
 };
@@ -22,7 +30,7 @@ ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setup() {
 	setup("");
-	bModeNoSrt = true;
+	//bModeNoSrt = true;
 
 	// A.force mode
 	if (indexModes != 3) indexModes = 3;
@@ -234,8 +242,8 @@ void ofxSurfingTextSubtitle::setupParams()
 
 	// Control
 	bStop.set("Stop");
-	bOpenSrt.set("Open SRT");
-	bOpenFile.set("Open Text");
+	bOpenSrt.set("Open Srt");
+	bOpenText.set("Open Text");
 	bDraw.set("DRAW", true);
 	bLive.set("LIVE!", false);
 	bEdit.set("Edit", true);
@@ -292,6 +300,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bCapitalize.set("Capitalize", false);
 	bResponsive.set("Responsive", false);
 	resizeResponsive.set("Resize", 0, 0, 1);
+	yOffset.set("y Offset", 0, -1, 1);
 
 	indexModes.set("Modes", 0, 0, 3);
 
@@ -334,7 +343,7 @@ void ofxSurfingTextSubtitle::setupParams()
 
 	params_Control.setName("Control");
 	params_Control.add(bOpenSrt);
-	params_Control.add(bOpenFile);
+	params_Control.add(bOpenText);
 	params_Control.add(bDraw);
 	params_Control.add(bLive);
 	params_Control.add(bEdit);
@@ -417,6 +426,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Style.add(amountLinesTarget);
 	params_Style.add(bResponsive);
 	params_Style.add(resizeResponsive);
+	params_Style.add(yOffset);
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Style.add(bFine);
 #endif
@@ -477,15 +487,15 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 	//--
 
 	if (!subParserFactory || sub.size() == 0) {
-		bLoaded = false;
+		bLoadedFileSubs = false;
 		ofLogError("ofxSurfingTextSubtitle") << ".srt file not found: " << path_Srt;
 	}
 	else {
-		bLoaded = true;
+		bLoadedFileSubs = true;
 		ofLogNotice("ofxSurfingTextSubtitle") << "Successfully loaded .srt file: " << path_Srt;
 	}
 
-	if (!bLoaded) {
+	if (!bLoadedFileSubs) {
 		ofLogError("ofxSurfingTextSubtitle") << "Incomplete initialization!";
 		return;
 	}
@@ -510,6 +520,11 @@ void ofxSurfingTextSubtitle::setupSubs(string _pathSrt) {
 
 	//TODO:
 	//indexModes = indexModes.get();
+
+	//workflow
+	if (bModeTextBlocks) bModeTextBlocks = false;
+	path_Text = "";
+	name_Text = "";
 }
 
 //--------------------------------------------------------------
@@ -786,6 +801,10 @@ void ofxSurfingTextSubtitle::updateFades()
 		progressOut = 1;
 	}
 }
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::update(ofEventArgs& args) {
+	update();
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::update()
@@ -841,6 +860,7 @@ void ofxSurfingTextSubtitle::updateEngine()
 	if (box.isChanged())
 	{
 		ofLogNotice("ofxSurfingTextSubtitle") << "Box container changed";
+
 		doRefreshDraw();
 	}
 
@@ -910,9 +930,9 @@ void ofxSurfingTextSubtitle::updateEngine()
 						// To apply only once if currentDialog changed!
 						if (currentDialog.get() != k)
 						{
-							// changed
+							// Changed
 							currentDialog = k; // will trig the callback!
-							doUpdateSlidePlay(element);
+							doSetSrtSlideStart(element);
 						}
 						break;//done found
 					}
@@ -1750,6 +1770,9 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	float _w = box.getWidth();
 	float _h = box.getHeight();
 
+	float _yOffset = 0;
+	if (yOffset != 0) _yOffset = ofMap(yOffset, -1, 1, -_h / 2, _h / 2, true);
+
 	int _size = 1.f;
 	int _align = fAlign.get();
 	ofColor _colorText = colorTextFloat.get();
@@ -1781,7 +1804,6 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			//_size = rMax * fSize.get();
 
 			float ho = oneLineHeight;
-			//float ho = getOneLineHeight();
 			float hb = box.getHeight();
 
 			float rLimit;
@@ -1885,6 +1907,10 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	// workaround to hard code calibrate.
 	//_y += 2; 
 
+	//--
+
+	_y += _yOffset;
+
 	//------
 
 	if (!bNoDraw) ofPushStyle();
@@ -1897,8 +1923,8 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		float __x = _x;
 		float __y = _y;
 
-		int _numLines = 20;
-		bool _wordsWereCropped = false;
+		int _numLines = -1;//will be reported after draw
+		bool _wordsWereCropped = false;//will be reported after draw
 		bool _bCenter = ((_align == 2) ? true : false);//centered
 
 		/*get the final text formatting (by adding \n's) in the supplied string;
@@ -1960,15 +1986,13 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 			//TODO: workaround
 			else
 			{
-				{
-					boxDrawnEstimated = font.getBBox(
-						_str,					/*string*/
-						_size,					/*size*/
-						__x, __y,				/*where*/
-						OF_ALIGN_HORZ_RIGHT,
-						MAX(10, _w)				/*column width*/
-					);
-				}
+				boxDrawnEstimated = font.getBBox(
+					_str,					/*string*/
+					_size,					/*size*/
+					__x, __y,				/*where*/
+					OF_ALIGN_HORZ_RIGHT,
+					MAX(10, _w)				/*column width*/
+				);
 			}
 		}
 	}
@@ -2275,12 +2299,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
 	*/
 
-	if (ui->BeginWindow(bGui))//main
-	{
-		drawImGuiWidgets();
-
-		ui->EndWindow();
-	}
+	drawImGuiWindowMain();
 
 	//--
 
@@ -2299,7 +2318,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
 		else  ui->setNextWindowAfterWindowNamed(bGui);
 
-		drawImGuiList();
+		drawImGuiWindowList();
 	}
 
 	//--
@@ -2340,7 +2359,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
 
 		ui->EndWindow();
-	}
+}
 #endif
 
 	T_GPU_END_PTR(4);
@@ -2377,6 +2396,9 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 			ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
 			s = "Y center on container.";
 			ui->AddTooltip(s);
+
+			ui->Add(yOffset, st);
+
 			ui->AddSpacingSeparated();
 			ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
 			s = "Use responsive engine.";
@@ -2407,6 +2429,7 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 				ui->Add(bCenteredV, OFX_IM_TOGGLE_ROUNDED_MINI);
 				s = "Y center on container.";
 				ui->AddTooltip(s);
+				ui->Add(yOffset, st);
 				ui->AddSpacingSeparated();
 				ui->Add(bResponsive, OFX_IM_TOGGLE_ROUNDED_MINI);
 				s = "Use responsive engine.";
@@ -2544,6 +2567,17 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::drawImGuiWindowMain()
+{
+	if (ui->BeginWindow(bGui))//main
+	{
+		drawImGuiWidgets();
+
+		ui->EndWindow();
+	}
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWidgets()
 {
 	// time label
@@ -2554,7 +2588,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	//--
 
-	if (bLoaded)
+	if (bLoadedFileSubs)
 	{
 		// filename
 		if (bModeTextBlocks) sfile = name_Text;
@@ -2598,7 +2632,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 				else stime = sub[currentDialog]->getStartTimeString();
 			}
 		}
-		else if (indexModes == 3)  // MANUAL
+		else if (indexModes == 3) // MANUAL
 		{
 			if (bPlayManual)
 			{
@@ -2623,48 +2657,87 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	if (!bMinimize) ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
 	bDebugPerformance = ui->bDebugDebugger;
 
-	// manual
+	//--
+
+	// Manual
 	if (indexModes != 3)
 	{
-		ui->AddSpacingSeparated();
-
-		if (bLoaded)
+		if (!bMinimize) // maximized 
 		{
-			if (!bMinimize)
+			ui->AddSpacingSeparated();
+
+			std::string n = "FILE";
+			if (ui->BeginTree(n))
 			{
-				ui->AddLabelBig(sfile);
-				if (bModeTextBlocks) s = path_Text;
-				else s = path_Srt;
+				ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
+				s = "Open a Srt file";
+				ui->AddTooltip(s);
+				if (name_Srt != "") {
+					ui->AddLabel(name_Srt + ".srt");
+					ui->AddTooltip(path_Srt);
+				}
+				ui->AddSpacing();
+
+				ui->Add(bOpenText, OFX_IM_BUTTON_SMALL);
+				s = "Open a Text file";
+				ui->AddTooltip(s);
+				if (name_Text != "") {
+					ui->AddLabel(name_Text + ".txt");
+					ui->AddTooltip(path_Text);
+				}
+
+#ifdef USE_WIDGET__VIDEO_PLAYER
+				ui->AddSpacingSeparated();
+				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
+				ui->EndTree(false);
+			}
+		}
+
+		//--
+
+		if (bLoadedFileSubs)
+		{
+			if (!bModeTextBlocks)
+			{
+				ui->AddSpacingSeparated();
+
+				if (!bMinimize)
+				{
+					ui->AddLabelBig(sfile);
+					s = path_Srt;
+					ui->AddTooltip(s);
+				}
+				ui->AddLabelBig(stime);
+
+				ui->AddSpacing();
+
+				ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+				s = "Total Duration";
+				ui->AddTooltip(s);
+
+				ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
+				s = "Dialog Duration";
 				ui->AddTooltip(s);
 			}
-			ui->AddLabelBig(stime);
-
-			ui->AddSpacing();
-
-			ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
-			s = "Total Duration";
-			ui->AddTooltip(s);
-
-			ui->Add(progressPlaySlide, OFX_IM_PROGRESS_BAR_NO_TEXT);
-			s = "Dialog Duration";
-			ui->AddTooltip(s);
 		}
-		else {
+		else
+		{
 			ui->BeginBlinkText();
-			ui->AddLabelBig("SRT FILE NOT LOADED!");
+			ui->AddLabelBig("FILE NOT LOADED!");
 			ui->EndBlinkText();
 			ui->AddSpacing();
 			ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
-			s = "Open an SRT file";
-			ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
-			s = "Open an Text file";
+			s = "Open a Srt file";
+			ui->Add(bOpenText, OFX_IM_BUTTON_SMALL);
+			s = "Open a Text file";
 			ui->AddTooltip(s);
 		}
 	}
 
-
 	//TODO:
-	if (bLoaded || (indexModes == 3) || bModeNoSrt)
+	//if (bLoaded || (indexModes == 3) || bModeNoSrt)
+	//if (bLoaded)
 	{
 		ui->AddSpacingSeparated();
 
@@ -2687,110 +2760,26 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		if (ui->BeginTree("MAIN", false, false))
 		{
-			//ui->Add(bDraw, OFX_IM_TOGGLE_MEDIUM_BORDER_BLINK);
-			//ui->Add(bDraw, OFX_IM_TOGGLE_ROUNDED_MEDIUM);
 			ui->AddSpacing();
 
 			ui->Add(bGui_Paragraph, OFX_IM_TOGGLE_ROUNDED);
 
-#ifdef USE_PRESETS__SUBTITLES
-			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
-#endif
 			// not manual
 			if (indexModes != 3)
 			{
 				ui->Add(bGui_List, OFX_IM_TOGGLE_ROUNDED);
 			}
 
-			if (!bLive)
-			{
-				//ui->AddSpacingSeparated();
-				ui->AddSpacing();
-			}
-
-			//--
-
-			if (!bLive)
-			{
-				if (bModeNoSrt)
-				{
-					ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
-					s = "Open an SRT file";
-					ui->AddTooltip(s);
-
-					ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
-					s = "Open an Text file";
-					ui->AddTooltip(s);
-				}
-				else
-				{
-					if (!bMinimize) // maximized 
-					{
-						if (!bLive) ui->AddSpacingSeparated();
-
-						std::string n = "FILE";
-						//std::string n = "SRT FILE";
-						//std::string n = name_Srt;
-
-						if (ui->BeginTree(n))
-						{
-							if (name_Srt != "") ui->AddLabel(name_Srt + ".srt");
-							ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
-							s = "Open an SRT file";
-							ui->AddTooltip(s);
-
-							ui->AddSpacing();
-
-							if (name_Text != "") ui->AddLabel(name_Text + ".txt");
-							ui->Add(bOpenFile, OFX_IM_BUTTON_SMALL);
-							s = "Open an Text file";
-							ui->AddTooltip(s);
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-							ui->AddSpacingSeparated();
-							ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
+#ifdef USE_PRESETS__SUBTITLES
+			ui->AddSpacing();
+			ui->Add(presets.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
-							ui->EndTree(false);
-						}
 
-						if (!bLive) ui->AddSpacingSeparated();
-					}
-				}
-
-				if (!bMinimize)
-				{
-					ui->AddSpacing();
-
-					ui->Indent();
-					{
-						ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
-						if (ui->bExtra)
-						{
-							ui->Indent();
-							{
-								ui->AddSpacing();
-								ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-								ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
-								if (bDebug) {
-									ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
-									ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
-									ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
-
-#ifndef USE_IM_GUI__SUBTITLES
-									if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#endif
-#ifdef USE_WIDGET__SUBTITLES
-									ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-#endif
-								}
-							}
-							ui->Unindent();
-						}
-						ui->AddSpacing();
-					}
-					ui->Unindent();
-				}
-			}
+			//if (!bLive)
+			//{
+			//	//ui->AddSpacingSeparated();
+			//	ui->AddSpacing();
+			//}
 
 			ui->EndTree(false);
 		}//main
@@ -2802,11 +2791,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		// maximized 
 		//if (!bMinimize)
 		{
-			if (ui->BeginTree("TRANSPORT", false, false))
+			if (ui->BeginTree("TRANSPORT", true, false))
 			{
 				ui->AddSpacing();
 
-				if (!bModeNoSrt)
+				//if (!bModeNoSrt)
 				{
 					ui->AddCombo(indexModes, names_Modes);
 					string s = "Link Mode ";
@@ -2815,7 +2804,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					case 0: s += "EXTERNAL\nLocal time linked \nto parent player."; break;
 					case 1: s += "STANDALONE\nTime linked to \n.srt file times."; break;
 					case 2: s += "FORCED\nLocal time linked \nto his timer."; break;
-					case 3: s += "MANUAL\nIgnore SRT files \nand load any text."; break;
+					case 3: s += "MANUAL\nIgnore Srt files \nand load any text."; break;
 					}
 					ui->AddTooltip(s);
 				}
@@ -2853,8 +2842,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					//ui->AddTooltip(currentDialog);
 
 					ui->PushButtonRepeat();
-					ui->Add(bPrev, OFX_IM_TOGGLE_SMALL, 2, true);
-					ui->Add(bNext, OFX_IM_TOGGLE_SMALL, 2);
+					ui->Add(bPrev, OFX_IM_TOGGLE_BIG, 2, true);
+					ui->Add(bNext, OFX_IM_TOGGLE_BIG, 2);
 					ui->PopButtonRepeat();
 				}
 				else if (indexModes == 3) // MANUAL
@@ -2948,6 +2937,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			{
 				ofxImGuiSurfing::AddToggleNamed(bCapitalize, "CAPITALIZE", "Capitalize");
 				//ui->Add(bCapitalize, OFX_IM_TOGGLE);
+
 				ui->AddSpacing();
 
 				if (ui->BeginTree("COLORS", false, false))
@@ -2987,6 +2977,55 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->EndTree(false);
 		}
 
+
+		//--
+
+		if (!bLive)
+		{
+			if (!bMinimize)
+			{
+				ui->AddSpacingSeparated();
+
+				ui->Indent();
+				{
+					ui->Add(ui->bExtra, OFX_IM_TOGGLE_ROUNDED);
+					if (ui->bExtra)
+					{
+						ui->Indent();
+						{
+							ui->AddSpacing();
+							ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
+							s = "Debug HUD";
+							ui->AddLabel(s);
+							ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
+
+#ifndef USE_IM_GUI__SUBTITLES
+							if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
+#ifdef USE_WIDGET__SUBTITLES
+							ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+#endif
+							if (bDebug) {
+								ui->AddSpacing();
+								if (bModeTextBlocks) s = "MODE Text file";
+								else s = "MODE Srt file";
+								ui->AddLabel(s);
+								s = "MODE " + indexModes_Name.get();
+								ui->AddLabel(s);
+
+							}
+						}
+						ui->Unindent();
+					}
+					ui->AddSpacing();
+				}
+				ui->Unindent();
+			}
+		}
+
 		//		//--
 		//
 		//		//ui->AddSpacingSeparated();
@@ -3006,7 +3045,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::drawImGuiList()
+void ofxSurfingTextSubtitle::drawImGuiWindowList()
 {
 	if (bGui_List)
 	{
@@ -3027,13 +3066,14 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 		// Alternate modes: 
 		// srt file or block text from files.
 		// EXTERNAL, STANDALONE
-		if (!bModeTextBlocks || indexModes == 1 || indexModes == 0)
+		//|| indexModes == 1 || indexModes == 0
+		if (bModeTextBlocks)
 		{
-			dataTextPtr = &dataTextSubs;
+			dataTextPtr = &dataTextBlocks;
 		}
 		else
 		{
-			dataTextPtr = &dataTextBlocks;
+			dataTextPtr = &dataTextSubs;
 		}
 
 		//--
@@ -3042,9 +3082,14 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 		{
 			if (!bMinimize)
 			{
-				if (bModeTextBlocks) ui->AddLabelBig(name_Text + ".txt");
-				else ui->AddLabelBig(name_Srt + ".srt");
-
+				if (bModeTextBlocks) {
+					ui->AddLabelBig(name_Text + ".txt");
+					ui->AddTooltip(path_Text);
+				}
+				else {
+					ui->AddLabelBig(name_Srt + ".srt");
+					ui->AddTooltip(path_Srt);
+				}
 				ui->AddSpacing();
 
 				ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
@@ -3070,11 +3115,11 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 					/*if (currentDialog == n)*/ ui->AddSeparated();
 
 					//float h = ImGui::GetContentRegionAvail().y;
-					float h = ui->getWidgetsHeightUnit();
+					float h = 2 * ui->getWidgetsHeightUnit();
 					float w = ImGui::GetContentRegionAvail().x;
 					//float w = ui->getWidgetsWidth(1);
 
-					float w1 = 40;
+					float w1 = 50;
 					float w2 = w - w1;
 
 					ImGui::Columns(2, "t", false);
@@ -3128,19 +3173,20 @@ void ofxSurfingTextSubtitle::drawImGuiList()
 
 					if (!bMinimize || currentDialog == n)
 					{
-						string s;
-
 						if (!bModeTextBlocks)
 						{
+							string s;
+
 							s = sub[n]->getStartTimeString();
 							s += "   ";
 							s += sub[n]->getEndTimeString();
+
+							ui->AddSpacing();
+
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(s.c_str()).x - ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
+
+							ui->AddLabel(s);
 						}
-
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(s.c_str()).x
-							- ImGui::GetScrollX() - 2 * ImGui::GetStyle().ItemSpacing.x);
-
-						ui->AddLabel(s);
 					}
 
 					ImGui::Columns(1);
@@ -3171,6 +3217,7 @@ void ofxSurfingTextSubtitle::doReset() {
 	bCenteredV = true;
 	bResponsive = true;
 	resizeResponsive = 0.5;
+	yOffset = 0;
 }
 
 //--------------------------------------------------------------
@@ -3198,16 +3245,20 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	durationPlayForced = 2000;
 	durationOut = 250;
 	durationIn = 250;
+
+	doRefreshDraw();
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::doUpdateSlidePlay(SubtitleItem* element) {
+void ofxSurfingTextSubtitle::doSetSrtSlideStart(SubtitleItem* element) {
 
 	tPlayStartSlide = ofGetElapsedTimeMillis();
 	isSlidePlaying = true;
 	auto ts = element->getStartTime();
 	auto te = element->getEndTime();
 	durationPlaySlide = te - ts;
+
+	doRefreshDraw();
 }
 
 //--------------------------------------------------------------
@@ -3231,6 +3282,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	//--
 
 	if (0) {}
+
+	//--
 
 	// Modes
 
@@ -3256,7 +3309,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 			}
-		}
+	}
 #endif
 
 		//workflow
@@ -3277,7 +3330,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			break;
 		}
 		}
-	}
+}
 
 	//--
 
@@ -3285,32 +3338,37 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 
 	else if (name == currentDialog.getName())
 	{
-		currentDialog = ofClamp(currentDialog, currentDialog.getMin(), currentDialog.getMax());
+		currentDialog.setWithoutEventNotifications(ofClamp(currentDialog.get(), currentDialog.getMin(), currentDialog.getMax()));
 
 		//if (indexModes == 3 && bPlayManual) return; // MANUAL
+
+		//--
 
 		// 1. Mode text blocks
 
 		if (bModeTextBlocks)
 		{
-			if (dataTextBlocks.size() > 0) 
+			if (dataTextBlocks.size() > 0)
 			{
 				if (currentDialog.get() < dataTextBlocks.size())
 				{
-					bool bCycle = 0;
 					if (currentDialog.get() == dataTextBlocks.size() - 1)
 					{
-						if(bCycle) currentDialog.setWithoutEventNotifications(0);
+						if (bCycled) currentDialog.setWithoutEventNotifications(0);
 
-						else 
-						{ 
+						else
+						{
 							//TODO:
 							// stop
 							if (bPlayForced) bPlayForced = false;
 							//else if (bPlayStandalone) bPlayStandalone = false;
 							//else if (bPlayExternal) bPlayExternal = false;
-						
+							//else if (bPlayManual) bPlayManual = false;
+
 							currentDialog.set(0);
+
+							lastTextSlideRaw = "";
+							textCurrent = "";
 
 							return;
 						}
@@ -3322,7 +3380,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 					if (bCapitalize) textCurrent = ofToUpper(s);
 					else textCurrent = s;
 
-					doSetTextSlide(textCurrent);
+					doSetTextSlideStart(textCurrent);
 				}
 			}
 		}
@@ -3330,7 +3388,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		{
 			// 2. Mode srt
 
-			if (indexModes == 3 && bPlayManual) return; // MANUAL
+			//TODO:
+			//if (indexModes == 3 && bPlayManual) return; // MANUAL
 
 			// Avoid / clamp errors
 			if (sub.size() == 0)
@@ -3350,7 +3409,25 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			}
 			else if (currentDialog > sub.size() - 1)
 			{
-				currentDialog.setWithoutEventNotifications(0);//go to first
+				//cycled
+				//go to first
+				if (bCycled) currentDialog.setWithoutEventNotifications(0);
+				else
+				{
+					//TODO:
+					// stop
+					if (bPlayForced) bPlayForced = false;
+					else if (bPlayStandalone) bPlayStandalone = false;
+					else if (bPlayExternal) bPlayExternal = false;
+					//else if (bPlayManual) bPlayManual = false;
+
+					currentDialog.set(0);
+
+					lastTextSlideRaw = "";
+					textCurrent = "";
+
+					//return;
+				}
 				textCurrent = "NO_TEXT";
 				ofLogError("ofxSurfingTextSubtitle") << "Current sub index out of range!";
 
@@ -3370,7 +3447,6 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 				if (bCapitalize) textCurrent = ofToUpper(s);
 				else textCurrent = s;
 
-
 				//TODO: fail
 				/*
 				if (indexModes==0)
@@ -3383,6 +3459,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 					//positionExternal.setWithoutEventNotifications(pos);
 				}
 				*/
+
+				doRefreshDraw();
 			}
 		}
 
@@ -3553,6 +3631,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		auto _numframes = durationIn / (float)(dt * 1000);
 		float _margin = 1.f; // fade in increment per frame. from 0 to 1 or vice versa.
 		dtAnimIn = _margin / (float)_numframes;
+
 		doRefreshDraw();
 	}
 	else if (name == durationOut.getName())
@@ -3560,6 +3639,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		auto _numframes = durationOut / (float)(dt * 1000);
 		float _margin = 1.f; // fade out increment per frame. from 0 to 1 or vice versa.
 		dtAnimOut = _margin / (float)_numframes;
+
 		doRefreshDraw();
 	}
 
@@ -3635,44 +3715,34 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		else textCurrent = lastTextSlideRaw;
 
 		doRefreshDraw();
-
-		/*
-		if (bLoaded || (!bModeNoSrt && indexModes != 3))//not manual mode
-		{
-			if (bCapitalize) textCurrent = ofToUpper(sub[currentDialog.get()]->getDialogue());
-			else textCurrent = sub[currentDialog.get()]->getDialogue();
-			buildDataSubs();
-		}
-		else if (bModeNoSrt && indexModes == 3)//manual mode
-		{
-			if (bCapitalize) textCurrent = ofToUpper(lastTextSlideRaw);
-			else textCurrent = lastTextSlideRaw;
-		}
-		*/
 	}
 
 	else if (name == fSizePrc.getName())
 	{
 		fSize = fSizePrc * fSize.getMax();
 		//fSize = fSizePrc * box.getWidth() / 5;
+
 		doRefreshDraw();
 	}
 	// spacing
 	else if (name == fSpacing.getName())
 	{
 		font.setCharacterSpacing(fSpacing);
+
 		doRefreshDraw();
 	}
 	// height
 	else if (name == fLineHeight.getName())
 	{
 		font.setLineHeight(fLineHeight);
+
 		doRefreshDraw();
 	}
 	// alignment
 	else if (name == fAlign.getName())
 	{
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
+
 		doRefreshDraw();
 	}
 
@@ -3700,18 +3770,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	else if (name == bOpenSrt.getName())
 	{
 		doOpenFileSrt();
-
-		//workflow
-		if (bModeNoSrt) bModeNoSrt = false;
 	}
 
 	// Open text
-	else if (name == bOpenFile.getName())
+	else if (name == bOpenText.getName())
 	{
 		doOpenFileText();
-
-		//workflow
-		if (bModeNoSrt) bModeNoSrt = true;
 	}
 
 	// Font
@@ -3747,6 +3811,15 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::keyPressed(ofKeyEventArgs& eventArgs)
+{
+	if (!bKeys) return;
+
+	const int& key = eventArgs.key;
+	keyPressed(key);
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::keyPressed(int key)
 {
 	if (!bKeys) return;
@@ -3755,8 +3828,8 @@ void ofxSurfingTextSubtitle::keyPressed(int key)
 	if (ui->bOverInputText.get()) return;
 #endif
 
-	if (key == 'l') { setToggleLive(); }
 	if (key == 'g') { setToggleVisibleGui(); }
+	if (key == 'l') { setToggleLive(); }
 	if (key == 'e') { setToggleEdit(); }
 	if (key == 'd') { setToggleDebug(); }
 	if (key == '.') { stop(); }
@@ -3795,6 +3868,9 @@ void ofxSurfingTextSubtitle::doOpenFileSrt()
 	//TODO:
 	//refresh
 	indexModes = indexModes.get();
+
+	////workflow
+	//if (bModeNoSrt) bModeNoSrt = false;
 }
 
 //--------------------------------------------------------------
@@ -3845,6 +3921,9 @@ void ofxSurfingTextSubtitle::doOpenFileText()
 	//TODO:
 	//refresh
 	indexModes = indexModes.get();
+
+	////workflow
+	//if (bModeNoSrt) bModeNoSrt = true;
 }
 
 //--------------------------------------------------------------
@@ -3875,6 +3954,10 @@ void ofxSurfingTextSubtitle::processOpenFileTextSelection(ofFileDialogResult ope
 			path_Text = path;
 			ofFile file(ofToDataPath(path));
 			name_Text = file.getBaseName();
+
+			bLoadedFileText = true;
+			path_Srt = "";
+			name_Srt = "";
 		}
 	}
 }
@@ -3908,6 +3991,10 @@ void ofxSurfingTextSubtitle::setupText(string path) {
 			//bPlayStandalone = true;
 			//bPlayForced = true;
 			currentDialog = 0;
+
+			bLoadedFileText = true;
+			path_Srt = "";
+			name_Srt = "";
 		}
 	}
 }
@@ -3993,15 +4080,18 @@ void ofxSurfingTextSubtitle::buildDataTextBlocks(string s) {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::doSetTextSlideFile(string path)
+void ofxSurfingTextSubtitle::doSetTextSlideStartFile(string path)
 {
-	doSetTextSlide(loadFileText(path));
+	doSetTextSlideStart(loadFileText(path));
+
+	bLoadedFileText = true;
+	path_Srt = "";
+	name_Srt = "";
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
-	doRefreshDraw();
-
+void ofxSurfingTextSubtitle::doSetTextSlideStart(string s)
+{
 	bool b = (indexModes == 3 && bPlayManual); // MANUAL
 
 	lastTextSlideRaw = s;//store raw to allow hot upper/lower capitalize
@@ -4022,7 +4112,7 @@ void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
 		else textCurrent = s;
 
 		progressPlaySlide = 0;
-		ofLogNotice("ofxSurfingTextSubtitle") << "doSetTextSlide: " << textCurrent;
+		ofLogNotice("ofxSurfingTextSubtitle") << "doSetTextSlideStart: " << textCurrent;
 
 		//--
 
@@ -4050,9 +4140,11 @@ void ofxSurfingTextSubtitle::doSetTextSlide(string s) {
 		tPlayStartSlide = ofGetElapsedTimeMillis();
 		isSlidePlaying = true;
 		durationPlaySlide = durationPlayForced;
+
+		doRefreshDraw();
 	}
 	// workflow
 	//else {
-	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring doSetTextSlide bc not in MANUAL mode";
+	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring doSetTextSlideStart bc not in MANUAL mode";
 	//}
 }
