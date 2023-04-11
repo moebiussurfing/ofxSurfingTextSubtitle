@@ -7,8 +7,8 @@ void ofApp::setup()
 
 	subs.setUiPtr(&ui);
 
-	//path = "files/srt/Huxley.srt"; // Srt file path
-	//subs.setup(path);
+	path = "files/srt/Huxley.srt"; // Srt file path
+	subs.setup(path);
 }
 
 //--------------------------------------------------------------
@@ -47,7 +47,9 @@ void ofApp::draw() {
 }
 
 //--------------------------------------------------------------
-void ofApp::drawGui() {
+void ofApp::drawGui()
+{
+	if (!subs.isVisibleGui()) return;
 
 	subs.drawGui();
 
@@ -61,7 +63,11 @@ void ofApp::drawGui() {
 
 			//--
 
+			static bool bTester = false;
+			ui.AddToggle("Tester", bTester);
+
 			// Tester
+			if (bTester)
 			{
 				ui.BeginChild(ImVec2{ -1, 110 });
 

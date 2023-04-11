@@ -3805,6 +3805,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		doRefreshDraw();
 	}
 
+	else if (name == bLive.getName())
+	{
+		//workflow
+		if (bLive) bEdit = false;
+	}
+
 	//--
 
 	// workflow

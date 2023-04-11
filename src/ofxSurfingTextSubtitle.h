@@ -258,6 +258,7 @@ public:
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setVisibleGui(bool b) { bGui = b; }
 	bool getVisibleGui() { return bGui; }
+	bool isVisibleGui() { return bGui; }
 
 	void setEdit(bool b) { bEdit = b; }
 	void setToggleEdit() { bEdit = !bEdit; }
