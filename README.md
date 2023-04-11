@@ -2,7 +2,7 @@
 
 Ready to use customizable `.SRT` text subtitle (and plain text) player for `openFrameworks`. 
 
-![Screenshot](Examples\example-Simple\Capture.PNG)
+![Screenshot](Examples/example-Simple/Capture.PNG)
 
 ## FEATURES
 
