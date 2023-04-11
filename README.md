@@ -9,7 +9,7 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 - Custom `paragraph styles`.
 - Scalable and draggable `rectangle container`.
 - All `settings are persistent`.
-- Animated `fade In/Out` for the transparency.
+- Animated `fade In/Out` for transparency.
 - `Transport time player` with four modes: 
 	- **STANDALONE**  
 	  - Dialogs following the original `SRT` times and durations.
@@ -28,17 +28,17 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 <details>
   <summary>EXAMPLES / SCREENSHOTS</summary>
 
-#### - Example-Subtitle / ofxGui 
-![Screenshot](example-Subtitle/Capture.PNG)
+#### - example-Subs_ImGui / ImGui (Optional) 
+![Screenshot](Examples/example-Subs_ImGui/Capture.PNG)
 
-#### - Example-Subtitle2 / ImGui (Optional) 
-![Screenshot](example-Subtitle2/Capture.PNG)
+#### - example-Subs_ofxGui / ofxGui 
+![Screenshot](Examples_ofxGui/example-Subs_ofxGui/Capture.PNG)
 
-#### - Example-Subtitle3 / ofxGui (Video Player) 
-![Screenshot](example-Subtitle3/Capture.PNG)
+#### - example-Subs_ofxGui2 / ofxGui (Video Player) 
+![Screenshot](Examples_ofxGui/example-Subs_ofxGui2/Capture.PNG)
 
 #### - Example-SubtitleWhisper / Whisper + ImGui (real-time audio to text) [ ADVANCED / WIP ]  
-![Screenshot](example-SubtitleWhisper/Capture.PNG)  
+![Screenshot](Examples_Advanced/example-SubtitleChatGPT/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald).  
 
 [VIDEO](https://youtu.be/G8iH-0UakN4)
@@ -61,9 +61,6 @@ ofxSurfingTextSubtitle subs;
 ```.cpp
 void ofApp::setup() {
 	subs.setup("Alphaville.srt");
-}
-void ofApp::update() {
-	subs.update();
 }
 void ofApp::draw() {
 	subs.draw();
