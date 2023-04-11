@@ -6,6 +6,7 @@ void ofApp::setup()
 	ofxSurfingHelpers::setMonitorsLayout(0);
 
 	subs.setUiPtr(&ui);
+
 	//path = "files/srt/Huxley.srt"; // Srt file path
 	//subs.setup(path);
 }
@@ -55,7 +56,6 @@ void ofApp::drawGui() {
 		if (ui.BeginWindow("ofApp"))
 		{
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
-			//ui.AddAutoResizeToggle();
 
 			ui.AddSpacingSeparated();
 
@@ -71,6 +71,7 @@ void ofApp::drawGui() {
 				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
 				ui.AddToggle("DoAuto", bAuto, sz);
 				ui.SameLine();
+
 				if (ui.AddButton("DoText", sz))
 				{
 					doLoadText();
