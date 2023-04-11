@@ -37,11 +37,16 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 #### - example-Subs_ofxGui2 / ofxGui (Video Player) 
 ![Screenshot](Examples_ofxGui/example-Subs_ofxGui2/Capture.PNG)
 
-#### - Example-SubtitleWhisper / Whisper + ImGui (real-time audio to text) [ ADVANCED / WIP ]  
-![Screenshot](Examples_Advanced/example-SubtitleChatGPT/Capture.PNG)  
+#### - example-SubtitleWhisper / Whisper (Real-time audio to text) [ ADVANCED / WIP ]  
+![Screenshot](Examples_Advanced/example-SubtitleWhisper/Capture.PNG)  
 Requires this [FORK](https://github.com/moebiussurfing/ofxWhisper) of [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald).  
 
+#### - example-SubtitleChatGPT / [ ADVANCED / WIP ]  
+![Screenshot](Examples_Advanced/example-SubtitleChatGPT/Capture.PNG)  
+
+
 [VIDEO](https://youtu.be/G8iH-0UakN4)
+
 
 </details>
 
