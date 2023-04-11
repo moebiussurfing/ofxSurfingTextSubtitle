@@ -89,10 +89,10 @@
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time conversions. Can be removed.
 
+#define USE_PRESETS__SUBTITLES
+
 //TODO: WIP: should use an fbo bc fonts drawing twice its slow!
 //#define USE_SHADOW
-
-#define USE_PRESETS__SUBTITLES
 
 //----
 
@@ -160,7 +160,7 @@ private:
 	ofxSurfingGui* ui;
 
 public:
-	void setUiPtr(ofxSurfingGui* _ui);
+	void setUiPtr(ofxSurfingGui* _ui);//must be called after setup to get the file mame correctly
 
 	void drawImGui();
 
@@ -178,7 +178,6 @@ private:
 #endif
 
 private:
-	bool bDebugPerformance = 0;
 	bool bDoRefreshNoDraw = false; // To checking expected text formating determined by the box container.
 
 private:
@@ -268,8 +267,8 @@ public:
 	void setDebug(bool b) { bDebug = b; }
 
 	void setSubtitleIndex(int i) { currentDialog = i; }
-	void setSubtitlePrevious() { bPrev = true; }
-	void setSubtitleNext() { bNext = true; }
+	void setSubtitlePrevious() { bPrev.trigger(); }
+	void setSubtitleNext() { bNext.trigger(); }
 	void setSubtitleRandomIndex() { (int)ofRandom(getNumSubtitles()); }
 
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
@@ -323,7 +322,7 @@ public:
 
 private:
 
-	ofParameter<bool> bMinimize;
+	ofParameter<bool> bMinimize{ "Minimize", false };
 
 #ifndef USE_IM_GUI__SUBTITLES
 	ofParameter<bool> bGui_Internal;
@@ -360,6 +359,7 @@ private:
 	void exit();
 
 	string path_SubtitlerSettings = "ofxSurfingTextSubtitle_Settings.json";
+	string path_Global = "ofxSurfingTextSubtitle";
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;
@@ -412,8 +412,8 @@ private:
 #ifdef USE_WIDGET__SUBTITLES
 	ofParameter<bool> bDrawWidgetInfo;
 #endif
-	ofParameter<bool> bNext;
-	ofParameter<bool> bPrev;
+	ofParameter<void> bNext;
+	ofParameter<void> bPrev;
 
 	ofParameter<void> bStop;
 	ofParameter<bool> bPlayStandalone;
@@ -432,7 +432,7 @@ private:
 	//ofParameter<float> speedFadeIn;
 	ofParameter<bool> bAnimatedOut;
 	ofParameter<int> durationOut; // time before the end to start fadeout from. in ms 
-	ofParameter<bool> bResetFades;
+	ofParameter<void> bResetFades;
 
 	ofParameter<bool> bAutoScroll;
 	ofParameter<bool> bCenteredV; // move up block to center not depending of amount of lines.
@@ -453,6 +453,7 @@ private:
 	ofParameter<std::string> fAlign_str;
 	ofParameter<bool> bCapitalize;
 	ofParameter<void> bReset;
+	ofParameter<void> bResetAll;
 
 private:
 
@@ -537,6 +538,7 @@ private:
 	string name_Text;//.txt name
 
 	void doReset();
+	void doResetAll();
 	std::string getAlignNameFromIndex(int index) const;
 
 	void doResetFades();

@@ -2,6 +2,8 @@
 
 Ready to use customizable `.SRT` text subtitle (and plain text) player for `openFrameworks`. 
 
+![Screenshot](\Examples\example-Simple\Capture.PNG)
+
 ## FEATURES
 
 - Full `.SRT` file browser for exploring the dialogs.
@@ -29,8 +31,8 @@ Ready to use customizable `.SRT` text subtitle (and plain text) player for `open
 <details>
   <summary>EXAMPLES / SCREENSHOTS</summary>
 
-#### - example-Subs_ImGui / ImGui (Optional) 
-![Screenshot](Examples/example-Subs_ImGui/Capture.PNG)
+#### - example-Subs_ImGui 
+<!-- ![Screenshot](Examples/example-Subs_ImGui/Capture.PNG) -->
 
 #### - example-Subs_ofxGui / ofxGui 
 ![Screenshot](Examples_ofxGui/example-Subs_ofxGui/Capture.PNG)

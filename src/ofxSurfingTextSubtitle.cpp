@@ -33,9 +33,9 @@ void ofxSurfingTextSubtitle::setup() {
 	setup("");
 	//bModeNoSrt = true;
 
-	// A. Force default mode
-	if (indexModes != 3) indexModes = 3;
-	if (!bPlayManual) bPlayManual = true;
+	//// A. Force default mode
+	//if (indexModes != 3) indexModes = 3;
+	//if (!bPlayManual) bPlayManual = true;
 }
 
 //--------------------------------------------------------------
@@ -56,9 +56,11 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	box.setRectConstraintMin(glm::vec2(200, 200));
 	box.setBorderColor(ofColor(bTheme ? colorDebugLight : colorDebugDark, 64));
 
+	box.setName("BoxContainer");
+	box.setPath(path_Global);
 	box.setup();
-	//box.setType(BOX_TYPE::TYPE_RECTANGLE);//force
 	box.setType(BOX_TYPE::TYPE_BAR_VERTICAL);//force
+	//box.setType(BOX_TYPE::TYPE_RECTANGLE);//force
 
 #ifdef USING_OFX_TIME_CODE
 	timecode.setFPS(fps);
@@ -121,13 +123,13 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 	listeners.push(player.playback.play.newListener([&](bool& b) {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
-	if (b) play();
-	else stop();
+		if (b) play();
+		else stop();
 		}));
 
 	listeners.push(player.playback.stop.newListener([&]() {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Stop pressed\n";
-	stop();
+		stop();
 
 
 		}));
@@ -168,6 +170,13 @@ void ofxSurfingTextSubtitle::loadFont(string path)
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 {
+	if (!bDoneSetup) {
+		bDoneSetup = true;
+		setup();
+	}
+
+	//--
+
 	ui = _ui;
 
 	// Debugger
@@ -193,6 +202,8 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui* _ui)
 	//	}
 	//	});
 #endif
+
+	bMinimize.makeReferenceTo(ui->bMinimize);
 }
 #endif
 
@@ -260,8 +271,8 @@ void ofxSurfingTextSubtitle::setupParams()
 	bPlayStandalone.set("Play Standalone", false);
 	bPlayForced.set("Play Forced", false);
 	durationPlayForced.set("Duration Forced", 2000, 200, 10000);
-	bPrev.set("<", false);
-	bNext.set(">", false);
+	bPrev.set("<");
+	bNext.set(">");
 	//speedPlayForce.set("Speed", 0, 0, 1);
 	bPlayExternal.set("Play External", false);
 	positionExternal.set("Position", 0, 0, 1);
@@ -279,7 +290,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	durationOut.set("Duration Out", 1000, 1, 1000);
 	progressIn.set("% In", 0, 0, 1);
 	progressOut.set("% Out", 0, 0, 1);
-	bResetFades.set("Reset Fades", false);
+	bResetFades.set("Reset Fades");
 
 	// Style
 	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
@@ -293,12 +304,12 @@ void ofxSurfingTextSubtitle::setupParams()
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset");
+	bResetAll.set("Reset All");
 
 	bCenteredV.set("y Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
 
 	//bMinimize.set("Minimize", false);
-	bMinimize.makeReferenceTo(ui->bMinimize);
 
 	bCapitalize.set("Capitalize", false);
 	bResponsive.set("Responsive", false);
@@ -311,10 +322,10 @@ void ofxSurfingTextSubtitle::setupParams()
 	indexModes_Name.setSerializable(false);
 
 	box.bGui.makeReferenceTo(bEdit);
-	//box.bEdit.makeReferenceTo(bEdit);
-//#ifdef USE_WIDGET__SUBTITLES
-//	boxInfo.bGui.makeReferenceTo(bEdit);
-//#endif
+
+#ifdef USE_WIDGET__SUBTITLES
+	boxInfo.bGui.makeReferenceTo(bEdit);
+#endif
 
 	//--
 
@@ -325,9 +336,6 @@ void ofxSurfingTextSubtitle::setupParams()
 	//fPath.setSerializable(false);
 	fName.setSerializable(false);
 	fAlign_str.setSerializable(false);
-	bResetFades.setSerializable(false);
-	bNext.setSerializable(false);
-	bPrev.setSerializable(false);
 	currentDialog.setSerializable(false);
 
 	progressPlayFilm.setSerializable(false);
@@ -354,9 +362,11 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Control.add(bTheme);
 	params_Control.add(bTop);
 	params_Control.add(bLeft);
+
 #ifdef USE_WIDGET__SUBTITLES
 	params_Control.add(bDrawWidgetInfo);
 #endif
+
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	params_Control.add(player.bGui_VideoPlayer);
 	params_Control.add(bLoadBothVideoAndSubs);
@@ -367,8 +377,11 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_Control.add(bGui_Paragraph);
 	params_Control.add(bMinimize);
 #endif
+
 	//params_Control.add(bGui);
 	//params_Control.add(box.bEdit);
+
+	params_Control.add(bResetAll);
 
 	params_Transport.setName("Transport");
 	params_Transport.add(bStop);
@@ -448,7 +461,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	// Preset
-	params_Preset.setName("Subtitler");
+	params_Preset.setName("ofxSurfingTextSubtitle_Presets");
 	params_Preset.add(params_Style);
 	params_Preset.add(params_Fade);
 	params_Preset.add(bTheme);//extra
@@ -456,10 +469,13 @@ void ofxSurfingTextSubtitle::setupParams()
 	//--
 
 	// App Settings / session
-	params_AppSettings.setName("AppSettings");
+	params_AppSettings.setName("ofxSurfingTextSubtitle");
 	params_AppSettings.add(params_Control);
 	params_AppSettings.add(params_Transport);
-	gt.addGroup(params_AppSettings, path_SubtitlerSettings);
+	params_AppSettings.add(bGui);//TODO:
+
+	gt.setPathGlobal(path_Global);
+	gt.addGroup(params_AppSettings, path_Global + "/" + path_SubtitlerSettings);
 }
 
 //--------------------------------------------------------------
@@ -572,16 +588,13 @@ void ofxSurfingTextSubtitle::startup()
 	//	this->setDisableGuiInternal(true);
 	//#endif
 
-	//return;
-	doReset();
+	//doReset();
+	doResetAll();
 
-	//TODO:
-	//crash
-	//return;
 #ifdef USE_PRESETS__SUBTITLES
-	//ofxSurfingHelpers::loadGroup(params_AppSettings, path_SubtitlerSettings);
+	//ofxSurfingHelpers::loadGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
 #else
-	ofxSurfingHelpers::loadGroup(params, path_SubtitlerSettings);
+	ofxSurfingHelpers::loadGroup(params, path_Global + "/" + path_SubtitlerSettings);
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -601,9 +614,9 @@ void ofxSurfingTextSubtitle::exit() {
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
 #ifdef USE_PRESETS__SUBTITLES
-	//ofxSurfingHelpers::saveGroup(params_AppSettings, path_SubtitlerSettings);
+	//ofxSurfingHelpers::saveGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
 #else
-	ofxSurfingHelpers::saveGroup(params, path_SubtitlerSettings);
+	ofxSurfingHelpers::saveGroup(params, path_Global + "/" + path_SubtitlerSettings);
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -2301,14 +2314,7 @@ void ofxSurfingTextSubtitle::drawImGui()
 		return;
 	}
 
-	/*
-	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
-	float w = 290;
-	//float w = 250;
-	ImVec2 size_max = ImVec2(w, -1);
-	ImVec2 size_min = ImVec2(w, -1);
-	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
-	*/
+	//--
 
 	drawImGuiWindowMain();
 
@@ -2324,12 +2330,15 @@ void ofxSurfingTextSubtitle::drawImGui()
 
 	//--
 
-	if (bGui_List)
+	if (bLoadedFileSubs || bLoadedFileText)
 	{
-		if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
-		else  ui->setNextWindowAfterWindowNamed(bGui);
+		if (bGui_List)
+		{
+			if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+			else  ui->setNextWindowAfterWindowNamed(bGui);
 
-		drawImGuiWindowList();
+			drawImGuiWindowList();
+		}
 	}
 
 	//--
@@ -2580,6 +2589,15 @@ void ofxSurfingTextSubtitle::drawImGuiWindowParagraph()
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWindowMain()
 {
+	/*
+	//IMGUI_SUGAR__WINDOWS_CONSTRAINTSW;
+	float w = 290;
+	//float w = 250;
+	ImVec2 size_max = ImVec2(w, -1);
+	ImVec2 size_min = ImVec2(w, -1);
+	ImGui::SetNextWindowSizeConstraints(size_min, size_max);
+	*/
+
 	if (ui->BeginWindow(bGui))//main
 	{
 		drawImGuiWidgets();
@@ -2665,8 +2683,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
 	if (!bMinimize) ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
-	if (!bMinimize) ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
-	bDebugPerformance = ui->bDebugDebugger;
 
 	//--
 
@@ -2748,9 +2764,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 	//----
 
-	//TODO:
-	//if (bLoaded || (indexModes == 3) || bModeNoSrt)
-	//if (bLoaded)
+	if (bLoadedFileSubs || bLoadedFileText || (indexModes == 3))
 	{
 		ui->AddSpacingSeparated();
 
@@ -2769,7 +2783,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->AddSpacingSeparated();
 		}
 
-		if (ui->BeginTree("MAIN", false, false))
+		if (ui->BeginTree("WINDOWS", false, false))
 		{
 			ui->AddSpacing();
 
@@ -3020,10 +3034,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 							if (bDebug) {
 								ui->AddSpacing();
+								ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
 								if (bModeTextBlocks) s = "MODE Text file";
 								else s = "MODE Srt file";
 								ui->AddLabel(s);
-								s = "MODE " + indexModes_Name.get();
+								s = "MODE #" + ofToString(indexModes.get()) + string(" ") + indexModes_Name.get();
 								ui->AddLabel(s);
 
 							}
@@ -3036,8 +3051,12 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			}
 		}
 
-		//		//--
-		//
+		ui->AddSpacingSeparated();
+		ui->AddSpacing();
+		ui->Add(bResetAll, OFX_IM_BUTTON_SMALL);
+
+		//--
+
 		//		//ui->AddSpacingSeparated();
 		//
 		//#ifdef USE_PRESETS__SUBTITLES
@@ -3216,14 +3235,37 @@ void ofxSurfingTextSubtitle::drawImGuiWindowList()
 #endif
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doResetAll() {
+	ofLogNotice(__FUNCTION__);
+
+	colorTextFloat.set(ofFloatColor::white);
+	colorBgFloat.set(ofFloatColor(50 / 255.f));
+
+	currentDialog = 0;
+	bDraw.set(true);
+	bLive.set(false);
+	bEdit.set(true);
+	bDebug.set(true);
+	bTop.set(true);
+	bLeft.set(false);
+
+	doReset();
+	doResetFades();
+
+
+	// A. Force default mode FORCED
+	if (indexModes != 2) indexModes = 2;
+	if (!bPlayForced) bPlayForced = true;
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doReset() {
 	ofLogNotice(__FUNCTION__);
 
-	//colorTextFloat = ofColor(255, 255);
 	fSpacing = 0;
 	fLineHeight = 0.75;
 	fSizePrc = 0.25;
-	//fAlign = 0;
+	fAlign = 0;
 
 	amountLinesTarget = 6;
 	bCenteredV = true;
@@ -3674,9 +3716,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	//--
 
 	// next
-	else if (name == bNext.getName() && bNext)
+	else if (name == bNext.getName())
 	{
-		bNext.setWithoutEventNotifications(false);
 		currentDialog++;
 
 		//else {
@@ -3694,9 +3735,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		//}
 	}
 	// prev
-	else if (name == bPrev.getName() && bPrev)
+	else if (name == bPrev.getName())
 	{
-		bPrev.setWithoutEventNotifications(false);
 		currentDialog--;
 	}
 
@@ -3758,15 +3798,19 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		doRefreshDraw();
 	}
 
+	// reset all
+	else if (name == bResetAll.getName())
+	{
+		doResetAll();
+	}
 	// reset style
 	else if (name == bReset.getName())
 	{
 		doReset();
 	}
 	// reset fades
-	else if (name == bResetFades.getName() && bResetFades.get())
+	else if (name == bResetFades.getName())
 	{
-		bResetFades = false;
 		doResetFades();
 	}
 
@@ -3977,6 +4021,10 @@ void ofxSurfingTextSubtitle::processOpenFileTextSelection(ofFileDialogResult ope
 			name_Srt = "";
 		}
 	}
+	else {
+		ofLogError("ofxSurfingTextSubtitle") << "Not valid file found";
+		bLoadedFileText = false;
+	}
 }
 
 //--------------------------------------------------------------
@@ -4013,6 +4061,10 @@ void ofxSurfingTextSubtitle::setupText(string path) {
 			path_Srt = "";
 			name_Srt = "";
 		}
+	}
+	else {
+		ofLogError("ofxSurfingTextSubtitle") << "Not valid file found";
+		bLoadedFileText = false;
 	}
 }
 
@@ -4099,11 +4151,18 @@ void ofxSurfingTextSubtitle::buildDataTextBlocks(string s) {
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doSetTextSlideStartFile(string path)
 {
-	doSetTextSlideStart(loadFileText(path));
+	string s = loadFileText(path);
+	if (s != "") {
+		doSetTextSlideStart(s);
 
-	bLoadedFileText = true;
-	path_Srt = "";
-	name_Srt = "";
+		bLoadedFileText = true;
+		path_Srt = "";
+		name_Srt = "";
+	}
+	else {
+		ofLogError("ofxSurfingTextSubtitle") << "Not valid file found: " << path;
+		bLoadedFileText = false;
+	}
 }
 
 //--------------------------------------------------------------

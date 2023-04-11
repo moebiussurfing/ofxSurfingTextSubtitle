@@ -5,10 +5,11 @@ void ofApp::setup()
 {
 	ofxSurfingHelpers::setMonitorsLayout(0);
 
-	subs.setUiPtr(&ui);
-
+	// Optional
 	path = "files/srt/Huxley.srt"; // Srt file path
 	subs.setup(path);
+
+	subs.setUiPtr(&ui);
 }
 
 //--------------------------------------------------------------
