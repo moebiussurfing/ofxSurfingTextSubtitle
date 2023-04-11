@@ -83,6 +83,7 @@ void ofApp::draw()
 ### OPTIONAL
 - **ofxGui** / Optional (oF core)
 - [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (Only for the example)
+- [ofxChatGPT](https://github.com/moebiussurfing/ofxChatGPT) / FORK (Only for the example)
 
 ### TODO
 - List and load different render fonts files on runtime.  
@@ -94,7 +95,8 @@ void ofApp::draw()
 ## THANKS
 * SRT parser: file `srtparser.h`. Taken from https://github.com/Jonathhhan/ofEmscriptenExamples. Thanks `@Jonathhhan`. Originally by: https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp.  
 * [ofxPlaybackGui](https://github.com/roymacdonald/ofxPlaybackGui) from [@roymacdonald](https://github.com/roymacdonald) bundled into `/libs`. Optional to use only when using **ofxGui** as GUI. (Can be removed when using **ofxSurfingImGui**.)
-* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp).  
+* [ofxWhisper](https://github.com/roymacdonald/ofxWhisper) from [@roymacdonald](https://github.com/roymacdonald). Powered by [whisper.cpp](https://github.com/ggerganov/whisper.cpp) from [ggerganov](https://github.com/ggerganov).  
+* [ofxChatGPT](https://github.com/tettou771/ofxChatGPT) from [@tettou771](https://github.com/tettou771).   
 
 ## LICENSE
-**MIT License**
+**MIT LICENSE**
