@@ -2679,6 +2679,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
 	}
 
+	////workflow
+	//if (!bLoadedFileSubs && !bLoadedFileText && indexModes != 3)
+	//	indexModes = 3;
+
 	//----
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
@@ -2687,7 +2691,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	//--
 
 	// Manual
-	//if (indexModes != 3)
+	//workflow
+	if (indexModes != 3)
 	{
 		if (!bMinimize) // maximized 
 		{
@@ -2763,10 +2768,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	}
 
 	//----
-	
-	//workflow
-	if (!bLoadedFileSubs && !bLoadedFileText && indexModes != 3)
-		indexModes = 3;
 
 	if (bLoadedFileSubs || bLoadedFileText || (indexModes == 3))
 	{
@@ -4010,7 +4011,7 @@ void ofxSurfingTextSubtitle::processOpenFileTextSelection(ofFileDialogResult ope
 		{
 			//load text
 			string s = loadFileText(path);
-			buildDataTextBlocks(s);
+			doBuildDataTextBlocks(s);
 
 			//workflow
 			//bPlayStandalone = true;
@@ -4048,7 +4049,7 @@ void ofxSurfingTextSubtitle::setupText(string path) {
 		{
 			//load text
 			string s = loadFileText(path);
-			buildDataTextBlocks(s);
+			doBuildDataTextBlocks(s);
 
 			path_Text = path;
 			ofFile file(ofToDataPath(path));
@@ -4130,10 +4131,12 @@ void ofxSurfingTextSubtitle::pause() {
 }
 
 //--------------------------------------------------------------
-void ofxSurfingTextSubtitle::buildDataTextBlocks(string s) {
-	ofLogNotice("ofxSurfingTextSubtitle") << "buildDataTextBlocks()";
+void ofxSurfingTextSubtitle::doBuildDataTextBlocks(string s) {
+	ofLogNotice("ofxSurfingTextSubtitle") << "doBuildDataTextBlocks()";
+	ofLogNotice("ofxSurfingTextSubtitle") << s;
 
 	dataTextBlocks = splitTextBlocks(s);
+	ofLogNotice("ofxSurfingTextSubtitle") << "Amount Blocks: " << dataTextBlocks.size();
 
 	ofLogNotice("ofxSurfingTextSubtitle") << "Print Blocks";
 	for (size_t i = 0; i < dataTextBlocks.size(); i++)
@@ -4176,13 +4179,13 @@ void ofxSurfingTextSubtitle::doSetTextSlideStart(string s)
 
 	lastTextSlideRaw = s;//store raw to allow hot upper/lower capitalize
 
-	//// workflow
-	//// A. Force mode manual
-	//if (!b)
-	//{
-	//	if (indexModes != 3) indexModes = 3;
-	//	if (!bPlayManual) bPlayManual = true;
-	//}
+	// workflow
+	// A. Force mode manual
+	if (!b)
+	{
+		if (indexModes != 3) indexModes = 3;
+		if (!bPlayManual) bPlayManual = true;
+	}
 
 	// workflow
 	// B. Lock if wrong mode

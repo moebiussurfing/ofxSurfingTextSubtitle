@@ -9,8 +9,6 @@ void ofApp::exit()
 //--------------------------------------------------------------
 void ofApp::setInputGpt(string s, bool bWithHistory)
 {
-	ui.AddToLog("setInputGpt");
-
 	// Spacing
 	size_t n = 20;
 	for (size_t i = 0; i < n; i++)
@@ -19,8 +17,9 @@ void ofApp::setInputGpt(string s, bool bWithHistory)
 		else ofLogNotice("ofApp") << "|";
 	}
 
-	sendMessage(s);
-	//sendMessage(strBandname);
+	ui.AddToLog("setInputGpt()");
+
+	doSendMessageToGpt(s);
 }
 
 //--------------------------------------------------------------
@@ -93,6 +92,9 @@ void ofApp::setupGpt()
 	}
 
 	{
+		ofSetLogLevel(OF_LOG_VERBOSE);
+		ui.setLogLevel(OF_LOG_VERBOSE);
+
 		ui.AddToLog("Setup GPT");
 
 		//--
@@ -104,10 +106,12 @@ void ofApp::setupGpt()
 		ofxChatGPT::ErrorCode err;
 		tie(models, err) = chappy.getModelList();
 
-		ofLogNotice("ofApp") << "Available OpenAI GPT models:";
+		//ofLogNotice("ofApp") << "Available OpenAI GPT models:";
+		ui.AddToLog("Available OpenAI GPT models:");
 		for (auto model : models) {
 			if (ofIsStringInString(model, "gpt")) {
-				ofLogNotice("ofApp") << model;
+				//ofLogNotice("ofApp") << model;
+				ui.AddToLog(model);
 			}
 		}
 
@@ -117,15 +121,9 @@ void ofApp::setupGpt()
 		//string model = "gpt-4";
 
 		chatGpt.setup(model, keyApi);
-
-		ofSetLogLevel(OF_LOG_VERBOSE);
-		ui.setLogLevel(OF_LOG_VERBOSE);
-
-		//ui.AddToLog("GPT Model list");
-		//for (auto model : chatGpt.getModelList()) {
-		//	ui.AddToLog(model);
-		//}
 	}
+
+	//--
 
 	//// 1st query
 	//if (0)
@@ -171,8 +169,11 @@ void ofApp::setPrompt(int index)
 
 	chatGpt.setSystemMessage(strPrompt);
 
-	ofLogNotice("ofApp") << "namePrompt: " << namePrompt;
-	ofLogNotice("ofApp") << "strPrompt: " << strPrompt;
+	ui.AddToLog("Prompt: " + namePrompt);
+	ui.AddToLog(strPrompt);
+
+	//ofLogNotice("ofApp") << "namePrompt: " << namePrompt;
+	//ofLogNotice("ofApp") << "strPrompt: " << strPrompt;
 }
 
 //--------------------------------------------------------------
@@ -212,11 +213,16 @@ void ofApp::update()
 
 			jResponse = newGPTMsg;
 
+			//--
+
 			textLastResponse = gptResponse;
-			subs.doSetTextSlideStart(textLastResponse);
+
+			//TODO:
+			subs.doBuildDataTextBlocks(textLastResponse);
+			//subs.doSetTextSlideStart(textLastResponse);
 
 			// Here textLastResponse is already catched 
-			editorResponse.setText(textLastResponse);
+			editorResponse.addText(textLastResponse);
 			//ui.AddToLog("editorResponse.setTex");
 		}
 		else
@@ -234,63 +240,12 @@ void ofApp::update()
 #endif
 }
 
-#ifdef USE_WHISPER
-//--------------------------------------------------------------
-void ofApp::drawImGuiWidgetsWhisper()
-{
-	ui.Add(ui.bMinimize, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-	ui.Add(ui.bLog, OFX_IM_TOGGLE_BUTTON_ROUNDED);
-	if (ui.bLog || whisper.bDebug) {
-		ui.AddSpacing();
-		if (ui.Add(whisper.vClear, OFX_IM_BUTTON)) {
-			ui.ClearLog();
-		};
-	}
-	ui.AddSpacingBigSeparated();
-
-	ui.AddLabelHuge("ofxWhisper");
-	ui.AddSpacing();
-	ui.Add(whisper.bEnable, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
-	ui.AddSpacing();
-
-	if (ui.isMaximized())
-	{
-		ui.AddSpacing();
-		ui.Add(whisper.bTimeStamps, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-		ui.Add(whisper.bSpanish, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-		s = "Uses another model\n";
-		s += "Requires app restart!";
-		ui.AddTooltip(s);
-		ui.Add(whisper.bHighQuality, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-		s = "Uses a bigger model\n";
-		s += "Requires app restart!";
-		ui.AddTooltip(s);
-		ui.Add(whisper.step_ms);
-		s = "Default is 500ms\n";
-		s += "Requires app restart!";
-		ui.AddTooltip(s);
-		ui.Add(whisper.length_ms);
-		s = "Default is 5000ms\n";
-		s += "Requires app restart!";
-		ui.AddTooltip(s);
-		ui.AddSpacing();
-		ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-		if (whisper.bDebug) {
-		}
-		ui.AddSpacing();
-		//ui.AddLabel(whisper.getTextLast());
-	}
-
-	ui.AddSpacingBigSeparated();
-}
-#endif
-
 //--------------------------------------------------------------
 void ofApp::draw()
 {
 	ofClear(subs.getColorBg());
 
-	drawScene();
+	//drawScene();
 
 	subs.draw();
 
@@ -406,7 +361,8 @@ void ofApp::drawImGui()
 
 			//--
 
-			ui.AddLabelHuge("Chat\nGPT", true, true);
+			ui.AddLabelHuge("Chat\nGpt", true, true);
+
 			static ofParameter<bool> b{ "+",0 };
 			if (ui.isMaximized()) ui.Add(b, OFX_IM_TOGGLE_ROUNDED_MINI);
 			if (ui.isMaximized() && b)
@@ -418,46 +374,49 @@ void ofApp::drawImGui()
 				{
 					setupGpt();
 				}
-
-				ui.AddSpacingSeparated();
-
-				if (ui.AddButton("Send Input")) 
-				{
-					setInputGpt(editorInput.getText(), bConversation);
-				}
-
-				//if (ui.AddButton("Get Response")) {
-				//	//editorResponse.setText(textLastResponse);
-				//}
-
-				ui.AddSpacingSeparated();
-
-				if (ui.AddButton("Random")) {
-					doRandomInput();
-				}
-
-				ui.AddSpacingSeparated();
-				
-				ui.AddLabelHuge("PROMPT");
-				ui.AddSpacing();
-				if (ui.AddButton("Swap Prompt"))
-				{
-					doSwapPrompt();
-				}
-				ui.AddSpacing();
-				ui.AddLabel(namePrompt);
-				ui.AddLabel(strPrompt);
-
-				ui.AddSpacingSeparated();
-			
-				//--
-
-				ui.AddLabelHuge("EDITORS");
-				ui.AddSpacing();
-				ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
-				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
-				ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
 			}
+
+			ui.AddSpacingSeparated();
+
+			if (ui.AddButton("Send"))
+			{
+				setInputGpt(editorInput.getText(), bConversation);
+			}
+			//if (ui.AddButton("Get Response")) {
+			//	//editorResponse.setText(textLastResponse);
+			//}
+			if (ui.AddButton("Random")) {
+				doRandomInput();
+			}
+			if (ui.AddButton("Regenerate")) {
+				doRegenerate();
+			}
+
+			ui.AddSpacingSeparated();
+
+			ui.AddLabelHuge("PROMPT");
+
+			ui.AddSpacing();
+			if (ui.AddButton("Swap Prompt"))
+			{
+				doSwapPrompt();
+			}
+			ui.AddSpacing();
+			ui.AddLabel(namePrompt);
+			ui.PushFont(OFX_IM_FONT_BIG);
+			ui.AddTooltip(strPrompt);
+			ui.PopFont();
+
+			ui.AddSpacingSeparated();
+
+			//--
+
+			ui.AddLabelHuge("EDITORS");
+
+			ui.AddSpacing();
+			ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
+			ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
+			ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
 
 			ui.AddSpacingBigSeparated();
 
@@ -496,7 +455,8 @@ void ofApp::drawImGui()
 
 		if (ui.isMaximized() && ui.isExtraEnabled())
 		{
-			if (bGui_History) {
+			if (bGui_History)
+			{
 				//if (ui.isDebug())
 				{
 					// Gpt History
@@ -549,16 +509,6 @@ void ofApp::drawImGui()
 	ui.End();
 }
 
-#ifdef USE_WHISPER
-//--------------------------------------------------------------
-void ofApp::doUpdatedWhisper()
-{
-	string s = whisper.getTextLast();
-	ofLogNotice() << "doUpdatedWhisper(): " << s;
-	doPopulateText(s);
-}
-#endif
-
 //--------------------------------------------------------------
 void ofApp::doPopulateText(string s)
 {
@@ -595,24 +545,27 @@ void ofApp::keyPressed(int key)
 
 	if (chatGpt.isWaiting()) return;
 
-	if (key == '1') { strBandname = "Jane's Addiction"; sendMessage(strBandname); }
-	if (key == '2') { strBandname = "Fugazi"; sendMessage(strBandname); }
-	if (key == '3') { strBandname = "Joy Division"; sendMessage(strBandname); }
-	if (key == '4') { strBandname = "The Smiths";  sendMessage(strBandname); }
-	if (key == '5') { strBandname = "Radio Futura"; sendMessage(strBandname); }
-	if (key == '6') { strBandname = "John Frusciante"; sendMessage(strBandname); }
-	if (key == '7') { strBandname = "Primus"; sendMessage(strBandname); }
-	if (key == '8') { strBandname = "Kraftwerk"; sendMessage(strBandname); }
-	if (key == '9') { strBandname = "Portishead"; sendMessage(strBandname); }
+	if (key == '1') { strBandname = "Jane's Addiction"; doSendMessageToGpt(strBandname); }
+	if (key == '2') { strBandname = "Fugazi"; doSendMessageToGpt(strBandname); }
+	if (key == '3') { strBandname = "Joy Division"; doSendMessageToGpt(strBandname); }
+	if (key == '4') { strBandname = "The Smiths";  doSendMessageToGpt(strBandname); }
+	if (key == '5') { strBandname = "Radio Futura"; doSendMessageToGpt(strBandname); }
+	if (key == '6') { strBandname = "John Frusciante"; doSendMessageToGpt(strBandname); }
+	if (key == '7') { strBandname = "Primus"; doSendMessageToGpt(strBandname); }
+	if (key == '8') { strBandname = "Kraftwerk"; doSendMessageToGpt(strBandname); }
+	if (key == '9') { strBandname = "Portishead"; doSendMessageToGpt(strBandname); }
 
-	if (key == ' ') {//next prompt
+	//next prompt
+	if (key == ' ') {
 		doSwapPrompt();
 	}
 
-	if (key == OF_KEY_RETURN) {//regenerate
-		regenerate();
+	//regenerate
+	if (key == OF_KEY_RETURN) {
+		doRegenerate();
 	}
 
+	//--
 
 	if (key == 'g') { bGui = !bGui; }
 	if (key == ' ') { doPopulateText(); }
@@ -627,7 +580,7 @@ void ofApp::keyPressed(int key)
 	//if (key == OF_KEY_RIGHT) { subs.setSubtitleNext(); }
 	//if (key == OF_KEY_BACKSPACE) { subs.setSubtitleRandomIndex(); };
 
-	//-
+	//--
 
 	//switch (key)
 	//{
@@ -705,7 +658,8 @@ void ofApp::drawWidgets()
 	}
 };
 
-void ofApp::sendMessage(string message) {
+//--------------------------------------------------------------
+void ofApp::doSendMessageToGpt(string message) {
 
 	ofxChatGPT::ErrorCode errorCode;
 
@@ -721,39 +675,41 @@ void ofApp::sendMessage(string message) {
 	jResponse = ofJson();
 
 	chatGpt.chatWithHistoryAsync(message);
+
+	ui.AddToLog("doSendMessageToGpt()");
+	ui.AddToLog(message);
 }
 
-void ofApp::regenerate() {
-	ofLogNotice("ofApp") << "Regenerate";
+//--------------------------------------------------------------
+void ofApp::doRegenerate() {
+	ofLogNotice("ofApp") << "doRegenerate()";
+	ui.AddToLog("doRegenerate()");
 
 	chatGpt.regenerateAsync();
 }
 
+//--------------------------------------------------------------
 void ofApp::doRandomInput()
 {
 	ui.AddToLog("doRandomInput()");
 
 	size_t sz = 9;
 	float r = ofRandom(sz);
-	float stp = 1.f / (float)sz;
-
-	if (r < 1 * stp) { strBandname = "Jane's Addiction"; }
-	else if (r < 2 * stp) { strBandname = "Fugazi"; }
-	else if (r < 3 * stp) { strBandname = "Joy Division"; }
-	else if (r < 4 * stp) { strBandname = "The Smiths"; }
-	else if (r < 5 * stp) { strBandname = "Radio Futura"; }
-	else if (r < 6 * stp) { strBandname = "John Frusciante"; }
-	else if (r < 7 * stp) { strBandname = "Primus"; }
-	else if (r < 8 * stp) { strBandname = "Kraftwerk"; }
-	else if (r < 9 * stp) { strBandname = "Portishead"; }
-
+	if (r < 1) { strBandname = "Jane's Addiction"; }
+	else if (r < 2) { strBandname = "Fugazi"; }
+	else if (r < 3) { strBandname = "Joy Division"; }
+	else if (r < 4) { strBandname = "The Smiths"; }
+	else if (r < 5) { strBandname = "Radio Futura"; }
+	else if (r < 6) { strBandname = "John Frusciante"; }
+	else if (r < 7) { strBandname = "Primus"; }
+	else if (r < 8) { strBandname = "Kraftwerk"; }
+	else if (r < 9) { strBandname = "Portishead"; }
 	string s = "";
 	s = strBandname;
-	sendMessage(s);
-
+	doSendMessageToGpt(s);
 
 	editorInput.setText(s);
-	ui.AddToLog("editorInput.setText");
+	ui.AddToLog("editorInput.setText()");
 	ui.AddToLog(s, OF_LOG_NOTICE);
 
 	setInputGpt(editorInput.getText(), bConversation);
@@ -763,9 +719,71 @@ void ofApp::doRandomInput()
 	//ui.AddToLog("editorResponse.setTex");
 };
 
+//--------------------------------------------------------------
 void ofApp::doSwapPrompt() {
 	if (iPrompt == 0) iPrompt = 1;
 	else if (iPrompt == 1) iPrompt = 2;
 	else if (iPrompt == 2) iPrompt = 0;
 	setPrompt(iPrompt);
 }
+
+#ifdef USE_WHISPER
+
+//--------------------------------------------------------------
+void ofApp::doUpdatedWhisper()
+{
+	string s = whisper.getTextLast();
+	ofLogNotice() << "doUpdatedWhisper(): " << s;
+	doPopulateText(s);
+}
+
+//--------------------------------------------------------------
+void ofApp::drawImGuiWidgetsWhisper()
+{
+	ui.Add(ui.bMinimize, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+	ui.Add(ui.bLog, OFX_IM_TOGGLE_BUTTON_ROUNDED);
+	if (ui.bLog || whisper.bDebug) {
+		ui.AddSpacing();
+		if (ui.Add(whisper.vClear, OFX_IM_BUTTON)) {
+			ui.ClearLog();
+		};
+	}
+	ui.AddSpacingBigSeparated();
+
+	ui.AddLabelHuge("ofxWhisper");
+	ui.AddSpacing();
+	ui.Add(whisper.bEnable, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+	ui.AddSpacing();
+
+	if (ui.isMaximized())
+	{
+		ui.AddSpacing();
+		ui.Add(whisper.bTimeStamps, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+		ui.Add(whisper.bSpanish, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+		s = "Uses another model\n";
+		s += "Requires app restart!";
+		ui.AddTooltip(s);
+		ui.Add(whisper.bHighQuality, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+		s = "Uses a bigger model\n";
+		s += "Requires app restart!";
+		ui.AddTooltip(s);
+		ui.Add(whisper.step_ms);
+		s = "Default is 500ms\n";
+		s += "Requires app restart!";
+		ui.AddTooltip(s);
+		ui.Add(whisper.length_ms);
+		s = "Default is 5000ms\n";
+		s += "Requires app restart!";
+		ui.AddTooltip(s);
+		ui.AddSpacing();
+		ui.Add(whisper.bDebug, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
+		if (whisper.bDebug) {
+		}
+		ui.AddSpacing();
+		//ui.AddLabel(whisper.getTextLast());
+	}
+
+	ui.AddSpacingBigSeparated();
+}
+
+#endif

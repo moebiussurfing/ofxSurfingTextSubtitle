@@ -19,6 +19,7 @@
 
 //#define USE_WHISPER
 
+//--
 
 #include "ofMain.h"
 
@@ -46,7 +47,6 @@ public:
 	void drawScene();
 	void drawImGui();
 
-	ofParameter<bool> bGui;
 	ofxSurfingGui ui;
 
 	ofxWindowApp w;
@@ -59,8 +59,10 @@ public:
 
 	void setupGpt();
 	void setInputGpt(string s, bool bWithHistory = false);
-	void sendMessage(string message);
-	void regenerate();
+	void doSendMessageToGpt(string message);
+	void doRegenerate();
+
+	ofParameter<bool> bGui;
 
 	ofParameterGroup params{ "ofApp" };
 	ofParameter<string> keyApi{ "API KEY","" };
@@ -70,13 +72,12 @@ public:
 	ofParameter<int> fontR{ "FontR", 0, 0, 3 };
 
 	SurfingTextEditor editorResponse;
-
 	SurfingTextEditor editorInput;
 	void drawWidgets(); // Advanced: inserted widgets
 
 	bool bError = false;
 
-	std::string textLastResponse;
+	string textLastResponse;
 
 	ofJson jQuestion;
 	ofJson jResponse;
@@ -95,9 +96,10 @@ public:
 	vector<pair<string, string> > prompts;
 	void setPrompt(int index);
 
+	//--
+
 	static string GPT_Prompt_0() {
-		return R"(
-I want you to act as a music band advertiser. 
+		return R"(I want you to act as a music band advertiser. 
 You will create a campaign to promote that band.
 That campaign consists of 5 short sentences.
 These sentences must define the band's career highlights, 
@@ -107,8 +109,7 @@ The sentences will be short: less than 5 words.
 	}
 
 	static string GPT_Prompt_1() {
-		return R"(
-I want you to act as a music band critic. 
+		return R"(I want you to act as a music band critic. 
 I will pass you a band music name. You will return a list of 10 words.
 You will only reply with that words list, and nothing else. 
 Words will be sorted starting from less to more relevance.
@@ -116,14 +117,15 @@ Words will be sorted starting from less to more relevance.
 	}
 
 	static string GPT_Prompt_2() {
-		return R"(
-I want you to act as a music critic.
+		return R"(I want you to act as a music critic.
 As a LastFm maintainer.
 I will give you a band name. You will list the 5 more similar bands.
 You will only reply that band names list, and nothing else. 
 But you must sort that bands, from older to newer. 
 )";
 	}
+
+	//--
 
 #ifdef USE_WHISPER
 	surfingWhisper whisper;

@@ -557,10 +557,10 @@ public:
 	void stop();
 	void pause();
 
-	void doSetTextSlideStartFile(string s);//sets the text and start the slide playing..
-	void doSetTextSlideStart(string s);
+	void doSetTextSlideStartFile(string s);//Sets the text from a file and start the slide playing..
+	void doSetTextSlideStart(string s);//Sets the text and start the slide playing..
 
-	void buildDataTextBlocks(string s);//Create slides from a unique string text.
+	void doBuildDataTextBlocks(string s);//Create slides from a unique string text with multiple blocks..
 
 private:
 
