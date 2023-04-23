@@ -558,7 +558,7 @@ public:
 	void pause();
 
 	void doSetTextSlideStartFile(string s);//sets the text and start the slide playing..
-	void doSetTextSlideStart(string path);
+	void doSetTextSlideStart(string s);
 
 	void buildDataTextBlocks(string s);//Create slides from a unique string text.
 

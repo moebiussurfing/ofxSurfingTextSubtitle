@@ -295,7 +295,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	// Style
 	fSize.set("SizeR", 50, 5, (float)MAX_FONT_SIZE);
 	fSizePrc.set("Size", 0.2, 0.1, 1.0f);
-	fSpacing.set("Spacing", 0, -20, 50);
+	fSpacing.set("Spacing", 0, -30, 30);
 	fLineHeight.set("Height", 0.75, 0.5, 2.0);
 	colorTextFloat.set("Color", ofFloatColor::white, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//colorTextShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
@@ -2763,6 +2763,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	}
 
 	//----
+	
+	//workflow
+	if (!bLoadedFileSubs && !bLoadedFileText && indexModes != 3)
+		indexModes = 3;
 
 	if (bLoadedFileSubs || bLoadedFileText || (indexModes == 3))
 	{
@@ -3001,7 +3005,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->EndTree(false);
 		}
 
-
 		//--
 
 		if (!bLive)
@@ -3019,6 +3022,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 						{
 							ui->AddSpacing();
 							ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(ui->bThemeUiAlt, OFX_IM_TOGGLE_ROUNDED_MINI);
 							ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
 							s = "Debug HUD";
 							ui->AddLabel(s);
