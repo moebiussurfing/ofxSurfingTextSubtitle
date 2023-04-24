@@ -44,7 +44,7 @@ public:
 	void keyPressed(int key);
 	void startup();
 
-	void drawScene();
+	//void drawScene();
 	void drawImGui();
 
 	ofxSurfingGui ui;
@@ -55,19 +55,20 @@ public:
 	string path;
 	void doPopulateText(string s = "");
 	void doPopulateTextBlocks();
+	void doClearList();
 
 	ChatThread chatGpt;
 
 	void setupGpt();
-	void setInputGpt(string s, bool bWithHistory = false);
+	void doSendMessageToGpt(string s, bool bWithHistory);
 	void doSendMessageToGpt(string message);
 	void doRegenerate();
 
 	ofParameter<bool> bGui;
 
 	ofParameterGroup params{ "ofApp" };
-	ofParameter<string> keyApi{ "API KEY","" };
-	ofParameter<bool> bConversation{ "Conversation", false };
+	ofParameter<string> keyApi{ "API key","" };
+	ofParameter<bool> bConversation{ "Conversation", false };//not used
 	ofParameter<bool> bGui_History{ "History",false };
 	ofParameter<int> fontI{ "FontI", 0, 0, 3 };
 	ofParameter<int> fontR{ "FontR", 0, 0, 3 };

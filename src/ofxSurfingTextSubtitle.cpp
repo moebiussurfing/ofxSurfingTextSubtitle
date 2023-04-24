@@ -262,7 +262,7 @@ void ofxSurfingTextSubtitle::setupParams()
 	bLive.set("LIVE!", false);
 	bEdit.set("Edit", true);
 	bDebug.set("Debug", true);
-	bExtra.set("Extra", false );
+	bExtra.set("Extra", false);
 	bTop.set("Top Timeline", true);
 	bLeft.set("Left Alpha", false);
 #ifdef USE_WIDGET__SUBTITLES
@@ -461,9 +461,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	params.add(params_Style);
 
 	ofAddListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
-	
+
 	//--
-	 
+
 	//doReset();
 	doResetAll();
 
@@ -482,9 +482,9 @@ void ofxSurfingTextSubtitle::setupParams()
 	params_AppSettings.add(params_Control);
 	params_AppSettings.add(params_Transport);
 	params_AppSettings.add(bGui);
-	
+
 	//--
-	
+
 	//TODO:	gt.setPathGlobal(path_Global);
 	gt.addGroup(params_AppSettings, path_Global + "/" + path_SubtitlerSettings);
 }
@@ -2353,7 +2353,16 @@ void ofxSurfingTextSubtitle::drawImGui()
 
 	if (bLoadedFileSubs || bLoadedFileText)
 	{
-		if (bGui_List)
+		if (bModeTextBlocks)
+		{
+			dataTextPtr = &dataTextBlocks;
+		}
+		else
+		{
+			dataTextPtr = &dataTextSubs;
+		}
+
+		if (bGui_List && dataTextPtr->size() > 0)
 		{
 			if (bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
 			else  ui->setNextWindowAfterWindowNamed(bGui);
@@ -2700,7 +2709,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-	}
+		}
 
 	////workflow
 	//if (!bLoadedFileSubs && !bLoadedFileText && indexModes != 3)
@@ -2714,8 +2723,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 	//--
 
 	// Manual
+	//TODO:
 	//workflow
-	if (indexModes != 3)
+	//if (indexModes != 3)
 	{
 		if (!bMinimize) // maximized 
 		{
@@ -2731,6 +2741,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->AddLabel(name_Srt + ".srt");
 					ui->AddTooltip(path_Srt);
 				}
+
 				ui->AddSpacing();
 
 				ui->Add(bOpenText, OFX_IM_BUTTON_SMALL);
@@ -2781,20 +2792,24 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			ui->BeginBlinkText();
 			ui->AddLabelBig("FILE NOT LOADED!");
 			ui->EndBlinkText();
-			ui->AddSpacing();
-			ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
-			s = "Open a Srt file";
-			ui->Add(bOpenText, OFX_IM_BUTTON_SMALL);
-			s = "Open a Text file";
-			ui->AddTooltip(s);
+
+			//ui->AddSpacing();
+			//ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
+			//s = "Open a Srt file";
+			//ui->Add(bOpenText, OFX_IM_BUTTON_SMALL);
+			//s = "Open a Text file";
+			//ui->AddTooltip(s);
 		}
 	}
 
 	//----
 
-	if (bLoadedFileSubs || bLoadedFileText || (indexModes == 3))
+	//TODO:
+	//if (bLoadedFileSubs || bLoadedFileText || (indexModes == 3))
 	{
 		ui->AddSpacingSeparated();
+
+		//--
 
 		//if (bMinimize)
 		{
@@ -2810,6 +2825,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 			ui->AddSpacingSeparated();
 		}
+
+		//--
 
 		if (ui->BeginTree("WINDOWS", false, false))
 		{
@@ -2835,7 +2852,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			//}
 
 			ui->EndTree(false);
-		}//main
+		}
 
 		//--
 
@@ -2894,10 +2911,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 					ui->AddTooltip(s);
 					//ui->AddTooltip(currentDialog);
 
-					ui->PushButtonRepeat();
+					//ui->PushButtonRepeat();
 					ui->Add(bPrev, OFX_IM_BUTTON_BIG, 2, true);
 					ui->Add(bNext, OFX_IM_BUTTON_BIG, 2);
-					ui->PopButtonRepeat();
+					//ui->PopButtonRepeat();
 				}
 				else if (indexModes == 3) // MANUAL
 				{
@@ -2990,6 +3007,8 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		ui->AddSpacingSeparated();
 
+		//--
+
 		if (ui->BeginTree("STYLE", false, false))
 		{
 			if (!bMinimize)
@@ -3069,10 +3088,11 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 							if (bDebug) {
 								ui->AddSpacing();
 								ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
-								if (bModeTextBlocks) s = "MODE Text file";
-								else s = "MODE Srt file";
+								s = "MODE FILE \n";
+								if (bModeTextBlocks) s += "TextBlocks";
+								else s += "Srt";
 								ui->AddLabel(s);
-								s = "MODE #" + ofToString(indexModes.get()) + string(" ") + indexModes_Name.get();
+								s = "MODE TRANSPORT \n#" + ofToString(indexModes.get()) + string(" ") + indexModes_Name.get();
 								ui->AddLabel(s);
 
 							}
@@ -3105,7 +3125,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		//		}
 		//#endif
 	}
-}
+	}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWindowList()
@@ -3134,14 +3154,14 @@ void ofxSurfingTextSubtitle::drawImGuiWindowList()
 		// Alternate modes: 
 		// Pick text data from srt file or from text block files:
 
-		if (bModeTextBlocks)
-		{
-			dataTextPtr = &dataTextBlocks;
-		}
-		else
-		{
-			dataTextPtr = &dataTextSubs;
-		}
+		//if (bModeTextBlocks)
+		//{
+		//	dataTextPtr = &dataTextBlocks;
+		//}
+		//else
+		//{
+		//	dataTextPtr = &dataTextSubs;
+		//}
 
 		//--
 
@@ -3411,7 +3431,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
 			}
-		}
+}
 #endif
 
 		//workflow
@@ -3432,7 +3452,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			break;
 		}
 		}
-	}
+}
 
 	//--
 
@@ -3442,11 +3462,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		currentDialog.setWithoutEventNotifications(ofClamp(currentDialog.get(), currentDialog.getMin(), currentDialog.getMax()));
 
-		//static int currentDialog_ = -1;
-		//if (currentDialog != currentDialog_) {
-		//	currentDialog_ = currentDialog;
-		//}
-		//else return;//not changed
+		//TODO:
+		static int currentDialog_ = -1;
+		if (currentDialog != currentDialog_) {
+			currentDialog_ = currentDialog;
+		}
+		else return;//not changed
 
 		ofLogNotice("ofxSurfingTextSubtitle") << "Changed " << name << " : " << e;
 
@@ -3669,7 +3690,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	{
 		if (bPlayForced)
 		{
-			if(bPlayStandalone) bPlayStandalone.set(false);
+			if (bPlayStandalone) bPlayStandalone.set(false);
 			//bPlayStandalone.setWithoutEventNotifications(false);
 			//bPlayExternal.setWithoutEventNotifications(false);
 
@@ -3774,7 +3795,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 	// next
 	else if (name == bNext.getName())
 	{
-		currentDialog++;
+		currentDialog.set(currentDialog.get() + 1);
 
 		//else {
 		//TODO: fail
@@ -3790,10 +3811,11 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 		*/
 		//}
 	}
+
 	// prev
 	else if (name == bPrev.getName())
 	{
-		currentDialog--;
+		currentDialog.set(currentDialog.get() - 1);
 	}
 
 	// edit 
@@ -4182,12 +4204,22 @@ void ofxSurfingTextSubtitle::pause() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doClearList() {
+	dataTextBlocks.clear();
+	dataTextSubs.clear();
+
+	//workflow
+	stop();
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::doBuildDataTextBlocks(string s, bool bNumbered) {
 	ofLogNotice("ofxSurfingTextSubtitle") << "doBuildDataTextBlocks()";
 	ofLogNotice("ofxSurfingTextSubtitle") << endl << s;
 
 	if (!bNumbered) dataTextBlocks = ofxSurfingHelpers::splitTextBlocks(s);
 	else dataTextBlocks = ofxSurfingHelpers::splitTextBlocksNumbered(s);
+
 	ofLogNotice("ofxSurfingTextSubtitle") << "Amount Blocks: " << dataTextBlocks.size();
 
 	ofLogNotice("ofxSurfingTextSubtitle") << "Print Blocks";
@@ -4207,6 +4239,10 @@ void ofxSurfingTextSubtitle::doBuildDataTextBlocks(string s, bool bNumbered) {
 	currentDialog = 0;
 	//bPlayStandalone = true;
 	bPlayForced = true;
+
+
+	bLoadedFileText = true;
+	bModeTextBlocks = true;
 }
 
 //--------------------------------------------------------------

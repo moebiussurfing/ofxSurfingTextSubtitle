@@ -597,6 +597,8 @@ public:
 	//Create slides from a unique string text with multiple blocks..
 	void doBuildDataTextBlocks(string s, bool bNumbered = false);//will use '\n' as dividers or numbered
 
+	void doClearList();
+
 private:
 
 	string lastTextSlideRaw = "";//last loaded text dialog or text block with the original capitalization.

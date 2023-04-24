@@ -1,32 +1,12 @@
 ﻿#include "ofApp.h"
 
 //--------------------------------------------------------------
-void ofApp::exit()
-{
-	ofxSurfingHelpers::save(params);
-}
-
-//--------------------------------------------------------------
-void ofApp::setInputGpt(string s, bool bWithHistory)
-{
-	// Spacing
-	size_t n = 20;
-	for (size_t i = 0; i < n; i++)
-	{
-		if (i == n / 2) ofLogNotice("ofApp") << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ setInputGpt ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-		else ofLogNotice("ofApp") << "|";
-	}
-
-	ui.AddToLog("setInputGpt()");
-
-	doSendMessageToGpt(s);
-}
-
-//--------------------------------------------------------------
 void ofApp::setup()
 {
-	w.doReset();
-	ofxSurfingHelpers::setMonitorsLayout(0);
+#if 1
+	//w.doReset();
+	//ofxSurfingHelpers::setMonitorsLayout(1, true, true);
+#endif
 
 	//--
 
@@ -54,9 +34,9 @@ void ofApp::setup()
 	editorInput.setup("Input");
 	editorInput.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
 
-	// custom keyword
-	editorInput.addKeyword("\"user\":");
-	editorInput.addKeyword("\"assistant\":");
+	//// custom keyword
+	//editorInput.addKeyword("\"user\":");
+	//editorInput.addKeyword("\"assistant\":");
 
 	// Advanced
 	callback_t myFunctionDraw = std::bind(&ofApp::drawWidgets, this);
@@ -247,7 +227,7 @@ void ofApp::update()
 #ifdef USE_WHISPER
 	whisper.update();
 #endif
-	}
+}
 
 //--------------------------------------------------------------
 void ofApp::draw()
@@ -274,76 +254,76 @@ void ofApp::draw()
 #endif
 }
 
-//--------------------------------------------------------------
-void ofApp::drawScene()
-{
-	// Bg: Blue when waiting. red if error. 
-	{
-		ofColor c;
-		float v = glm::cos(10 * ofGetElapsedTimef());
-		float a1 = ofMap(v, -1, 1, 100, 200, true);
-		float a2 = ofMap(v, -1, 1, 8, 16, true);
-		bool b = chatGpt.isWaiting();
-		if (bError) c = ofColor(a1, 0, 0);
-		else if (b) c = ofColor(0, 0, a1);
-		else c = ofColor(a2);
-		ofClear(c);
-	}
-
-	/*
-	// Display the conversation on the screen.
-	stringstream conversationText;
-	// Iterate through the conversation messages and build the display text.
-	for (const ofJson &message : chatGpt.getConversation()) {
-		conversationText << message["role"] << ": " << message["content"] << "\n";
-	}
-	// Draw the conversation text on the screen.
-	ofDrawBitmapStringHighlight("conversation:\n" + conversationText.str(), 20, 70);
-	 */
-
-	string s = "";
-	int x, y, h, i;
-	h = 20;
-	x = 10;
-	y = 20;
-
-	i = 0;
-	ofDrawBitmapStringHighlight("QUESTION: \n", x, y + (i++ * h));
-	s = ofToString(jQuestion["message"]["role"]);
-	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-	s = ofToString(jQuestion["message"]["content"]);
-	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-
-	i = 0;
-	y = ofGetHeight() / 2;
-	ofDrawBitmapStringHighlight("RESPONSE: \n", x, y + (i++ * h));
-	s = ofToString(jResponse["message"]["role"]);
-	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-	s = ofToString(jResponse["message"]["content"]);
-	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-
-	s = "";
-	s += "Press 1-9 to ask for a MUSIC BAND.\n";
-	s += "1 Jane's Addiction\n";
-	s += "2 Fugazi\n";
-	s += "3 Joy Division\n";
-	s += "4 The Smiths\n";
-	s += "5 Radio Futura\n";
-	s += "6 John Frusciante\n";
-	s += "7 Primus\n";
-	s += "8 Kraftwerk\n";
-	s += "9 Portishead\n\n";
-	s += "Press SPACE to swap prompt.\n";
-	s += "PROMPT #" + ofToString(iPrompt) + "\n";
-	s += namePrompt + "\n\n";
-	s += "Press ENTER to regenerate.";
-
-	static ofBitmapFont f;
-	auto bb = f.getBoundingBox(s, 0, 0);
-	y = 20;
-	x = ofGetWidth() / 2 - bb.getWidth() / 2;
-	ofDrawBitmapStringHighlight(s, x, y);
-}
+////--------------------------------------------------------------
+//void ofApp::drawScene()
+//{
+//	// Bg: Blue when waiting. red if error. 
+//	{
+//		ofColor c;
+//		float v = glm::cos(10 * ofGetElapsedTimef());
+//		float a1 = ofMap(v, -1, 1, 100, 200, true);
+//		float a2 = ofMap(v, -1, 1, 8, 16, true);
+//		bool b = chatGpt.isWaiting();
+//		if (bError) c = ofColor(a1, 0, 0);
+//		else if (b) c = ofColor(0, 0, a1);
+//		else c = ofColor(a2);
+//		ofClear(c);
+//	}
+//
+//	/*
+//	// Display the conversation on the screen.
+//	stringstream conversationText;
+//	// Iterate through the conversation messages and build the display text.
+//	for (const ofJson &message : chatGpt.getConversation()) {
+//		conversationText << message["role"] << ": " << message["content"] << "\n";
+//	}
+//	// Draw the conversation text on the screen.
+//	ofDrawBitmapStringHighlight("conversation:\n" + conversationText.str(), 20, 70);
+//	 */
+//
+//	string s = "";
+//	int x, y, h, i;
+//	h = 20;
+//	x = 10;
+//	y = 20;
+//
+//	i = 0;
+//	ofDrawBitmapStringHighlight("QUESTION: \n", x, y + (i++ * h));
+//	s = ofToString(jQuestion["message"]["role"]);
+//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
+//	s = ofToString(jQuestion["message"]["content"]);
+//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
+//
+//	i = 0;
+//	y = ofGetHeight() / 2;
+//	ofDrawBitmapStringHighlight("RESPONSE: \n", x, y + (i++ * h));
+//	s = ofToString(jResponse["message"]["role"]);
+//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
+//	s = ofToString(jResponse["message"]["content"]);
+//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
+//
+//	s = "";
+//	s += "Press 1-9 to ask for a MUSIC BAND.\n";
+//	s += "1 Jane's Addiction\n";
+//	s += "2 Fugazi\n";
+//	s += "3 Joy Division\n";
+//	s += "4 The Smiths\n";
+//	s += "5 Radio Futura\n";
+//	s += "6 John Frusciante\n";
+//	s += "7 Primus\n";
+//	s += "8 Kraftwerk\n";
+//	s += "9 Portishead\n\n";
+//	s += "Press SPACE to swap prompt.\n";
+//	s += "PROMPT #" + ofToString(iPrompt) + "\n";
+//	s += namePrompt + "\n\n";
+//	s += "Press ENTER to regenerate.";
+//
+//	static ofBitmapFont f;
+//	auto bb = f.getBoundingBox(s, 0, 0);
+//	y = 20;
+//	x = ofGetWidth() / 2 - bb.getWidth() / 2;
+//	ofDrawBitmapStringHighlight(s, x, y);
+//}
 
 //--------------------------------------------------------------
 void ofApp::drawImGui()
@@ -387,16 +367,23 @@ void ofApp::drawImGui()
 
 			ui.AddSpacingSeparated();
 
-			if (ui.AddButton("Send"))
+			ui.PushFont(OFX_IM_FONT_BIG);
 			{
-				setInputGpt(editorInput.getText(), bConversation);
+				if (ui.AddButton("Send"))
+				{
+					doSendMessageToGpt(editorInput.getText(), bConversation);
+				}
+
+				//if (ui.AddButton("Get Response")) {
+				//	//editorResponse.setText(textLastResponse);
+				//}
+
+				if (ui.AddButton("Random", OFX_IM_BUTTON_BIG)) {
+					doRandomInput();
+				}
 			}
-			//if (ui.AddButton("Get Response")) {
-			//	//editorResponse.setText(textLastResponse);
-			//}
-			if (ui.AddButton("Random")) {
-				doRandomInput();
-			}
+			ui.PopFont();
+
 			if (ui.AddButton("Regenerate")) {
 				doRegenerate();
 			}
@@ -406,11 +393,16 @@ void ofApp::drawImGui()
 			ui.AddLabelHuge("PROMPT");
 
 			ui.AddSpacing();
-			if (ui.AddButton("Swap Prompt"))
+
+			ui.PushFont(OFX_IM_FONT_BIG);
+			if (ui.AddButton("Swap Prompt", OFX_IM_BUTTON_BIG))
 			{
 				doSwapPrompt();
 			}
+			ui.PopFont();
+
 			ui.AddSpacing();
+			
 			ui.AddLabel(namePrompt);
 			ui.PushFont(OFX_IM_FONT_BIG);
 			ui.AddTooltip(strPrompt);
@@ -424,9 +416,10 @@ void ofApp::drawImGui()
 
 			ui.AddSpacing();
 			ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
-			ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
-			ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
-
+			if (subs.bExtra) {
+				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
+				ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
+			}
 			ui.AddSpacingBigSeparated();
 
 			//--
@@ -443,18 +436,28 @@ void ofApp::drawImGui()
 				ui.AddSpacing();
 				ui.AddSpacingDouble();
 
+				ui.AddLabelBig("Tester", false, true);
+
 				ui.PushFont(OFX_IM_FONT_BIG);
-				s = "Random\nText!";
-				s = ofToUpper(s);
-				if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
 				{
-					doPopulateText();
-				}
-				s = "Do\nBlock!";
-				s = ofToUpper(s);
-				if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
-				{
-					doPopulateTextBlocks();
+					s = "Random\nText!";
+					s = ofToUpper(s);
+					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
+					{
+						doPopulateText();
+					}
+					s = "Do\nBlock!";
+					s = ofToUpper(s);
+					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
+					{
+						doPopulateTextBlocks();
+					}
+					s = "Clear\nList";
+					s = ofToUpper(s);
+					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
+					{
+						doClearList();
+					}
 				}
 				ui.PopFont();
 			}
@@ -528,6 +531,9 @@ void ofApp::drawImGui()
 //--------------------------------------------------------------
 void ofApp::doPopulateText(string s)
 {
+	//workflow
+	doClearList();
+
 	// auto generate a random text
 	if (s == "")
 	{
@@ -559,6 +565,10 @@ void ofApp::doPopulateText(string s)
 void ofApp::doPopulateTextBlocks() {
 	string path = "files/txt/text2.txt";
 	subs.setupTextBlocks(path);
+}
+//--------------------------------------------------------------
+void ofApp::doClearList() {
+	subs.doClearList();
 }
 
 //--------------------------------------------------------------
@@ -639,9 +649,10 @@ void ofApp::drawWidgets()
 	{
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		setInputGpt(s, bConversation);
+		doSendMessageToGpt(s, bConversation);
 
-		editorInput.clearText();
+		//workflow
+		//editorInput.clearText();
 	};
 	ui.SameLine();
 	if (ui.AddButton("CLEAR", sz))
@@ -675,11 +686,27 @@ void ofApp::drawWidgets()
 	{
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		setInputGpt(s, bConversation);
+		doSendMessageToGpt(s, bConversation);
 
 		editorInput.clearText();
 	}
-};
+}
+
+//--------------------------------------------------------------
+void ofApp::doSendMessageToGpt(string s, bool bWithHistory)
+{
+	// Spacing
+	size_t n = 20;
+	for (size_t i = 0; i < n; i++)
+	{
+		if (i == n / 2) ofLogNotice("ofApp") << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ doSendMessageToGpt ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+		else ofLogNotice("ofApp") << "|";
+	}
+
+	ui.AddToLog("doSendMessageToGpt()");
+
+	doSendMessageToGpt(s);
+}
 
 //--------------------------------------------------------------
 void ofApp::doSendMessageToGpt(string message) {
@@ -714,6 +741,9 @@ void ofApp::doRegenerate() {
 //--------------------------------------------------------------
 void ofApp::doRandomInput()
 {
+	//workflow
+	doClearList();
+
 	ui.AddToLog("doRandomInput()");
 
 	size_t sz = 9;
@@ -729,13 +759,13 @@ void ofApp::doRandomInput()
 	else if (r < 9) { strBandname = "Portishead"; }
 	string s = "";
 	s = strBandname;
-	doSendMessageToGpt(s);
+	//doSendMessageToGpt(s);
 
 	editorInput.setText(s);
 	ui.AddToLog("editorInput.setText()");
 	ui.AddToLog(s, OF_LOG_NOTICE);
 
-	setInputGpt(editorInput.getText(), bConversation);
+	doSendMessageToGpt(editorInput.getText(), bConversation);
 
 	//// Here textLastResponse is already catched 
 	//editorResponse.setText(textLastResponse);
@@ -748,6 +778,12 @@ void ofApp::doSwapPrompt() {
 	else if (iPrompt == 1) iPrompt = 2;
 	else if (iPrompt == 2) iPrompt = 0;
 	setPrompt(iPrompt);
+}
+
+//--------------------------------------------------------------
+void ofApp::exit()
+{
+	ofxSurfingHelpers::save(params);
 }
 
 #ifdef USE_WHISPER
