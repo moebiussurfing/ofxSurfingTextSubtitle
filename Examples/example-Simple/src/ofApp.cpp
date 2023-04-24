@@ -3,26 +3,30 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	// Optional
-	string path = "files/srt/Huxley.srt"; // Srt file path
+	ofxSurfingHelpers::setMonitorsLayout(-1, true, true);
+
+	// Set the initial SRT file path. 
+	// But you can load other SRT or TXT files on runtime.
+	string path = "files/srt/Huxley.srt";
 	subs.setup(path);
 
-	subs.setUiPtr(&ui);
+	subs.setUiPtr(&ui); // ui must be instantiated in ofApp. 
+	// Not internally handled on the addon yet.
 }
 
 //--------------------------------------------------------------
-void ofApp::draw() 
+void ofApp::draw()
 {
-	ofClear(subs.getColorBg());
-	subs.draw();
-	drawGui();
+	ofClear(subs.getColorBg()); // the addon handles a Bg color ready to use.
+
+	subs.draw(); // draws the text
+
+	drawGui(); // gui
 }
 
 //--------------------------------------------------------------
 void ofApp::drawGui()
 {
-	//if (!subs.isVisibleGui()) return;
-
 	ui.Begin();
 	{
 		if (ui.BeginWindow("ofApp"))
@@ -35,5 +39,6 @@ void ofApp::drawGui()
 	}
 	ui.End();
 
+	// gui for debug, container or hud 
 	subs.drawGui();
 }

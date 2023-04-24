@@ -7,9 +7,10 @@
 	Must be not commented the below line:
 	#define USE_IM_GUI__SUBTTITTLES
 
-	Currently checking manual mode.
-	You should pick the correct mode
-	if you want to test SRT files!
+	Currently checking manual mode: 
+	by using doLoadText() and doLoadTextBlocks() functions.
+	You should pick the correct manual mode if you see it's changed,
+	or not, if you want to test SRT files with other modes!
 
 */
 
@@ -59,10 +60,10 @@ public:
 		}
 	};
 
-	// Function to process a full file and split into slides.
+	// Function to process a full file and split into blocks/slides.
 	//--------------------------------------------------------------
 	void doLoadTextBlocks() {
 		string path = "files/txt/text2.txt";
-		subs.setupText(path);
+		subs.setupTextBlocks(path);
 	};
 };

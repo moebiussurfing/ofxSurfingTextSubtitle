@@ -54,6 +54,7 @@ public:
 	ofxSurfingTextSubtitle subs;
 	string path;
 	void doPopulateText(string s = "");
+	void doPopulateTextBlocks();
 
 	ChatThread chatGpt;
 

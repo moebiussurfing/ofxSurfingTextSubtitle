@@ -216,14 +216,23 @@ void ofApp::update()
 			//--
 
 			textLastResponse = gptResponse;
+			ofLogNotice("ofxSurfingTextSubtitle") << endl << textLastResponse;
 
 			//TODO:
-			subs.doBuildDataTextBlocks(textLastResponse);
-			//subs.doSetTextSlideStart(textLastResponse);
+			//there's no new line \n marks. so we assume the blocks will be numbered 1., 2., 3. etc
+			size_t sz = ofxSurfingHelpers::countNewlines(textLastResponse);
+			bool b = true;
+			//b = sz == 0;
+			if (b) {
+				subs.doBuildDataTextBlocks(textLastResponse, true);
+			}
+			else {//we found \n tags. so we assume blocks ends with \n. 
+				subs.doBuildDataTextBlocks(textLastResponse);
+			}
 
-			// Here textLastResponse is already catched 
-			editorResponse.addText(textLastResponse);
-			//ui.AddToLog("editorResponse.setTex");
+			//// Here textLastResponse is already catched 
+			//editorResponse.addText(textLastResponse);
+			////ui.AddToLog("editorResponse.setTex");
 		}
 		else
 		{
@@ -238,7 +247,7 @@ void ofApp::update()
 #ifdef USE_WHISPER
 	whisper.update();
 #endif
-}
+	}
 
 //--------------------------------------------------------------
 void ofApp::draw()
@@ -433,12 +442,19 @@ void ofApp::drawImGui()
 			if (subs.bGui) {
 				ui.AddSpacing();
 				ui.AddSpacingDouble();
+
 				ui.PushFont(OFX_IM_FONT_BIG);
-				s = "Random \nText!";
+				s = "Random\nText!";
 				s = ofToUpper(s);
-				if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXXL_BORDER))
+				if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
 				{
 					doPopulateText();
+				}
+				s = "Do\nBlock!";
+				s = ofToUpper(s);
+				if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
+				{
+					doPopulateTextBlocks();
 				}
 				ui.PopFont();
 			}
@@ -536,6 +552,13 @@ void ofApp::doPopulateText(string s)
 	{
 		ofLogNotice("ofApp") << "|";
 	}
+}
+
+// Function to process a full file and split into blocks/slides.
+//--------------------------------------------------------------
+void ofApp::doPopulateTextBlocks() {
+	string path = "files/txt/text2.txt";
+	subs.setupTextBlocks(path);
 }
 
 //--------------------------------------------------------------

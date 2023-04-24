@@ -81,6 +81,17 @@
 // Then, you would use the class outside just by copying the
 // srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
 
+//#define USE_OFX_GUI__SUBTITLES // TODO:
+
+//----
+
+// Don't use both gui's
+#ifdef USE_IM_GUI__SUBTITLES 
+#ifdef USE_OFX_GUI__SUBTITLES 
+#undef USE_OFX_GUI__SUBTITLES 
+#endif
+#endif
+
 //----
 
 #define USE_WIDGET__SUBTITLES
@@ -97,8 +108,6 @@
 //----
 
 #include "ofMain.h"
-
-#include <unordered_set>
 
 // CREDITS:
 // srtparser.h
@@ -117,14 +126,10 @@
 #endif
 
 #include "srtparser.h"
+#include "surfingStrings.h"
 #include "ofxFontStash.h"
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxAutosaveGroupTimer.h"
-
-#ifndef USE_IM_GUI__SUBTITLES
-#include "ofxGui.h"
-#include "ofxSurfing_ofxGui.h"
-#endif
 
 // easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
@@ -136,8 +141,10 @@
 #undef USE_WIDGET__SUBTITLES
 #endif
 
+#ifdef USE_OFX_GUI__SUBTITLES
+#include "ofxGui.h"
+#include "ofxSurfing_ofxGui.h"
 #ifdef USE_WIDGET__SUBTITLES
-#ifndef USE_IM_GUI__SUBTITLES
 #include "ofxSurfingBoxHelpText.h"
 #endif
 #endif
@@ -157,14 +164,17 @@ class ofxSurfingTextSubtitle
 #ifdef USE_IM_GUI__SUBTITLES
 
 private:
+
 	ofxSurfingGui* ui;
 
 public:
+
 	void setUiPtr(ofxSurfingGui* _ui);//must be called after setup to get the file mame correctly
 
 	void drawImGui();
 
 private:
+
 	void drawImGuiWindowMain();
 	void drawImGuiWidgets();
 	void drawImGuiWindowParagraph();
@@ -172,15 +182,18 @@ private:
 
 #ifdef USE_PRESETS__SUBTITLES
 private:
+
 	ofxSurfingPresetsLite presets;
 #endif
 
 #endif
 
 private:
+
 	bool bDoRefreshNoDraw = false; // To checking expected text formating determined by the box container.
 
 private:
+
 	ofFbo fbo; // Declare an instance of FBO
 	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
 	// Note that it will not draws explicitly and immediately. However it will flag to do it on next frame/update/draw!
@@ -192,12 +205,16 @@ private:
 	//--
 
 public:
+
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
 
 private:
+
 	bool bDoneSetup = false;
+
 public:
+
 	void setup();
 	void setup(string _pathSrt);
 	// pass the .srt file path to load
@@ -208,6 +225,7 @@ public:
 	void updatePosition(float position); // to be used by the external mode
 
 private:
+
 	void update();
 	void update(ofEventArgs& args);
 
@@ -223,6 +241,7 @@ public:
 	void drawRaw();
 
 private:
+
 	void drawDebug();
 	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
@@ -235,9 +254,10 @@ private:
 	//bool bModeNoSrt = false; // use manual mode. don't load the srt file
 
 public:
+
 	void drawGui();
 
-#ifndef USE_IM_GUI__SUBTITLES
+#ifdef USE_OFX_GUI__SUBTITLES
 	void setDisableGuiInternal(bool b) {
 		bGui_InternalAllowed = !b;
 		bGui_Internal = !b;
@@ -246,6 +266,7 @@ public:
 	// Call before setup. Disables ofxGui. Useful when using ImGui or to disable gui.
 
 private:
+
 	void keyPressed(int key);
 	void keyPressed(ofKeyEventArgs& eventArgs);
 
@@ -254,6 +275,7 @@ private:
 	//--
 
 public:
+
 	void setToggleVisibleGui() { bGui = !bGui; }
 	void setVisibleGui(bool b) { bGui = b; }
 	bool getVisibleGui() { return bGui; }
@@ -324,7 +346,7 @@ private:
 
 	ofParameter<bool> bMinimize{ "Minimize", false };
 
-#ifndef USE_IM_GUI__SUBTITLES
+#ifdef USE_OFX_GUI__SUBTITLES
 	ofParameter<bool> bGui_Internal;
 	bool bGui_InternalAllowed = false;
 #endif
@@ -351,9 +373,11 @@ private:
 	void processOpenFileTextSelection(ofFileDialogResult openFileResult);
 
 public:
-	void setupText(string path);
+
+	void setupTextBlocks(string path);
 
 private:
+
 	bool bDoneStartup = false;
 	void startup();
 	void exit();
@@ -367,8 +391,11 @@ private:
 
 	ofxSurfingBoxInteractive box;//main container
 
+
+#ifdef USE_OFX_GUI__SUBTITLES
 #ifdef USE_WIDGET__SUBTITLES
 	ofxSurfingBoxHelpText boxInfo;
+#endif
 #endif
 
 #ifdef USING_OFX_TIME_CODE
@@ -376,6 +403,7 @@ private:
 #endif
 
 public:
+
 	void setFps(float _fps) {//default is 60 fps
 		fps = _fps;
 		dt = 1 / fps;
@@ -387,8 +415,10 @@ public:
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  
+	ofParameter<bool> bExtra;
 
 private:
+
 	ofParameterGroup params_AppSettings;
 	ofxAutosaveGroupTimer gt;
 
@@ -409,8 +439,10 @@ private:
 	ofParameter<bool> bLive; // hide all
 	ofParameter<bool> bTop;
 	ofParameter<bool> bLeft;
+#ifdef USE_OFX_GUI__SUBTITLES
 #ifdef USE_WIDGET__SUBTITLES
 	ofParameter<bool> bDrawWidgetInfo;
+#endif
 #endif
 	ofParameter<void> bNext;
 	ofParameter<void> bPrev;
@@ -426,6 +458,8 @@ private:
 	ofParameter<bool> bPlayExternal;
 	ofParameter<float> positionExternal;
 	ofParameter<bool> bPlayManual;
+
+	ofParameter<bool> bAnimatedFades;
 
 	ofParameter<bool> bAnimatedIn;
 	ofParameter<int> durationIn; // time before the end to start fadeout from. in ms 
@@ -463,7 +497,7 @@ private:
 
 	ofParameter<int> indexModes; // 0, 1, 2, 3
 	// 0 EXTERNAL, 1 STANDALONE, 2 FORCED, 3 MANUAL
-	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" };
+	vector<string> names_Modes{ "EXTERNAL", "STANDALONE", "FORCED", "MANUAL" }; // 0, 1, 2, 3
 	ofParameter<string> indexModes_Name;
 
 	ofParameterGroup params_External{ "MODE EXTERNAL" };
@@ -499,7 +533,7 @@ private:
 
 	string textCurrent = "";
 
-#ifndef USE_IM_GUI__SUBTITLES
+#ifdef USE_OFX_GUI__SUBTITLES
 	ofxPanel gui;
 #endif
 
@@ -560,7 +594,8 @@ public:
 	void doSetTextSlideStartFile(string s);//Sets the text from a file and start the slide playing..
 	void doSetTextSlideStart(string s);//Sets the text and start the slide playing..
 
-	void doBuildDataTextBlocks(string s);//Create slides from a unique string text with multiple blocks..
+	//Create slides from a unique string text with multiple blocks..
+	void doBuildDataTextBlocks(string s, bool bNumbered = false);//will use '\n' as dividers or numbered
 
 private:
 
@@ -590,68 +625,6 @@ private:
 
 private:
 
-	// String Helpers
-
-	/*
-	//TODO:
-	//text file must be correctly encoded!
-	//if not we need to fix utf8 chars..
-	std::string remove_invalid_code_points(const std::string& s) {
-		std::string result;
-
-		// Loop through the string and append only valid code points to the result string
-		for (auto it = s.begin(); it != s.end(); ) {
-			try {
-				uint32_t code_point = utf8::next(it, s.end());//!
-
-				//result += utf8::encode(code_point);?
-				//result += (code_point);
-				result += ofUTF8ToString(code_point);
-			}
-			catch (utf8::invalid_code_point) {
-				// Ignore invalid code points
-			}
-		}
-
-		return result;
-	}
-	*/
-
-private:
-
-	//--------------------------------------------------------------
-	string loadFileText(string path)
-	{
-		string p = ofToDataPath(path, true);
-
-		string text = "";
-
-		char* pathChars = (char*)(p.c_str());
-
-		//--
-
-		ofLogNotice("ofxSurfingTextSubtitle") << "load ifstream pathChars: " << ofToString(pathChars);
-
-		std::ifstream t(pathChars);
-		if (t.good())
-		{
-			string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-			text = str;
-
-			ofLogNotice("ofxSurfingTextSubtitle") << "loaded file: " << ofToString(pathChars);
-		}
-		else
-		{
-			ofLogNotice("ofxSurfingTextSubtitle") << "file not found! " << ofToString(pathChars);
-		}
-
-		return text;
-	};
-
-	//----
-
-private:
-
 	//TODO:
 	// we have two main modes, srt or text blocks modes.
 	//disabled for srt mode. enabled for text blocks mode
@@ -662,58 +635,4 @@ private:
 	//TODO:
 	std::vector<std::string>* dataTextPtr = new std::vector<std::string>();
 
-	//#include <unordered_set>//required
-	//--------------------------------------------------------------
-	std::vector<std::string> splitTextBlocks(const std::string& s) {
-		std::vector<std::string> blocks;
-		std::string current_block;
-		bool inside_block = false; // Keeps track of whether we're currently inside a block
-
-		std::unordered_set<std::string> exceptions{ " s.", " d.", " C." }; // List of exceptions to ignore
-		// exceptions will by pass the separation of text blocks.
-		//TODO: must add more cases from English. these above exceptions are from Spanish language.
-
-		for (char c : s) {
-			if (c == '\n' || c == '\r') {
-				continue; // Ignore newline characters
-			}
-
-			current_block += c;
-
-			if (c == '.') {
-				if (exceptions.count(current_block.substr(current_block.length() - 3)) > 0) { // Check if the current block ends with an exception
-					continue; // Skip the block termination and keep reading
-				}
-				else {
-					inside_block = false;
-					blocks.push_back(current_block);
-					current_block.clear();
-				}
-			}
-			else {
-				inside_block = true;
-			}
-
-			if (current_block.length() > 10000) {
-				std::cerr << "Block size limit exceeded" << std::endl;
-				break;
-			}
-		}
-
-		if (!current_block.empty()) {
-			blocks.push_back(current_block);
-		}
-
-		// remove starting spaces on each text blocks
-		removeLeadingSpaces(blocks);
-
-		return blocks;
-	};
-
-	//--------------------------------------------------------------
-	void removeLeadingSpaces(std::vector<std::string>& vec) {
-		for (auto& str : vec) {
-			str.erase(0, str.find_first_not_of(' '));
-		}
-	};
 };

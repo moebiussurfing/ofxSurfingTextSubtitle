@@ -7,9 +7,12 @@
 	Must be not commented the below line:
 	#define USE_IM_GUI__SUBTTITTLES
 
-	Currently checking manual mode.
-	You should pick the correct mode
-	if you want to test SRT files!
+	Here we want to test SRT files with common use!
+	Currently I recommend to check Standalone or Forced transport modes.
+	You should pick these correct modes but could experiment with other modes.
+	External mode can be tested by forcing the Position slider.
+	Manual mode is for passing text slides by code manually, 
+	so it can not be tested on this example as is!
 
 */
 

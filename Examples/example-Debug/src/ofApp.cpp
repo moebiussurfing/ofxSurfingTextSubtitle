@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofxSurfingHelpers::setMonitorsLayout(0);
+	ofxSurfingHelpers::setMonitorsLayout(1, true, true);
 
 	// Optional
 	path = "files/srt/Huxley.srt"; // Srt file path
@@ -30,6 +30,7 @@ void ofApp::draw() {
 
 	//--
 
+	//TODO:
 	// imageBg
 	// to test how fbo's alpha behave
 	if (0)
@@ -56,33 +57,51 @@ void ofApp::drawGui()
 
 	ui.Begin();
 	{
+		IMGUI_SUGAR__WINDOWS_CONSTRAINTSW_SMALL;
+
 		if (ui.BeginWindow("ofApp"))
 		{
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
-
 			ui.AddSpacingSeparated();
 
 			//--
 
+			/*
+			ui.AddLabelBig("Theme");
+			ofxImGuiSurfing::AddToggleRoundedButtonNamed(ui.bThemeUiAlt, "Day", "Night");
+
+			string s;
+			if (!ui.bThemeUiAlt) s = THEME_NAME_NIGHT;
+			else s = THEME_NAME_DAY;
+			ui.AddLabel(s);
+
+			ui.AddSpacingSeparated();
+			*/
+
+			//--
+
 			static bool bTester = false;
-			ui.AddToggle("Tester", bTester);
+			ui.AddToggle("TESTER", bTester);
 
 			// Tester
 			if (bTester)
 			{
-				ui.BeginChild(ImVec2{ -1, 110 });
+				ui.BeginChild(ImVec2{ -1, 200 });
 
 				ui.AddLabelBig("TEST", 1, 1);
 				ui.AddSpacing();
 
-				ImVec2 sz{ ui.getWidgetsWidth(2), ui.getWidgetsHeightUnit() };
+				ImVec2 sz{ ui.getWidgetsWidth(2), 2 * ui.getWidgetsHeightUnit() };
 				ui.AddToggle("DoAuto", bAuto, sz);
+				ui.AddTooltip("Automated timer.");
 				ui.SameLine();
 
 				if (ui.AddButton("DoText", sz))
 				{
 					doLoadText();
 				}
+				ui.AddTooltip("Populate a random text block.");
+
 				if (bAuto)
 				{
 					ImGui::PushItemWidth(100);
@@ -93,6 +112,7 @@ void ofApp::drawGui()
 				{
 					doLoadTextBlocks();
 				}
+				ui.AddTooltip("Populate a big text separated in many blocks.");
 
 				ui.EndChild();
 			}
