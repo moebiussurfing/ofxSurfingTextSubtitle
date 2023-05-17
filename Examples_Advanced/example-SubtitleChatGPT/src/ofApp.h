@@ -6,18 +6,30 @@
 
 	TODO
 
-	threading workflow
-	fix subtitle paragraph clamp
-		add ctrl/alt text/paragraph size
-		reset box centered
+	add dual window 1: gui / 2: out
+	+ docking
+	fix < > slides
+	fix 1st/end slide.
+	add wait spin
+		add beep sounds
+	fix subtitle paragraph clamp. reset box centered
+	add conversation mode
 	add two colors user/assistant by tag in Gpt last reply
-	add beep sound
 	search text formatter cpp lib
-	check console imgui widgets
+		remove 1._ etc using regex
+	add prompts manager; save on json file.
+		create prompt struct
+		add new. edit.
 
 */
 
+
+//--
+
+ 
+// Optional Modules
 //#define USE_WHISPER
+//#define USE_EDITOR_INPUT
 
 //--
 
@@ -25,9 +37,11 @@
 
 #include "ofxSurfingTextSubtitle.h"
 #include "ofxSurfingImGui.h"
-#include "surfingSceneTesters.h"
-#include "ChatThread.h"
 #include "surfingTextEditor.h"
+#include "BigTextInput.h"
+#include "ChatThread.h"
+
+#include "surfingSceneTesters.h"
 #include "ofxWindowApp.h"
 
 #ifdef USE_WHISPER
@@ -49,8 +63,6 @@ public:
 
 	ofxSurfingGui ui;
 
-	ofxWindowApp w;
-
 	ofxSurfingTextSubtitle subs;
 	string path;
 	void doPopulateText(string s = "");
@@ -67,14 +79,22 @@ public:
 	ofParameter<bool> bGui;
 
 	ofParameterGroup params{ "ofApp" };
-	ofParameter<string> keyApi{ "API key","" };
+	ofParameter<string> apiKey{ "API key","" };
 	ofParameter<bool> bConversation{ "Conversation", false };//not used
 	ofParameter<bool> bGui_History{ "History",false };
 	ofParameter<int> fontI{ "FontI", 0, 0, 3 };
 	ofParameter<int> fontR{ "FontR", 0, 0, 3 };
 
-	SurfingTextEditor editorResponse;
+	BigTextInput bigTextInput;
+	void doAttendCallbackTextInput();
+	ofEventListener eTextInput;
+	ofParameter<string> textInput{ "TextInput", "" };
+
+#ifdef USE_EDITOR_INPUT
 	SurfingTextEditor editorInput;
+#endif
+
+	SurfingTextEditor editorResponse;
 	void drawWidgets(); // Advanced: inserted widgets
 
 	bool bError = false;
@@ -103,10 +123,10 @@ public:
 	static string GPT_Prompt_0() {
 		return R"(I want you to act as a music band advertiser. 
 You will create a campaign to promote that band.
-That campaign consists of 5 short sentences.
+That campaign consists of 10 short sentences.
 These sentences must define the band's career highlights, 
 the best albums or the more important musicians members.
-The sentences will be short: less than 5 words.
+The sentences will be short: less than 5 words each sentence.
 )";
 	}
 
@@ -121,11 +141,18 @@ Words will be sorted starting from less to more relevance.
 	static string GPT_Prompt_2() {
 		return R"(I want you to act as a music critic.
 As a LastFm maintainer.
-I will give you a band name. You will list the 5 more similar bands.
+I will give you a band name. You will list the 10 more similar bands.
 You will only reply that band names list, and nothing else. 
 But you must sort that bands, from older to newer. 
 )";
 	}
+
+	static string GPT_Prompt_3() {
+		return R"(Act as your default ChatGPT behavior following the conversation.
+)";
+	}
+
+	float v = 0;
 
 	//--
 
@@ -134,4 +161,6 @@ But you must sort that bands, from older to newer.
 	void doUpdatedWhisper();
 	void drawImGuiWidgetsWhisper();
 #endif
+
+	ofxWindowApp w;
 };

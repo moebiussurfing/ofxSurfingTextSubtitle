@@ -12,6 +12,32 @@ void ofApp::setup()
 
 	ui.setup();
 
+	//--
+
+	textInput.makeReferenceTo(bigTextInput.textInput);
+	eTextInput = textInput.newListener([this](string& s)
+		{
+			ui.AddToLog("ofApp::textInput", OF_LOG_WARNING);
+			//doSendMessageToGpt(s);
+
+			doAttendCallbackTextInput();
+		});
+
+	// Optional customizations
+	// Custom path for multi-instances 
+	// avoid "collide folders".
+	// or to organize bin/data
+	// bigTextInput.setPathGlobal("Gpt");
+	// bigTextInput.setName("Prompt");
+	// Change the hint text:
+	// bigTextInput.setHint("Type search");
+	// Change the submit button text:
+	 //bigTextInput.setSubmit("Send");
+
+	ui.setDisableStartupResetLayout();
+
+	//--
+
 	subs.setUiPtr(&ui);
 	subs.setup(); // Startup with no subs mode
 
@@ -31,6 +57,7 @@ void ofApp::setup()
 
 	// Editors
 
+#ifdef USE_EDITOR_INPUT
 	editorInput.setup("Input");
 	editorInput.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
 
@@ -42,18 +69,20 @@ void ofApp::setup()
 	callback_t myFunctionDraw = std::bind(&ofApp::drawWidgets, this);
 	//std::function<void()> myFunctionDraw = std::bind(&ofApp::drawWidgets, this);
 	editorInput.setDrawWidgetsFunction(myFunctionDraw);
+#endif
 
-	//--
+	//-
 
 	editorResponse.setup("Response");
 	editorResponse.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
 
 	//--
 
+	//params.add(bigTextInput.bGui);
+	//params.add(apiKey);
 	params.add(subs.bGui);
 	params.add(fontI);
 	params.add(fontR);
-	params.add(keyApi);
 	params.add(bConversation);
 	params.add(bGui_History);
 
@@ -63,44 +92,69 @@ void ofApp::setup()
 }
 
 //--------------------------------------------------------------
+void ofApp::startup()
+{
+	ofxSurfingHelpers::load(params);
+
+	setupGpt();
+
+	//ui.ClearLogDefaultTags();
+}
+
+//--------------------------------------------------------------
 void ofApp::setupGpt()
 {
-	if (keyApi.get() == "")
-	{
-		ui.AddToLog("No settled API key to run Setup GPT", OF_LOG_ERROR);
-		return;
-	}
+	//if (apiKey.get() == "")
+	//{
+	//	ui.AddToLog("No settled API key to run Setup GPT", OF_LOG_ERROR);
+	//	return;
+	//}
 
 	{
 		ofSetLogLevel(OF_LOG_VERBOSE);
 		ui.setLogLevel(OF_LOG_VERBOSE);
 
-		ui.AddToLog("Setup GPT");
+		ui.AddToLog("-------------------- Setup GPT --------------------", OF_LOG_WARNING);
 
 		//--
 
-		ofxChatGPT chappy;
-		chappy.setup(keyApi.get());
+		// GPT
+
+		// Load file settings
+
+		ofFile f;
+		if (f.doesFileExist("GptChat_ConfigKey.json")) {
+			ofJson configJson = ofLoadJson("GptChat_ConfigKey.json");
+			apiKey = configJson["apiKey"].get<string>();//will fail if file do not exist
+		}
+		else apiKey = "your-api-key";
+
+		// Model
+		string model = "gpt-4";
+		//string model = "gpt-3.5-turbo";
+
+		//--
+
+		ofxChatGPT chatGpt_;
+		chatGpt_.setup(apiKey.get());
 		vector<string> models;
 
-		ofxChatGPT::ErrorCode err;
-		tie(models, err) = chappy.getModelList();
+		ofxChatGPT::ErrorCode errorCode;
+		tie(models, errorCode) = chatGpt_.getModelList();
 
-		//ofLogNotice("ofApp") << "Available OpenAI GPT models:";
 		ui.AddToLog("Available OpenAI GPT models:");
-		for (auto model : models) {
-			if (ofIsStringInString(model, "gpt")) {
-				//ofLogNotice("ofApp") << model;
-				ui.AddToLog(model);
+		for (auto m : models)
+		{
+			if (ofIsStringInString(m, "gpt"))
+			{
+				ui.AddToLog(m, OF_LOG_WARNING);
 			}
 		}
 
 		//--
 
-		string model = "gpt-3.5-turbo";
-		//string model = "gpt-4";
-
-		chatGpt.setup(model, keyApi);
+		// Initialize
+		chatGpt.setup(model, apiKey);
 	}
 
 	//--
@@ -112,12 +166,12 @@ void ofApp::setupGpt()
 	//	ui.AddToLog("User: " + userMessage);
 	//	string assistantMessage = chatGpt.chatWithHistory(userMessage);
 	//	ui.AddToLog("GPT: " + assistantMessage);
-
+	//
 	//	userMessage = "Can you answer anything?";
 	//	ui.AddToLog("User: " + userMessage);
 	//	assistantMessage = chatGpt.chatWithHistory(userMessage);
 	//	ui.AddToLog("GPT: " + assistantMessage);
-
+	//
 	//	userMessage = "That's amazing, I can answer anything too. can i ask you a question?";
 	//	ui.AddToLog("User: " + userMessage);
 	//	assistantMessage = chatGpt.chatWithHistory(userMessage);
@@ -128,9 +182,10 @@ void ofApp::setupGpt()
 
 	// Create prompts
 	prompts.clear();
-	prompts.push_back(std::pair<std::string, std::string> { "5 short sentences.", GPT_Prompt_0() });
-	prompts.push_back(std::pair<std::string, std::string> {  "10 words list.", GPT_Prompt_1() });
-	prompts.push_back(std::pair<std::string, std::string> { "Similar bands", GPT_Prompt_2() });
+	prompts.push_back(std::pair<std::string, std::string> { "10 short sentences.", GPT_Prompt_0() });
+	prompts.push_back(std::pair<std::string, std::string> { "10 words list.", GPT_Prompt_1() });
+	prompts.push_back(std::pair<std::string, std::string> { "10 Similar bands", GPT_Prompt_2() });
+	prompts.push_back(std::pair<std::string, std::string> { "Default", GPT_Prompt_3() });
 
 	setPrompt(0);
 }
@@ -138,8 +193,10 @@ void ofApp::setupGpt()
 //--------------------------------------------------------------
 void ofApp::setPrompt(int index)
 {
+	ui.AddToLog("setPrompt(" + ofToString(index) + ")", OF_LOG_WARNING);
+
 	if (index > prompts.size() - 1) {
-		ofLogError("ofApp") << "Index " << index << "out of range";
+		ui.AddToLog("Index " + ofToString(index) + " out of range!", OF_LOG_ERROR);
 		return;
 	}
 
@@ -149,21 +206,8 @@ void ofApp::setPrompt(int index)
 
 	chatGpt.setSystemMessage(strPrompt);
 
-	ui.AddToLog("Prompt: " + namePrompt);
-	ui.AddToLog(strPrompt);
-
-	//ofLogNotice("ofApp") << "namePrompt: " << namePrompt;
-	//ofLogNotice("ofApp") << "strPrompt: " << strPrompt;
-}
-
-//--------------------------------------------------------------
-void ofApp::startup()
-{
-	ofxSurfingHelpers::load(params);
-
-	setupGpt();
-
-	//ui.ClearLogDefaultTags();
+	ui.AddToLog("Prompt: " + namePrompt, OF_LOG_VERBOSE);
+	ui.AddToLog(strPrompt, OF_LOG_VERBOSE);
 }
 
 //--------------------------------------------------------------
@@ -232,7 +276,15 @@ void ofApp::update()
 //--------------------------------------------------------------
 void ofApp::draw()
 {
-	ofClear(subs.getColorBg());
+	// Bg
+	{
+		int bgmin = 100;
+		if (v > 0) v -= 0.05f;
+		else v = 0;
+
+		if (v > 0) ofClear(bgmin + (255 - bgmin) * v);
+		else ofClear(subs.getColorBg());
+	}
 
 	//drawScene();
 
@@ -240,8 +292,7 @@ void ofApp::draw()
 
 	//--
 
-	if (!bGui) return;
-
+	//if (!bGui) return;
 	drawImGui();
 
 	//--
@@ -332,7 +383,15 @@ void ofApp::drawImGui()
 
 	ui.Begin();
 	{
-		if (bGui)ImGui::SetNextWindowSize(ImVec2(230, 0), ImGuiCond_FirstUseEver);
+		//--
+
+		// TextInput
+
+		bigTextInput.draw(ui);
+
+		//--
+
+		if (bGui) ImGui::SetNextWindowSize(ImVec2(230, 0), ImGuiCond_FirstUseEver);
 		if (ui.BeginWindow(bGui))
 		{
 			string s;
@@ -350,29 +409,30 @@ void ofApp::drawImGui()
 
 			//--
 
-			ui.AddLabelHuge("Chat\nGpt", true, true);
-
+			ui.AddLabelHuge("ChatGPT");
+			
 			static ofParameter<bool> b{ "+",0 };
 			if (ui.isMaximized()) ui.Add(b, OFX_IM_TOGGLE_ROUNDED_MINI);
 			if (ui.isMaximized() && b)
 			{
 				ui.AddLabelBig("API KEY");
-				ui.Add(keyApi, OFX_IM_TEXT_INPUT_NO_NAME);
+				ui.Add(apiKey, OFX_IM_TEXT_INPUT_NO_NAME);
 
 				if (ui.AddButton("Setup"))
 				{
 					setupGpt();
 				}
 			}
-
 			ui.AddSpacingSeparated();
 
 			ui.PushFont(OFX_IM_FONT_BIG);
 			{
+#ifdef USE_EDITOR_INPUT
 				if (ui.AddButton("Send"))
 				{
 					doSendMessageToGpt(editorInput.getText(), bConversation);
 				}
+#endif
 
 				//if (ui.AddButton("Get Response")) {
 				//	//editorResponse.setText(textLastResponse);
@@ -390,37 +450,40 @@ void ofApp::drawImGui()
 
 			ui.AddSpacingSeparated();
 
-			ui.AddLabelHuge("PROMPT");
-
+			ui.AddLabelHuge("Prompt");
 			ui.AddSpacing();
 
-			ui.PushFont(OFX_IM_FONT_BIG);
-			if (ui.AddButton("Swap Prompt", OFX_IM_BUTTON_BIG))
+			ui.Add(bigTextInput.bGui, OFX_IM_TOGGLE_ROUNDED);
+			if (ui.isMaximized()) ui.Add(bigTextInput.bGui_Config, OFX_IM_TOGGLE_ROUNDED_SMALL);
+			ui.AddSpacing();
+
+			if (ui.AddButton("Swap Prompt", OFX_IM_BUTTON))
 			{
 				doSwapPrompt();
 			}
-			ui.PopFont();
-
 			ui.AddSpacing();
-			
+
 			ui.AddLabel(namePrompt);
-			ui.PushFont(OFX_IM_FONT_BIG);
-			ui.AddTooltip(strPrompt);
-			ui.PopFont();
+
+			//ui.PushFont(OFX_IM_FONT_BIG);
+			//ui.AddTooltip(strPrompt);
+			//ui.PopFont();
 
 			ui.AddSpacingSeparated();
 
 			//--
 
-			ui.AddLabelHuge("EDITORS");
 
+#ifdef USE_EDITOR_INPUT
+			ui.AddLabelHuge("EDITORS");
 			ui.AddSpacing();
 			ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
 			if (subs.bExtra) {
 				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
 				ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui.AddSpacingBigSeparated();
 			}
-			ui.AddSpacingBigSeparated();
 
 			//--
 
@@ -429,68 +492,92 @@ void ofApp::drawImGui()
 #endif
 			//--
 
-			ui.AddLabelHuge("Titles", true, true);
+			ui.AddLabelHuge("Titles");
+			ui.AddSpacing();
 
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
-			if (subs.bGui) {
+			if (subs.bGui)
+			{
 				ui.AddSpacing();
 				ui.AddSpacingDouble();
 
-				ui.AddLabelBig("Tester", false, true);
-
+				//ui.AddLabelBig("Tester", false, true);
+				static bool bTester = 0;
+				ImGui::Checkbox("Tester", &bTester);
 				ui.PushFont(OFX_IM_FONT_BIG);
 				{
-					s = "Random\nText!";
-					s = ofToUpper(s);
-					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
-					{
-						doPopulateText();
+					if (bTester) {
+						s = "Random\nText!";
+						s = ofToUpper(s);
+						if (ui.AddButton(s, OFX_IM_BUTTON_BIG))
+						{
+							doPopulateText();
+						}
+						s = "Do\nBlock!";
+						s = ofToUpper(s);
+						if (ui.AddButton(s, OFX_IM_BUTTON_BIG))
+						{
+							doPopulateTextBlocks();
+						}
+						s = "Clear\nList";
+						s = ofToUpper(s);
+						if (ui.AddButton(s, OFX_IM_BUTTON_BIG))
+						{
+							doClearList();
+						}
 					}
-					s = "Do\nBlock!";
-					s = ofToUpper(s);
-					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
-					{
-						doPopulateTextBlocks();
-					}
-					s = "Clear\nList";
-					s = ofToUpper(s);
-					if (ui.AddButton(s, OFX_IM_BUTTON_BIG_XXL))
-					{
-						doClearList();
-					}
-				}
-				ui.PopFont();
-			}
 
+					ui.PopFont();
+				}
+			}
 			ui.EndWindow();
 		}
+		if (bGui) {
 
-		//--
+			//--
 
-		// Editor Input
-		editorInput.draw();
+			// Editor Input
 
-		//--
+#ifdef USE_EDITOR_INPUT
+			editorInput.drawImGui();
+#endif
 
-		if (ui.isMaximized() && ui.isExtraEnabled())
-		{
-			if (bGui_History)
+			//--
+
+			if (ui.isMaximized() && ui.isExtraEnabled())
 			{
-				//if (ui.isDebug())
+				if (bGui_History)
 				{
-					// Gpt History
-					if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
+					//if (ui.isDebug())
 					{
-						if (ui.isDebug())ui.AddComboFontsSelector(fontI);
-						ui.PushFont(SurfingFontTypes(fontI.get()));
+						// Gpt History
+						if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
+						{
+							if (ui.isDebug())ui.AddComboFontsSelector(fontI);
+							ui.PushFont(SurfingFontTypes(fontI.get()));
 
-						stringstream conversationText;
+							stringstream conversationText;
 
-						//for (const ofJson& message : chatGpt.getConversation()) {
-						//	conversationText << message["role"] << ": " << message["content"] << "\n";
-						//}
+							//for (const ofJson& message : chatGpt.getConversation()) {
+							//	conversationText << message["role"] << ": " << message["content"] << "\n";
+							//}
 
-						string s = "conversation:\n" + conversationText.str();
+							string s = "conversation:\n" + conversationText.str();
+
+							ImGui::TextWrapped(s.c_str());
+
+							ui.PopFont();
+							ui.EndWindow();
+						}
+					}
+
+					// Gpt last reply
+					if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
+					{
+						if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
+						ui.PushFont(SurfingFontTypes(fontR.get()));
+
+						string s = textLastResponse;
 
 						ImGui::TextWrapped(s.c_str());
 
@@ -499,31 +586,17 @@ void ofApp::drawImGui()
 					}
 				}
 
-				// Gpt last reply
-				if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
+				if (ui.isDebug())
 				{
-					if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
-					ui.PushFont(SurfingFontTypes(fontR.get()));
-
-					string s = textLastResponse;
-
-					ImGui::TextWrapped(s.c_str());
-
-					ui.PopFont();
-					ui.EndWindow();
+					// Editor Response
+					editorResponse.drawImGui();
 				}
 			}
 
-			if (ui.isDebug())
-			{
-				// Editor Response
-				editorResponse.draw();
-			}
+			//--
+
+			subs.drawImGui();
 		}
-
-		//--
-
-		subs.drawImGui();
 	}
 	ui.End();
 }
@@ -588,21 +661,26 @@ void ofApp::keyPressed(int key)
 	if (key == '8') { strBandname = "Kraftwerk"; doSendMessageToGpt(strBandname); }
 	if (key == '9') { strBandname = "Portishead"; doSendMessageToGpt(strBandname); }
 
-	//next prompt
-	if (key == ' ') {
-		doSwapPrompt();
-	}
+	// next prompt
+	if (key == ' ') { doSwapPrompt(); }
 
-	//regenerate
-	if (key == OF_KEY_RETURN) {
-		doRegenerate();
-	}
+	// regenerate
+	if (key == OF_KEY_RETURN) { doRegenerate(); }
 
 	//--
 
-	if (key == 'g') { bGui = !bGui; }
-	if (key == ' ') { doPopulateText(); }
+	if (key == 'd') bigTextInput.bDebug = !bigTextInput.bDebug;
 
+	if (key == 'g') {
+		bGui = !bGui;
+
+		//workflow
+		if (!bGui && bigTextInput.bGui_Config) bigTextInput.bGui_Config = 0;
+	}
+
+	if (key == ' ') { doRegenerate(); }
+
+	//if (key == ' ') { doPopulateText(); }
 	if (key == 'l') { subs.setToggleLive(); }
 	if (key == 'e') { subs.setToggleEdit(); }
 	//if (key == 'g') { subs.setToggleVisibleGui(); }
@@ -615,6 +693,7 @@ void ofApp::keyPressed(int key)
 
 	//--
 
+#ifdef USE_EDITOR_INPUT
 	//switch (key)
 	//{
 	//case '1': {
@@ -633,12 +712,16 @@ void ofApp::keyPressed(int key)
 	//	break;
 	//}
 	//}
+#endif
 }
 
 //--------------------------------------------------------------
 void ofApp::drawWidgets()
 {
-	if (editorInput.bExtra || !editorInput.bMenus) ui.AddSpacingSeparated();
+	//--
+
+#ifdef USE_EDITOR_INPUT
+	//if (editorInput.bExtra || !editorInput.bMenus) ui.AddSpacingSeparated();
 
 	//float w = 200;
 	float w = ui.getWidgetsWidth(4);
@@ -665,6 +748,7 @@ void ofApp::drawWidgets()
 	//editorInput.drawImGuiWidgetsFonts();
 
 	ui.AddSpacingSeparated();
+#endif
 
 	//--
 
@@ -684,26 +768,28 @@ void ofApp::drawWidgets()
 	// Enter
 	if (bCtrl && bKeyReturn)
 	{
+#ifdef USE_EDITOR_INPUT
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
 		doSendMessageToGpt(s, bConversation);
-
 		editorInput.clearText();
+#endif
 	}
 }
 
+//TODO: remove one
 //--------------------------------------------------------------
 void ofApp::doSendMessageToGpt(string s, bool bWithHistory)
 {
-	// Spacing
-	size_t n = 20;
-	for (size_t i = 0; i < n; i++)
-	{
-		if (i == n / 2) ofLogNotice("ofApp") << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ doSendMessageToGpt ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-		else ofLogNotice("ofApp") << "|";
-	}
+	//// Spacing
+	//size_t n = 20;
+	//for (size_t i = 0; i < n; i++)
+	//{
+	//	if (i == n / 2) ofLogNotice("ofApp") << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ doSendMessageToGpt ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
+	//	else ofLogNotice("ofApp") << "|";
+	//}
 
-	ui.AddToLog("doSendMessageToGpt()");
+	//ui.AddToLog("doSendMessageToGpt()");
 
 	doSendMessageToGpt(s);
 }
@@ -724,16 +810,17 @@ void ofApp::doSendMessageToGpt(string message) {
 	jQuestion = newUserMsg;
 	jResponse = ofJson();
 
+	//TODO: set mode
+	//chatGpt.chatAsync(message);
 	chatGpt.chatWithHistoryAsync(message);
 
-	ui.AddToLog("doSendMessageToGpt()");
+	ui.AddToLog("doSendMessageToGpt()", OF_LOG_WARNING);
 	ui.AddToLog(message);
 }
 
 //--------------------------------------------------------------
 void ofApp::doRegenerate() {
-	ofLogNotice("ofApp") << "doRegenerate()";
-	ui.AddToLog("doRegenerate()");
+	ui.AddToLog("doRegenerate()", OF_LOG_WARNING);
 
 	chatGpt.regenerateAsync();
 }
@@ -741,10 +828,10 @@ void ofApp::doRegenerate() {
 //--------------------------------------------------------------
 void ofApp::doRandomInput()
 {
+	ui.AddToLog("doRandomInput()", OF_LOG_WARNING);
+
 	//workflow
 	doClearList();
-
-	ui.AddToLog("doRandomInput()");
 
 	size_t sz = 9;
 	float r = ofRandom(sz);
@@ -759,13 +846,17 @@ void ofApp::doRandomInput()
 	else if (r < 9) { strBandname = "Portishead"; }
 	string s = "";
 	s = strBandname;
-	//doSendMessageToGpt(s);
+	ui.AddToLog(s, OF_LOG_NOTICE);
 
+	bigTextInput.setText(s);
+	doSendMessageToGpt(s);
+
+#ifdef USE_EDITOR_INPUT
 	editorInput.setText(s);
 	ui.AddToLog("editorInput.setText()");
 	ui.AddToLog(s, OF_LOG_NOTICE);
-
 	doSendMessageToGpt(editorInput.getText(), bConversation);
+#endif
 
 	//// Here textLastResponse is already catched 
 	//editorResponse.setText(textLastResponse);
@@ -776,14 +867,21 @@ void ofApp::doRandomInput()
 void ofApp::doSwapPrompt() {
 	if (iPrompt == 0) iPrompt = 1;
 	else if (iPrompt == 1) iPrompt = 2;
-	else if (iPrompt == 2) iPrompt = 0;
+	else if (iPrompt == 2) iPrompt = 3;
+	else if (iPrompt == 3) iPrompt = 0;
 	setPrompt(iPrompt);
 }
 
 //--------------------------------------------------------------
 void ofApp::exit()
 {
+	ofLogVerbose() << "exit()";
+
 	ofxSurfingHelpers::save(params);
+
+	ofJson configJson;
+	configJson["apiKey"] = apiKey;
+	ofSavePrettyJson("GptChat_ConfigKey.json", configJson);
 }
 
 #ifdef USE_WHISPER
@@ -846,3 +944,19 @@ void ofApp::drawImGuiWidgetsWhisper()
 }
 
 #endif
+
+//--------------------------------------------------------------
+void ofApp::doAttendCallbackTextInput()
+{
+	//// will be called when submitted text changed!
+	//text = bigTextInput.getText();
+	//ofLogNotice(__FUNCTION__) << text;
+	//ofSetWindowTitle(text);
+
+	//ui.AddToLog("TextInput: " + textInput.get(), OF_LOG_NOTICE);
+
+	v = 1;
+
+	string s = textInput.get();
+	doSendMessageToGpt(s);
+}
