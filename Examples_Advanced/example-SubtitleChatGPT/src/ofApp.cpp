@@ -10,6 +10,7 @@ void ofApp::setup()
 
 	//--
 
+	//ui.setImGuiViewPort(true);
 	ui.setup();
 
 	//--
@@ -17,8 +18,8 @@ void ofApp::setup()
 	textInput.makeReferenceTo(bigTextInput.textInput);
 	eTextInput = textInput.newListener([this](string& s)
 		{
-			ui.AddToLog("ofApp::textInput", OF_LOG_WARNING);
-			//doSendMessageToGpt(s);
+			ui.AddToLog("Prompt Input: " + s, OF_LOG_WARNING);
+			//doGptSendMessage(s);
 
 			doAttendCallbackTextInput();
 		});
@@ -86,7 +87,9 @@ void ofApp::setup()
 	params.add(fontI);
 	params.add(fontR);
 	params.add(bConversation);
-	params.add(bGui_History);
+	params.add(bModeHistory);
+	params.add(bGui_GptHistory);
+	params.add(bGui_GptLastReply);
 
 	//--
 
@@ -127,13 +130,22 @@ void ofApp::setupGpt()
 		ofFile f;
 		if (f.doesFileExist("GptChat_ConfigKey.json")) {
 			ofJson configJson = ofLoadJson("GptChat_ConfigKey.json");
-			apiKey = configJson["apiKey"].get<string>();//will fail if file do not exist
+			//will fail if file do not exist
+			if (configJson.find("apiKey") != configJson.end())
+				apiKey = configJson["apiKey"].get<string>();
+			if (configJson.find("model") != configJson.end())
+				model = configJson["model"].get<string>();
 		}
-		else apiKey = "your-api-key";
+		else {
+			apiKey = "your-api-key";
 
-		// Model
-		string model = "gpt-4";
-		//string model = "gpt-3.5-turbo";
+			// Model
+			model = "gpt-4";
+			//model = "gpt-3.5-turbo";
+		}
+
+		//fix
+
 
 		//--
 
@@ -222,50 +234,7 @@ void ofApp::update()
 
 	if (chatGpt.hasMessage())
 	{
-		string gptResponse;
-		ofxChatGPT::ErrorCode errorCode;
-		tie(gptResponse, errorCode) = chatGpt.getMessage();
-
-		if (errorCode == ofxChatGPT::Success)
-		{
-			bError = false;
-			ofLogNotice("ofApp") << "ofxChatGPT Success.";
-
-			ofJson newGPTMsg;
-			newGPTMsg["message"]["role"] = "assistant";
-			newGPTMsg["message"]["content"] = gptResponse;
-
-			ofLogNotice("ofApp") << "GPT: " << newGPTMsg;
-
-			jResponse = newGPTMsg;
-
-			//--
-
-			textLastResponse = gptResponse;
-			ofLogNotice("ofxSurfingTextSubtitle") << endl << textLastResponse;
-
-			//TODO:
-			//there's no new line \n marks. so we assume the blocks will be numbered 1., 2., 3. etc
-			size_t sz = ofxSurfingHelpers::countNewlines(textLastResponse);
-			bool b = true;
-			//b = sz == 0;
-			if (b) {
-				subs.doBuildDataTextBlocks(textLastResponse, true);
-			}
-			else {//we found \n tags. so we assume blocks ends with \n. 
-				subs.doBuildDataTextBlocks(textLastResponse);
-			}
-
-			//// Here textLastResponse is already catched 
-			//editorResponse.addText(textLastResponse);
-			////ui.AddToLog("editorResponse.setTex");
-		}
-		else
-		{
-			bError = true;
-			string errorMessage = "Error: " + ofxChatGPT::getErrorMessage(errorCode);
-			ofLogError("ofApp") << "ofxChatGPT has an error: " << errorMessage;
-		}
+		doGptGetMessage();
 	}
 
 	//--
@@ -280,12 +249,33 @@ void ofApp::draw()
 {
 	// Bg
 	{
-		int bgmin = 100;
-		if (v > 0) v -= 0.05f;
-		else v = 0;
+		int bgMin = 100;
 
-		if (v > 0) ofClear(bgmin + (255 - bgmin) * v);
-		else ofClear(subs.getColorBg());
+		// Blink when waiting. 
+		// Red if error.
+		if (bGptError) {
+			float v = glm::cos(10 * ofGetElapsedTimef());
+			float a1 = ofMap(v, -1, 1, 100, 200, true);
+			ofColor c = ofColor(a1, 0, 0);
+			ofClear(c);
+		}
+		else if (bGptWaiting) {
+			ofColor c = bigTextInput.getColor();
+			auto br = c.getBrightness();
+			float v = glm::cos(10 * ofGetElapsedTimef());
+			float a1 = ofMap(v, -1, 1, 100, 150, true);
+			c.setBrightness(a1);
+			ofClear(c);
+		}
+		else {
+			// Flash when submit
+			if (v > 0) v -= 0.05f;
+			else v = 0;
+
+			// Use color from subtitler when no flash
+			if (v > 0) ofClear(bgMin + (255 - bgMin) * v);
+			else ofClear(subs.getColorBg());
+		}
 	}
 
 	//drawScene();
@@ -412,8 +402,8 @@ void ofApp::drawImGui()
 			//--
 
 			ui.AddLabelHuge("ChatGPT");
-			
-			static ofParameter<bool> b{ "+",0 };
+
+			static ofParameter<bool> b{ "SERVER",0 };
 			if (ui.isMaximized()) ui.Add(b, OFX_IM_TOGGLE_ROUNDED_MINI);
 			if (ui.isMaximized() && b)
 			{
@@ -432,14 +422,9 @@ void ofApp::drawImGui()
 #ifdef USE_EDITOR_INPUT
 				if (ui.AddButton("Send"))
 				{
-					doSendMessageToGpt(editorInput.getText(), bConversation);
+					doGptSendMessage(editorInput.getText(), bConversation);
 				}
 #endif
-
-				//if (ui.AddButton("Get Response")) {
-				//	//editorResponse.setText(textLastResponse);
-				//}
-
 				if (ui.AddButton("Random", OFX_IM_BUTTON_BIG)) {
 					doRandomInput();
 				}
@@ -482,12 +467,25 @@ void ofApp::drawImGui()
 			ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
 			//if (subs.bExtra)
+			if (ui.isMaximized())
 			{
-
+				ui.Add(bModeHistory, OFX_IM_CHECKBOX);
+				ui.Add(bGui_GptHistory, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui.Add(bGui_GptLastReply, OFX_IM_TOGGLE_ROUNDED_MINI);
 #ifdef USE_EDITOR_RESPONSE
-				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
+				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED_MINI);
 #endif
-				ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui.AddSpacingBigSeparated();
+
+				s = errorCodesNames[indexErrorCode.get()];
+				ui.AddLabelBig(s);
+
+				s = gptErrorMessage;
+				ui.AddLabelBig(s);
+
+				//TODO: spinning
+				ui.Add(bGptWaiting, OFX_IM_CHECKBOX);
+
 				ui.AddSpacingBigSeparated();
 			}
 
@@ -537,7 +535,7 @@ void ofApp::drawImGui()
 				}
 			}
 			ui.EndWindow();
-		}
+			}
 		if (bGui) {
 
 			//--
@@ -550,16 +548,18 @@ void ofApp::drawImGui()
 
 			//--
 
-			if (ui.isMaximized() && ui.isExtraEnabled())
+			//if (ui.isMaximized() && ui.isExtraEnabled())
+			if (ui.isExtraEnabled())
 			{
-				if (bGui_History)
+				//if (bModeHistory)
 				{
 					//if (ui.isDebug())
 					{
 						// Gpt History
-						if (ui.BeginWindow("GPT History", ImGuiWindowFlags_None))
+						if (ui.BeginWindow(bGui_GptHistory, ImGuiWindowFlags_None))
 						{
-							if (ui.isDebug())ui.AddComboFontsSelector(fontI);
+							if (ui.isDebug()) ui.AddComboFontsSelector(fontI);
+
 							ui.PushFont(SurfingFontTypes(fontI.get()));
 
 							stringstream conversationText;
@@ -573,14 +573,16 @@ void ofApp::drawImGui()
 							ImGui::TextWrapped(s.c_str());
 
 							ui.PopFont();
+
 							ui.EndWindow();
 						}
 					}
 
 					// Gpt last reply
-					if (ui.BeginWindow("GPT Last Reply", ImGuiWindowFlags_None))
+					if (ui.BeginWindow(bGui_GptLastReply, ImGuiWindowFlags_None))
 					{
 						if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
+
 						ui.PushFont(SurfingFontTypes(fontR.get()));
 
 						string s = textLastResponse;
@@ -588,6 +590,7 @@ void ofApp::drawImGui()
 						ImGui::TextWrapped(s.c_str());
 
 						ui.PopFont();
+
 						ui.EndWindow();
 					}
 				}
@@ -606,9 +609,9 @@ void ofApp::drawImGui()
 
 			subs.drawImGui();
 		}
-	}
+		}
 	ui.End();
-}
+	}
 
 //--------------------------------------------------------------
 void ofApp::doPopulateText(string s)
@@ -660,15 +663,15 @@ void ofApp::keyPressed(int key)
 
 	if (chatGpt.isWaiting()) return;
 
-	if (key == '1') { strBandname = "Jane's Addiction"; doSendMessageToGpt(strBandname); }
-	if (key == '2') { strBandname = "Fugazi"; doSendMessageToGpt(strBandname); }
-	if (key == '3') { strBandname = "Joy Division"; doSendMessageToGpt(strBandname); }
-	if (key == '4') { strBandname = "The Smiths";  doSendMessageToGpt(strBandname); }
-	if (key == '5') { strBandname = "Radio Futura"; doSendMessageToGpt(strBandname); }
-	if (key == '6') { strBandname = "John Frusciante"; doSendMessageToGpt(strBandname); }
-	if (key == '7') { strBandname = "Primus"; doSendMessageToGpt(strBandname); }
-	if (key == '8') { strBandname = "Kraftwerk"; doSendMessageToGpt(strBandname); }
-	if (key == '9') { strBandname = "Portishead"; doSendMessageToGpt(strBandname); }
+	if (key == '1') { strBandname = "Jane's Addiction"; doGptSendMessage(strBandname); }
+	if (key == '2') { strBandname = "Fugazi"; doGptSendMessage(strBandname); }
+	if (key == '3') { strBandname = "Joy Division"; doGptSendMessage(strBandname); }
+	if (key == '4') { strBandname = "The Smiths";  doGptSendMessage(strBandname); }
+	if (key == '5') { strBandname = "Radio Futura"; doGptSendMessage(strBandname); }
+	if (key == '6') { strBandname = "John Frusciante"; doGptSendMessage(strBandname); }
+	if (key == '7') { strBandname = "Primus"; doGptSendMessage(strBandname); }
+	if (key == '8') { strBandname = "Kraftwerk"; doGptSendMessage(strBandname); }
+	if (key == '9') { strBandname = "Portishead"; doGptSendMessage(strBandname); }
 
 	// next prompt
 	if (key == ' ') { doSwapPrompt(); }
@@ -741,7 +744,7 @@ void ofApp::drawWidgets()
 	{
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		doSendMessageToGpt(s, bConversation);
+		doGptSendMessage(s, bConversation);
 
 		//workflow
 		//editorInput.clearText();
@@ -780,35 +783,25 @@ void ofApp::drawWidgets()
 #ifdef USE_EDITOR_INPUT
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		doSendMessageToGpt(s, bConversation);
+		doGptSendMessage(s, bConversation);
 		editorInput.clearText();
 #endif
-	}
+}
 }
 
-//TODO: remove one
 //--------------------------------------------------------------
-void ofApp::doSendMessageToGpt(string s, bool bWithHistory)
+void ofApp::doGptSendMessage(string s, bool bWithHistory)
 {
-	//// Spacing
-	//size_t n = 20;
-	//for (size_t i = 0; i < n; i++)
-	//{
-	//	if (i == n / 2) ofLogNotice("ofApp") << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ doSendMessageToGpt ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-	//	else ofLogNotice("ofApp") << "|";
-	//}
-
-	//ui.AddToLog("doSendMessageToGpt()");
-
-	doSendMessageToGpt(s);
+	doGptSendMessage(s);
 }
 
 //--------------------------------------------------------------
-void ofApp::doSendMessageToGpt(string message) {
+void ofApp::doGptSendMessage(string message) {
 
+	// Clear
+	
 	ofxChatGPT::ErrorCode errorCode;
-
-	bError = false;
+	bGptError = false;
 
 	ofJson newUserMsg;
 	newUserMsg["message"]["role"] = "user";
@@ -819,12 +812,23 @@ void ofApp::doSendMessageToGpt(string message) {
 	jQuestion = newUserMsg;
 	jResponse = ofJson();
 
-	//TODO: set mode
-	//chatGpt.chatAsync(message);
-	chatGpt.chatWithHistoryAsync(message);
+	bGptWaiting = 1;
 
-	ui.AddToLog("doSendMessageToGpt()", OF_LOG_WARNING);
+	textLastResponse = "";
+#ifdef USE_EDITOR_RESPONSE
+	editorResponse.clearText();//workflow
+#endif
+
+	ui.AddToLog("doGptSendMessage()", OF_LOG_WARNING);
 	ui.AddToLog(message);
+
+	//--
+
+	// Submit
+
+	//TODO: mode
+	if (bModeHistory) chatGpt.chatWithHistoryAsync(message);
+	else chatGpt.chatAsync(message);
 }
 
 //--------------------------------------------------------------
@@ -832,6 +836,88 @@ void ofApp::doRegenerate() {
 	ui.AddToLog("doRegenerate()", OF_LOG_WARNING);
 
 	chatGpt.regenerateAsync();
+}
+
+//--------------------------------------------------------------
+void ofApp::doGptGetMessage()
+{
+	ui.AddToLog("doGptGetMessage()", OF_LOG_WARNING);
+
+	string strGptResponse;
+	ofxChatGPT::ErrorCode errorCode;
+	tie(strGptResponse, errorCode) = chatGpt.getMessage();
+
+	indexErrorCode = getErrorCodeByCode(errorCode);
+	if (indexErrorCode > 0 && indexErrorCode < 9) bGptError = true;
+	else bGptError = false;
+
+	bGptWaiting = 0;
+
+	if (errorCode == ofxChatGPT::Success)
+	{
+		// Get response
+
+		ofLogNotice("ofApp") << "ofxChatGPT Success.";
+		bGptError = false;
+		gptErrorMessage = "";
+
+		ofJson newGPTMsg;
+		newGPTMsg["message"]["role"] = "assistant";
+		newGPTMsg["message"]["content"] = strGptResponse;
+
+		ofLogNotice("ofApp") << "GPT: " << newGPTMsg;
+
+		jResponse = newGPTMsg;
+
+		//--
+
+		// Process response
+
+		for (auto& content : newGPTMsg["content"]) {
+			strGptResponse += content.get<std::string>() + "\n";
+		}
+		//ofLogNotice("ofxSurfingTextSubtitle") << "strGptResponse:" << strGptResponse;
+
+		//--
+
+		textLastResponse = ofxSurfingHelpers::removeNumbersStartingLines(strGptResponse);
+		ofLogNotice("ofxSurfingTextSubtitle") << endl << textLastResponse;
+
+		//--
+
+		// Build slides
+		subs.doBuildDataText(textLastResponse);
+
+		/*
+		//TODO:
+		//there's no new line \n marks. so we assume the blocks will be numbered 1., 2., 3. etc
+		size_t sz = ofxSurfingHelpers::countNewlines(textLastResponse);
+		bool b = true;
+		//b = sz == 0;
+		if (b) {
+			subs.doBuildDataTextBlocks(textLastResponse, true);
+		}
+		else {//we found \n tags. so we assume blocks ends with \n.
+			subs.doBuildDataTextBlocks(textLastResponse);
+		}
+		*/
+
+		//--
+
+#ifdef USE_EDITOR_RESPONSE
+		// Here textLastResponse is already catched 
+		//editorResponse.clearText();//workflow
+		editorResponse.addText(textLastResponse);
+#endif
+	}
+	else
+	{
+		indexErrorCode = getErrorCodeByCode(errorCode);
+		bGptError = true;
+		gptErrorMessage = "Error: " + ofxChatGPT::getErrorMessage(errorCode);
+		ofLogError("ofApp") << "ofxChatGPT has an error: " << gptErrorMessage;
+		ui.AddToLog(gptErrorMessage, OF_LOG_ERROR);
+	}
 }
 
 //--------------------------------------------------------------
@@ -858,18 +944,14 @@ void ofApp::doRandomInput()
 	ui.AddToLog(s, OF_LOG_NOTICE);
 
 	bigTextInput.setText(s);
-	doSendMessageToGpt(s);
+	doGptSendMessage(s);
 
 #ifdef USE_EDITOR_INPUT
 	editorInput.setText(s);
 	ui.AddToLog("editorInput.setText()");
 	ui.AddToLog(s, OF_LOG_NOTICE);
-	doSendMessageToGpt(editorInput.getText(), bConversation);
+	doGptSendMessage(editorInput.getText(), bConversation);
 #endif
-
-	//// Here textLastResponse is already catched 
-	//editorResponse.setText(textLastResponse);
-	//ui.AddToLog("editorResponse.setTex");
 };
 
 //--------------------------------------------------------------
@@ -890,6 +972,7 @@ void ofApp::exit()
 
 	ofJson configJson;
 	configJson["apiKey"] = apiKey;
+	configJson["model"] = model;
 	ofSavePrettyJson("GptChat_ConfigKey.json", configJson);
 }
 
@@ -955,8 +1038,60 @@ void ofApp::drawImGuiWidgetsWhisper()
 #endif
 
 //--------------------------------------------------------------
+int ofApp::getErrorCodeByCode(ofxChatGPT::ErrorCode errorCode)
+{
+	int i = -1;
+
+	switch (errorCode)
+	{
+	case ofxChatGPT::Success:
+		i = 0;
+		break;
+	case ofxChatGPT::InvalidAPIKey:
+		i = 1;
+		break;
+	case ofxChatGPT::NetworkError:
+		i = 2;
+		break;
+	case ofxChatGPT::ServerError:
+		i = 3;
+		break;
+	case ofxChatGPT::RateLimitExceeded:
+		i = 4;
+		break;
+	case ofxChatGPT::TokenLimitExceeded:
+		i = 5;
+		break;
+	case ofxChatGPT::InvalidModel:
+		i = 6;
+		break;
+	case ofxChatGPT::BadRequest:
+		i = 7;
+		break;
+	case ofxChatGPT::Timeout:
+		i = 8;
+		break;
+	case ofxChatGPT::UnknownError:
+		i = 9;
+		break;
+	default:
+		i = 9;
+		break;
+	}
+
+	return i;
+}
+
+//--------------------------------------------------------------
 void ofApp::doAttendCallbackTextInput()
 {
+	//workflow
+	//clear
+	doClearList();
+#ifdef USE_EDITOR_RESPONSE
+	editorResponse.clearText();
+#endif
+
 	//// will be called when submitted text changed!
 	//text = bigTextInput.getText();
 	//ofLogNotice(__FUNCTION__) << text;
@@ -967,5 +1102,5 @@ void ofApp::doAttendCallbackTextInput()
 	v = 1;
 
 	string s = textInput.get();
-	doSendMessageToGpt(s);
+	doGptSendMessage(s);
 }

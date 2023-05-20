@@ -2709,7 +2709,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 
 		// index
 		sdialog = ofToString(currentDialog) + "/" + ofToString(sub.size() - 1);
-		}
+	}
 
 	////workflow
 	//if (!bLoadedFileSubs && !bLoadedFileText && indexModes != 3)
@@ -2789,9 +2789,17 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		}
 		else
 		{
-			ui->BeginBlinkText();
-			ui->AddLabelBig("FILE NOT LOADED!");
-			ui->EndBlinkText();
+			//TODO:
+			// standalone mode do not have timeline/progress bar.
+			bool bModeNoTimeline = 0;
+			bModeNoTimeline += (indexModes == 2);
+			bModeNoTimeline += (indexModes == 3);
+			
+			if (!bModeNoTimeline) {
+				ui->BeginBlinkText();
+				ui->AddLabelBig("FILE NOT LOADED!");
+				ui->EndBlinkText();
+			}
 
 			//ui->AddSpacing();
 			//ui->Add(bOpenSrt, OFX_IM_BUTTON_SMALL);
@@ -3125,7 +3133,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 		//		}
 		//#endif
 	}
-	}
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWindowList()
@@ -3169,20 +3177,24 @@ void ofxSurfingTextSubtitle::drawImGuiWindowList()
 		{
 			if (!bMinimize)
 			{
-				if (bModeTextBlocks) {
-					ui->AddLabelBig(name_Text + ".txt");
-					ui->AddTooltip(path_Text);
-				}
-				else {
-					ui->AddLabelBig(name_Srt + ".srt");
-					ui->AddTooltip(path_Srt);
-				}
-				ui->AddSpacing();
+				// standalone mode do not have timeline/progress bar.
+				bool bModeNoTimeline = (indexModes == 2);
+				if (!bModeNoTimeline) {
+					if (bModeTextBlocks) {
+						ui->AddLabelBig(name_Text + ".txt");
+						ui->AddTooltip(path_Text);
+					}
+					else {
+						ui->AddLabelBig(name_Srt + ".srt");
+						ui->AddTooltip(path_Srt);
+					}
+					ui->AddSpacing();
 
-				ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
-				ui->AddSpacing();
+					ui->Add(progressPlayFilm, OFX_IM_PROGRESS_BAR);
+					ui->AddSpacing();
+					//int track_item = currentDialog;
+				}
 
-				int track_item = currentDialog;
 				ui->Add(bAutoScroll, OFX_IM_TOGGLE_ROUNDED_MINI);
 
 				ui->AddSpacingBig();
@@ -3430,7 +3442,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-			}
+	}
 }
 #endif
 
@@ -4210,6 +4222,37 @@ void ofxSurfingTextSubtitle::doClearList() {
 
 	//workflow
 	stop();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doBuildDataText(string s) {
+	ofLogNotice("ofxSurfingTextSubtitle") << "doBuildDataText()";
+	ofLogNotice("ofxSurfingTextSubtitle") << endl << s;
+
+	dataTextBlocks = ofxSurfingHelpers::splitTextBlocks(s);
+
+	ofLogNotice("ofxSurfingTextSubtitle") << "Amount Blocks: " << dataTextBlocks.size();
+
+	ofLogNotice("ofxSurfingTextSubtitle") << "Print Blocks";
+	for (size_t i = 0; i < dataTextBlocks.size(); i++)
+	{
+		string s = "#" + ofToString(i) + ": " + dataTextBlocks[i];
+		ui->AddToLog(s);
+		//ofLogNotice("ofxSurfingTextSubtitle") << s;
+	}
+
+	if (dataTextBlocks.size() > 0) bModeTextBlocks = true;
+	else ofLogError("ofxSurfingTextSubtitle") << "blocks are empty";
+
+	currentDialog.setMax(dataTextBlocks.size() - 1);
+
+	//workflow
+	currentDialog = 0;
+	//bPlayStandalone = true;
+	bPlayForced = true;
+
+	bLoadedFileText = true;
+	bModeTextBlocks = true;
 }
 
 //--------------------------------------------------------------

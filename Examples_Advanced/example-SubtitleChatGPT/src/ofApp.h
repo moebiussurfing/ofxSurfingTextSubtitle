@@ -6,10 +6,11 @@
 
 	TODO
 
-	log gpt setup and error/state
-
+	ui docking
+	gpt setup/restart, reconnect.
+		make new class.
+		model and error/state
 	add dual window 1: gui / 2: out
-	+ docking
 	fix < > slides
 	fix 1st/end slide.
 	add wait spin
@@ -28,7 +29,7 @@
 
 //--
 
- 
+
 // Optional Modules
 //#define USE_WHISPER
 //#define USE_EDITOR_INPUT
@@ -43,7 +44,7 @@
 #include "surfingTextEditor.h"
 #include "BigTextInput.h"
 #include "ChatThread.h"
-
+#include <regex>
 #include "surfingSceneTesters.h"
 #include "ofxWindowApp.h"
 
@@ -75,16 +76,40 @@ public:
 	ChatThread chatGpt;
 
 	void setupGpt();
-	void doSendMessageToGpt(string s, bool bWithHistory);
-	void doSendMessageToGpt(string message);
+	void doGptSendMessage(string s, bool bWithHistory);
+	void doGptSendMessage(string message);
 	void doRegenerate();
+	void doGptGetMessage();
+	ofParameter<bool> bGptWaiting{ "GPT WAITING", 0 };
+	// Error codes for various error conditions.
+	vector<string> errorCodesNames{
+			"Success",//0
+			"InvalidAPIKey",
+			"NetworkError",
+			"ServerError",
+			"RateLimitExceeded",
+			"TokenLimitExceeded",
+			"InvalidModel",
+			"BadRequest",
+			"Timeout",//8
+			"UnknownError"
+	};
+	ofParameter<int> indexErrorCode{ "State", 9, 0, errorCodesNames.size() - 1 };
+	bool bGptError = false;
+	int getErrorCodeByCode(ofxChatGPT::ErrorCode e);
+	string gptErrorMessage = "";
 
 	ofParameter<bool> bGui;
 
 	ofParameterGroup params{ "ofApp" };
+
 	ofParameter<string> apiKey{ "API key","" };
+	ofParameter<string> model{ "Model","" };
+
 	ofParameter<bool> bConversation{ "Conversation", false };//not used
-	ofParameter<bool> bGui_History{ "History",false };
+	ofParameter<bool> bModeHistory{ "History",false };
+	ofParameter<bool> bGui_GptLastReply{ "GPT Last Reply",false };
+	ofParameter<bool> bGui_GptHistory{ "GPT History",false };
 	ofParameter<int> fontI{ "FontI", 0, 0, 3 };
 	ofParameter<int> fontR{ "FontR", 0, 0, 3 };
 
@@ -102,8 +127,6 @@ public:
 #endif
 
 	void drawWidgets(); // Advanced: inserted widgets
-
-	bool bError = false;
 
 	string textLastResponse;
 
@@ -126,6 +149,7 @@ public:
 
 	//--
 
+	// "10 short sentences."
 	static string GPT_Prompt_0() {
 		return R"(I want you to act as a music band advertiser. 
 You will create a campaign to promote that band.
@@ -136,14 +160,19 @@ The sentences will be short: less than 5 words each sentence.
 )";
 	}
 
+	// "10 words list."
 	static string GPT_Prompt_1() {
 		return R"(I want you to act as a music band critic. 
 I will pass you a band music name. You will return a list of 10 words.
 You will only reply with that words list, and nothing else. 
 Words will be sorted starting from less to more relevance.
+The format of the response, will be with one line per each word.
+These lines will be starting with the first char uppercased, 
+and without a '.' at the end of the line, just include the break line char.
 )";
 	}
 
+	// "10 Similar bands"
 	static string GPT_Prompt_2() {
 		return R"(I want you to act as a music critic.
 As a LastFm maintainer.
@@ -153,6 +182,7 @@ But you must sort that bands, from older to newer.
 )";
 	}
 
+	// "Default"
 	static string GPT_Prompt_3() {
 		return R"(Act as your default ChatGPT behavior following the conversation.
 )";

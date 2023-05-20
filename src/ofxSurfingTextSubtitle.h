@@ -4,15 +4,16 @@
 
 	BUG
 
+	fix block 0 loading when text mode
+		fix end at last slide
+
 	fix paragraph dividing from fontstash hides some chars..
 		'.' starting a new line
-		borken words
+		broken words. 
 
 	fix debug layout marks
 
-	fix fbo draw flick
-
-	fix block 0 loading when text mode
+	fix fbo draw flick. add refresh on bResponsive etc
 
 	fix fades styling.
 		timeline is broken in some modes.
@@ -597,6 +598,8 @@ public:
 	//Create slides from a unique string text with multiple blocks..
 	void doBuildDataTextBlocks(string s, bool bNumbered = false);//will use '\n' as dividers or numbered
 
+	void doBuildDataText(string s);//will use '\n' as dividers to get each line.
+	
 	void doClearList();
 
 private:
