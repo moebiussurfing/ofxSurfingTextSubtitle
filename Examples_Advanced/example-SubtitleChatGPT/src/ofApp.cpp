@@ -73,8 +73,10 @@ void ofApp::setup()
 
 	//-
 
+#ifdef USE_EDITOR_RESPONSE
 	editorResponse.setup("Response");
 	editorResponse.setCustomFonts(ui.getFontsPtr(), ui.getFontsNames());
+#endif
 
 	//--
 
@@ -479,8 +481,12 @@ void ofApp::drawImGui()
 			ui.AddSpacing();
 			ui.Add(editorInput.bGui, OFX_IM_TOGGLE_ROUNDED);
 #endif
-			if (subs.bExtra) {
+			//if (subs.bExtra)
+			{
+
+#ifdef USE_EDITOR_RESPONSE
 				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED);
+#endif
 				ui.Add(bGui_History, OFX_IM_TOGGLE_ROUNDED_MINI);
 				ui.AddSpacingBigSeparated();
 			}
@@ -586,10 +592,13 @@ void ofApp::drawImGui()
 					}
 				}
 
-				if (ui.isDebug())
+				//if (ui.isDebug())
 				{
+
+#ifdef USE_EDITOR_RESPONSE
 					// Editor Response
 					editorResponse.drawImGui();
+#endif
 				}
 			}
 

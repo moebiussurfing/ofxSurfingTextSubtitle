@@ -6,6 +6,8 @@
 
 	TODO
 
+	log gpt setup and error/state
+
 	add dual window 1: gui / 2: out
 	+ docking
 	fix < > slides
@@ -13,7 +15,7 @@
 	add wait spin
 		add beep sounds
 	fix subtitle paragraph clamp. reset box centered
-	add conversation mode
+	add conversation/history mode
 	add two colors user/assistant by tag in Gpt last reply
 	search text formatter cpp lib
 		remove 1._ etc using regex
@@ -30,6 +32,7 @@
 // Optional Modules
 //#define USE_WHISPER
 //#define USE_EDITOR_INPUT
+#define USE_EDITOR_RESPONSE
 
 //--
 
@@ -94,7 +97,10 @@ public:
 	SurfingTextEditor editorInput;
 #endif
 
+#ifdef USE_EDITOR_RESPONSE
 	SurfingTextEditor editorResponse;
+#endif
+
 	void drawWidgets(); // Advanced: inserted widgets
 
 	bool bError = false;
