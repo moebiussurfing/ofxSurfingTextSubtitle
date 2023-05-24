@@ -599,6 +599,7 @@ public:
 	void doBuildDataTextBlocks(string s, bool bNumbered = false);//will use '\n' as dividers or numbered
 
 	void doBuildDataText(string s);//will use '\n' as dividers to get each line.
+	void doBuildDataTextOneSlideOnly(string s);
 	
 	void doClearList();
 

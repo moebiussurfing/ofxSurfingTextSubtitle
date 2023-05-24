@@ -7,23 +7,29 @@
 	TODO
 
 	ui docking
+		use modes like: conversation, prompt selector etc
+		for different layouts
 	gpt setup/restart, reconnect.
-		make new class.
+		make new class SurfGPT.
 		model and error/state
-	add dual window 1: gui / 2: out
-	fix < > slides
-	fix 1st/end slide.
+
+	conversation window
+		auto scroll down when response (tween)
+		lock mode
+		auto go to text input when get response
+		make bigger scroll
+
 	add wait spin
 		add beep sounds
+	fix < > slides
+		fix 1st/end slide.
+	add dual window 1: gui / 2: out
 	fix subtitle paragraph clamp. reset box centered
-	add conversation/history mode
-	add two colors user/assistant by tag in Gpt last reply
-	search text formatter cpp lib
-		remove 1._ etc using regex
-	add prompts manager; save on json file.
+	add prompts manager:
+		save on json file.
 		create prompt struct
 		add new. edit.
-
+	
 */
 
 
@@ -66,6 +72,8 @@ public:
 
 	//void drawScene();
 	void drawImGui();
+	void drawImGuiReply(ofxSurfingGui& ui);
+	void drawImGuiConversation(ofxSurfingGui& ui);
 
 	ofxSurfingGui ui;
 
@@ -73,14 +81,13 @@ public:
 	string path;
 	void doPopulateText(string s = "");
 	void doPopulateTextBlocks();
-	void doClearList();
+	void doClearSubsList();
 
 	ChatThread chatGpt;
 
 	void setupGpt();
-	void doGptSendMessage(string s, bool bWithHistory);
 	void doGptSendMessage(string message);
-	void doRegenerate();
+	void doGptRegenerate();
 	void doGptGetMessage();
 	ofParameter<bool> bGptWaiting{ "GPT WAITING", 0 };
 	// Error codes for various error conditions.
@@ -108,10 +115,19 @@ public:
 	ofParameter<string> apiKey{ "API key","" };
 	ofParameter<string> model{ "Model","" };
 
-	ofParameter<bool> bConversation{ "Conversation", false };//not used
-	ofParameter<bool> bModeHistory{ "History",false };
+	ofParameter<bool> bModeOneSlide{ "OneSlide", false };
+	ofParameter<bool> bModeConversation{ "Conversation", false };
+
+	// Create an empty JSON array to store messages
+	//vector<ofJson> message_history;
+	ofJson message_history = ofJson();
+	//ofJson message_history = nlohmann::json::array();
+
+	//ofParameter<bool> bModeHistory{ "History",false };
+
 	ofParameter<bool> bGui_GptLastReply{ "GPT Last Reply",false };
-	ofParameter<bool> bGui_GptHistory{ "GPT History",false };
+	ofParameter<bool> bGui_GptConversation{ "GPT Conversation",false };
+
 	ofParameter<int> fontI{ "FontI", 0, 0, 3 };
 	ofParameter<int> fontR{ "FontR", 0, 0, 3 };
 
@@ -209,7 +225,7 @@ But you must sort that bands, from older to newer.
 		requestBody["model"] = modelName;
 		requestBody["messages"].push_back({ {"role", "user"}, {"content", message} });
 		requestBody["temperature"] = 0.5;
-		ofLogVerbose("ofxChatGPT") << "SendData: " << requestBody.dump();
+		ofLogVerbose("ofxChatGPT") << "SendData: " << requestBody.dump(4);
 
 		ofHttpResponse response = sendRequest(urlEndpoint, requestBody.dump());
 
@@ -231,57 +247,8 @@ But you must sort that bands, from older to newer.
 	}
 	*/
 
-	bool doResetEndpointIP()
-	{
-		CURL* curl;
-		CURLcode res;
-		struct curl_slist* headers = NULL;
+	// The used server sometimes requires some IP reseting.
+	bool doGptResetEndpointIP();
 
-		const std::string api_key = apiKey;
-
-		// Set up the headers
-		std::string authorization_header = "Authorization: Bearer " + api_key;
-		headers = curl_slist_append(headers, authorization_header.c_str());
-
-		// Set up the URL and payload
-		std::string url = "https://api.pawan.krd/resetip";
-		std::string payload = "";
-
-		curl = curl_easy_init();
-		if (curl) {
-			// Set up the request
-			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-			curl_easy_setopt(curl, CURLOPT_POST, 1L);
-			curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-			curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
-
-			// Disable SSL certificate verification
-			curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-
-			// Send the request
-			res = curl_easy_perform(curl);
-			if (res != CURLE_OK) {
-				std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
-
-				string s = "doResetEndpointIP() curl_easy_perform() failed: " + ofToString(curl_easy_strerror(res));
-				ui.AddToLog(s, OF_LOG_ERROR);
-
-				// Clean up
-				curl_slist_free_all(headers);
-				curl_easy_cleanup(curl);
-
-				return false;
-			}
-
-			// Clean up
-			curl_slist_free_all(headers);
-			curl_easy_cleanup(curl);
-
-			return true;
-		}
-
-		return false;
-	}
-
-
+	void doClear();
 };

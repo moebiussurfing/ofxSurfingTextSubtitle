@@ -83,12 +83,15 @@ void ofApp::setup()
 
 	//params.add(bigTextInput.bGui);
 	//params.add(apiKey);
+	params.add(bModeConversation);
+	params.add(bModeOneSlide);
+
 	params.add(subs.bGui);
 	params.add(fontI);
 	params.add(fontR);
-	params.add(bConversation);
-	params.add(bModeHistory);
-	params.add(bGui_GptHistory);
+	//params.add(bModeHistory);
+
+	params.add(bGui_GptConversation);
 	params.add(bGui_GptLastReply);
 
 	//--
@@ -119,7 +122,7 @@ void ofApp::setupGpt()
 		ofSetLogLevel(OF_LOG_VERBOSE);
 		ui.setLogLevel(OF_LOG_VERBOSE);
 
-		ui.AddToLog("-------------------- Setup GPT --------------------", OF_LOG_WARNING);
+		ui.AddToLog("setupGpt()", OF_LOG_WARNING);
 
 		//--
 
@@ -146,7 +149,6 @@ void ofApp::setupGpt()
 
 		//fix
 
-
 		//--
 
 		ofxChatGPT chatGpt_;
@@ -162,6 +164,9 @@ void ofApp::setupGpt()
 			if (ofIsStringInString(m, "gpt"))
 			{
 				ui.AddToLog(m, OF_LOG_WARNING);
+			}
+			else {
+				ui.AddToLog(m, OF_LOG_VERBOSE);
 			}
 		}
 
@@ -227,7 +232,7 @@ void ofApp::setPrompt(int index)
 //--------------------------------------------------------------
 void ofApp::update()
 {
-	string s = "example-SubtitleChatGPT | " + ofToString(ofGetFrameRate(), 0) + "fps";
+	string s = "SubtitleChatGPT | " + ofToString(ofGetFrameRate(), 0) + "FPS";
 	ofSetWindowTitle(s);
 
 	//--
@@ -377,7 +382,7 @@ void ofApp::drawImGui()
 	{
 		//--
 
-		// TextInput
+		// TextInput bubble widget
 
 		bigTextInput.draw(ui);
 
@@ -391,13 +396,15 @@ void ofApp::drawImGui()
 			//ui.AddLabelHuge("SubtitleChatGPT", false, true);
 
 			ui.AddMinimizerToggle();
-			if (ui.isMaximized()) {
+			ui.AddLogToggle();
+			if (ui.isMaximized())
+			{
 				ui.AddDebugToggle();
 				ui.AddExtraToggle();
-				ui.AddLogToggle();
 			}
 
-			ui.AddSpacingBigSeparated();
+			if (ui.isMaximized())
+				ui.AddSpacingBigSeparated();
 
 			//--
 
@@ -409,30 +416,49 @@ void ofApp::drawImGui()
 			{
 				ui.AddLabelBig("API KEY");
 				ui.Add(apiKey, OFX_IM_TEXT_INPUT_NO_NAME);
+				ui.AddLabelBig("MODEL");
+				ui.Add(model, OFX_IM_TEXT_DISPLAY);
 
-				if (ui.AddButton("Setup"))
+				if (ui.AddButton("Restart"))
 				{
 					setupGpt();
+				}
+				if (ui.AddButton("ResetIP"))
+				{
+					doGptResetEndpointIP();
 				}
 			}
 			ui.AddSpacingSeparated();
 
-			ui.PushFont(OFX_IM_FONT_BIG);
+			//ui.PushFont(OFX_IM_FONT_BIG);
 			{
 #ifdef USE_EDITOR_INPUT
 				if (ui.AddButton("Send"))
 				{
-					doGptSendMessage(editorInput.getText(), bConversation);
+					doGptSendMessage(editorInput.getText(), bModeConversation);
 				}
 #endif
-				if (ui.AddButton("Random", OFX_IM_BUTTON_BIG)) {
-					doRandomInput();
+				if (ui.isMaximized() && ui.bDebug)
+				{
+					static bool bTester = 0;
+					ImGui::Checkbox("Tester##1", &bTester);
+					if (bTester) {
+						if (ui.AddButton("Random", OFX_IM_BUTTON_BIG)) {
+							doRandomInput();
+						}
+					}
 				}
 			}
-			ui.PopFont();
+			//ui.PopFont();
+
+			if (ui.AddButton("Clear##2", OFX_IM_BUTTON_BIG))
+			{
+				// Clear
+				doClear();
+			}
 
 			if (ui.AddButton("Regenerate")) {
-				doRegenerate();
+				doGptRegenerate();
 			}
 
 			ui.AddSpacingSeparated();
@@ -460,7 +486,6 @@ void ofApp::drawImGui()
 
 			//--
 
-
 #ifdef USE_EDITOR_INPUT
 			ui.AddLabelHuge("EDITORS");
 			ui.AddSpacing();
@@ -469,8 +494,10 @@ void ofApp::drawImGui()
 			//if (subs.bExtra)
 			if (ui.isMaximized())
 			{
-				ui.Add(bModeHistory, OFX_IM_CHECKBOX);
-				ui.Add(bGui_GptHistory, OFX_IM_TOGGLE_ROUNDED_MINI);
+				ui.Add(bModeConversation, OFX_IM_CHECKBOX);
+				ui.Add(bGui_GptConversation, OFX_IM_TOGGLE_ROUNDED_MINI);
+
+				ui.AddSpacing();
 				ui.Add(bGui_GptLastReply, OFX_IM_TOGGLE_ROUNDED_MINI);
 #ifdef USE_EDITOR_RESPONSE
 				ui.Add(editorResponse.bGui, OFX_IM_TOGGLE_ROUNDED_MINI);
@@ -504,11 +531,12 @@ void ofApp::drawImGui()
 			{
 				ui.AddSpacing();
 				ui.AddSpacingDouble();
+				ui.Add(bModeOneSlide, OFX_IM_CHECKBOX);
 
 				//ui.AddLabelBig("Tester", false, true);
 				static bool bTester = 0;
-				ImGui::Checkbox("Tester", &bTester);
-				ui.PushFont(OFX_IM_FONT_BIG);
+				ImGui::Checkbox("Tester##2", &bTester);
+				//ui.PushFont(OFX_IM_FONT_BIG);
 				{
 					if (bTester) {
 						s = "Random\nText!";
@@ -527,17 +555,19 @@ void ofApp::drawImGui()
 						s = ofToUpper(s);
 						if (ui.AddButton(s, OFX_IM_BUTTON_BIG))
 						{
-							doClearList();
+							doClearSubsList();
 						}
 					}
-
-					ui.PopFont();
 				}
+				//ui.PopFont();
 			}
 			ui.EndWindow();
-			}
-		if (bGui) {
+		}
 
+		//--
+
+		if (bGui)
+		{
 			//--
 
 			// Editor Input
@@ -545,79 +575,125 @@ void ofApp::drawImGui()
 #ifdef USE_EDITOR_INPUT
 			editorInput.drawImGui();
 #endif
-
 			//--
 
 			//if (ui.isMaximized() && ui.isExtraEnabled())
-			if (ui.isExtraEnabled())
-			{
-				//if (bModeHistory)
-				{
-					//if (ui.isDebug())
-					{
-						// Gpt History
-						if (ui.BeginWindow(bGui_GptHistory, ImGuiWindowFlags_None))
-						{
-							if (ui.isDebug()) ui.AddComboFontsSelector(fontI);
+			//if (ui.isExtraEnabled())
+			//if (ui.isDebug())
 
-							ui.PushFont(SurfingFontTypes(fontI.get()));
+			drawImGuiReply(ui);
 
-							stringstream conversationText;
-
-							//for (const ofJson& message : chatGpt.getConversation()) {
-							//	conversationText << message["role"] << ": " << message["content"] << "\n";
-							//}
-
-							string s = "conversation:\n" + conversationText.str();
-
-							ImGui::TextWrapped(s.c_str());
-
-							ui.PopFont();
-
-							ui.EndWindow();
-						}
-					}
-
-					// Gpt last reply
-					if (ui.BeginWindow(bGui_GptLastReply, ImGuiWindowFlags_None))
-					{
-						if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
-
-						ui.PushFont(SurfingFontTypes(fontR.get()));
-
-						string s = textLastResponse;
-
-						ImGui::TextWrapped(s.c_str());
-
-						ui.PopFont();
-
-						ui.EndWindow();
-					}
-				}
-
-				//if (ui.isDebug())
-				{
+			//--
 
 #ifdef USE_EDITOR_RESPONSE
-					// Editor Response
-					editorResponse.drawImGui();
+			// Editor Response
+			editorResponse.drawImGui();
 #endif
-				}
-			}
-
 			//--
 
 			subs.drawImGui();
 		}
-		}
-	ui.End();
+
+		//--
+
+		if (bModeConversation) drawImGuiConversation(ui);
 	}
+	ui.End();
+}
+
+//--------------------------------------------------------------
+void ofApp::drawImGuiReply(ofxSurfingGui& ui)
+{
+	// Gpt last reply
+	if (ui.BeginWindow(bGui_GptLastReply, ImGuiWindowFlags_None))
+	{
+		if (ui.isDebug()) ui.AddComboFontsSelector(fontR);
+
+		ui.PushFont(SurfingFontTypes(fontR.get()));
+
+		string s = textLastResponse;
+
+		ImGui::TextWrapped(s.c_str());
+
+		ui.PopFont();
+
+		ui.EndWindow();
+	}
+}
+
+//--------------------------------------------------------------
+void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
+{
+	//static ofParameter<bool> bGui_Headers{ "Headers", 0 };
+	//static ofParameter<bool> bGui_Bg{ "Bg", 0 };
+	//static ofParameter<bool> bGui_ResizePin{ "Resizer", 0 };
+	//static ofParameter<bool> bGui_LockMove{ "Lock", 0 };
+
+	//ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+	//window_flags |= ImGuiWindowFlags_NoScrollbar;
+	//if (!bGui_Bg) window_flags |= ImGuiWindowFlags_NoBackground;
+	//if (!bGui_Headers) window_flags |= ImGuiWindowFlags_NoTitleBar;
+	//if (!bGui_ResizePin) window_flags |= ImGuiWindowFlags_NoResize;
+	//if (bGui_LockMove) window_flags |= ImGuiWindowFlags_NoMove;
+
+	bool b = ui.bDebug;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+	if (!b) window_flags |= ImGuiWindowFlags_NoBackground;
+	if (!b) window_flags |= ImGuiWindowFlags_NoTitleBar;
+	if (!b) window_flags |= ImGuiWindowFlags_NoResize;
+	//if (b) window_flags |= ImGuiWindowFlags_NoMove;
+	//if (!b) window_flags |= ImGuiWindowFlags_NoScrollbar;
+	//window_flags |= ImGuiWindowFlags_NoScrollbar;
+
+	//--
+
+	if (ui.BeginWindow(bGui_GptConversation, window_flags))
+	{
+		if (ui.isDebug()) ui.AddComboFontsSelector(fontI);
+		ui.PushFont(SurfingFontTypes(fontI.get()));
+
+		//stringstream conversationText;
+		//for (const ofJson& message : chatGpt.getConversation()) {
+		//	conversationText << message["role"] << ": " << message["content"] << "\n";
+		//}
+		//string s = "conversation:\n" + conversationText.str();
+		//ImGui::TextWrapped(s.c_str());
+
+		//--
+
+		// Colorized by roles
+
+		ImU32 c1 = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Text));
+		ImU32 c2 = ImGui::GetColorU32(bigTextInput.getColor());
+
+		//try 
+		{
+			for (auto& message : message_history) {
+				string role = message["message"]["role"].get<std::string>();
+				string content = message["message"]["content"].get<std::string>();
+
+				ImU32 color = (role == "user") ? c1 : c2;
+				ImGui::PushStyleColor(ImGuiCol_Text, color);
+				ImGui::TextWrapped("%s", content.c_str());
+				ImGui::PopStyleColor();
+			}
+		}
+		//catch (const std::exception& e) {
+		//	ofLogError("Error reading message history JSON data: ") << e.what();
+		//	ofLogError("JSON data that caused the exception: ") << message_history.dump();
+		//}
+
+		ui.PopFont();
+
+		ui.EndWindow();
+	}
+}
 
 //--------------------------------------------------------------
 void ofApp::doPopulateText(string s)
 {
 	//workflow
-	doClearList();
+	doClearSubsList();
 
 	// auto generate a random text
 	if (s == "")
@@ -652,7 +728,7 @@ void ofApp::doPopulateTextBlocks() {
 	subs.setupTextBlocks(path);
 }
 //--------------------------------------------------------------
-void ofApp::doClearList() {
+void ofApp::doClearSubsList() {
 	subs.doClearList();
 }
 
@@ -677,11 +753,14 @@ void ofApp::keyPressed(int key)
 	if (key == ' ') { doSwapPrompt(); }
 
 	// regenerate
-	if (key == OF_KEY_RETURN) { doRegenerate(); }
+	if (key == OF_KEY_RETURN) { doGptRegenerate(); }
 
 	//--
 
-	if (key == 'd') bigTextInput.bDebug = !bigTextInput.bDebug;
+	if (key == 'd') {
+		ui.bDebug = !ui.bDebug;
+		bigTextInput.bDebug = ui.bDebug;
+	}
 
 	if (key == 'g') {
 		bGui = !bGui;
@@ -690,7 +769,7 @@ void ofApp::keyPressed(int key)
 		if (!bGui && bigTextInput.bGui_Config) bigTextInput.bGui_Config = 0;
 	}
 
-	if (key == ' ') { doRegenerate(); }
+	if (key == ' ') { doGptRegenerate(); }
 
 	//if (key == ' ') { doPopulateText(); }
 	if (key == 'l') { subs.setToggleLive(); }
@@ -744,7 +823,7 @@ void ofApp::drawWidgets()
 	{
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		doGptSendMessage(s, bConversation);
+		doGptSendMessage(s, bModeConversation);
 
 		//workflow
 		//editorInput.clearText();
@@ -755,7 +834,7 @@ void ofApp::drawWidgets()
 		editorInput.clearText();
 	};
 
-	ui.Add(bConversation);
+	ui.Add(bModeConversation);
 
 	//editorInput.drawImGuiWidgetsFonts();
 
@@ -783,41 +862,41 @@ void ofApp::drawWidgets()
 #ifdef USE_EDITOR_INPUT
 		string s = editorInput.getText();
 		ui.AddToLog(s, OF_LOG_NOTICE);
-		doGptSendMessage(s, bConversation);
+		doGptSendMessage(s, bModeConversation);
 		editorInput.clearText();
 #endif
-}
-}
-
-//--------------------------------------------------------------
-void ofApp::doGptSendMessage(string s, bool bWithHistory)
-{
-	doGptSendMessage(s);
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::doGptSendMessage(string message) {
 
 	// Clear
-	
+
 	ofxChatGPT::ErrorCode errorCode;
 	bGptError = false;
 
-	ofJson newUserMsg;
-	newUserMsg["message"]["role"] = "user";
-	newUserMsg["message"]["content"] = message;
+	ofJson jMsg;
+	jMsg["message"]["role"] = "user";
+	jMsg["message"]["content"] = message;
 
-	ofLogVerbose("ofApp") << "User: " << newUserMsg;
+	message_history.push_back(jMsg);
 
-	jQuestion = newUserMsg;
+	ofLogVerbose("ofApp") << "User: " << message;
+
+	jQuestion = jMsg;
 	jResponse = ofJson();
 
 	bGptWaiting = 1;
 
+	// clear
 	textLastResponse = "";
+
+	if (!bModeConversation) {
 #ifdef USE_EDITOR_RESPONSE
-	editorResponse.clearText();//workflow
+		editorResponse.clearText();//workflow
 #endif
+	}
 
 	ui.AddToLog("doGptSendMessage()", OF_LOG_WARNING);
 	ui.AddToLog(message);
@@ -826,14 +905,13 @@ void ofApp::doGptSendMessage(string message) {
 
 	// Submit
 
-	//TODO: mode
-	if (bModeHistory) chatGpt.chatWithHistoryAsync(message);
+	if (bModeConversation) chatGpt.chatWithHistoryAsync(message + "\n");
 	else chatGpt.chatAsync(message);
 }
 
 //--------------------------------------------------------------
-void ofApp::doRegenerate() {
-	ui.AddToLog("doRegenerate()", OF_LOG_WARNING);
+void ofApp::doGptRegenerate() {
+	ui.AddToLog("doGptRegenerate()", OF_LOG_WARNING);
 
 	chatGpt.regenerateAsync();
 }
@@ -843,6 +921,7 @@ void ofApp::doGptGetMessage()
 {
 	ui.AddToLog("doGptGetMessage()", OF_LOG_WARNING);
 
+	// Get
 	string strGptResponse;
 	ofxChatGPT::ErrorCode errorCode;
 	tie(strGptResponse, errorCode) = chatGpt.getMessage();
@@ -853,27 +932,31 @@ void ofApp::doGptGetMessage()
 
 	bGptWaiting = 0;
 
-	if (errorCode == ofxChatGPT::Success)
+	if (errorCode == ofxChatGPT::Success) // success
 	{
 		// Get response
 
 		ofLogNotice("ofApp") << "ofxChatGPT Success.";
 		bGptError = false;
-		gptErrorMessage = "";
+		gptErrorMessage = "State: Success";
+		indexErrorCode = 0;
 
-		ofJson newGPTMsg;
-		newGPTMsg["message"]["role"] = "assistant";
-		newGPTMsg["message"]["content"] = strGptResponse;
+		ofJson jMsg;
+		jMsg["message"]["role"] = "assistant";
+		jMsg["message"]["content"] = strGptResponse;
 
-		ofLogNotice("ofApp") << "GPT: " << newGPTMsg;
+		message_history.push_back(jMsg);
 
-		jResponse = newGPTMsg;
+		ofLogNotice("ofApp") << "Assistant: " << strGptResponse;
+
+		jResponse = jMsg;
 
 		//--
 
+		//TODO:
 		// Process response
-
-		for (auto& content : newGPTMsg["content"]) {
+		for (auto& content : jMsg["content"])
+		{
 			strGptResponse += content.get<std::string>() + "\n";
 		}
 		//ofLogNotice("ofxSurfingTextSubtitle") << "strGptResponse:" << strGptResponse;
@@ -886,7 +969,8 @@ void ofApp::doGptGetMessage()
 		//--
 
 		// Build slides
-		subs.doBuildDataText(textLastResponse);
+		if (bModeOneSlide) subs.doBuildDataTextOneSlideOnly(textLastResponse);
+		else subs.doBuildDataText(textLastResponse);
 
 		/*
 		//TODO:
@@ -905,13 +989,15 @@ void ofApp::doGptGetMessage()
 		//--
 
 #ifdef USE_EDITOR_RESPONSE
-		// Here textLastResponse is already catched 
+		// Here textLastResponse is already cached 
 		//editorResponse.clearText();//workflow
-		editorResponse.addText(textLastResponse);
+		editorResponse.addText(textLastResponse + "\n");
 #endif
 	}
-	else
+	else // error
 	{
+		//tuple<string, ofxChatGPT::ErrorCode> m = ofxChatGPT::getMessage();
+
 		indexErrorCode = getErrorCodeByCode(errorCode);
 		bGptError = true;
 		gptErrorMessage = "Error: " + ofxChatGPT::getErrorMessage(errorCode);
@@ -920,20 +1006,11 @@ void ofApp::doGptGetMessage()
 
 		//--
 
-		//TODO:
-		/*
-		you can reset your IP by sending a POST HTTP request to 
-		https://api.pawan.krd/resetip 
-		with your API key in the Authorization header. 
-		Here is an example of how to do it using the curl command:
-
-curl --location --request POST 'https://api.pawan.krd/resetip' \
---header 'Authorization: Bearer pk-***[OUR_API_KEY]***'
-		*/
-
-		bool b = doResetEndpointIP();
-		if (b) ui.AddToLog("doResetEndpointIP() Succes", OF_LOG_WARNING);
-		else ui.AddToLog("doResetEndpointIP() Error", OF_LOG_ERROR);
+		// workaround to try to fix the error on the fly
+		// bc error could like new IP renew for our endpoint server.
+		bool b = doGptResetEndpointIP();
+		if (b) ui.AddToLog("doGptResetEndpointIP() Success", OF_LOG_WARNING);
+		else ui.AddToLog("doGptResetEndpointIP() Error", OF_LOG_ERROR);
 	}
 }
 
@@ -943,7 +1020,7 @@ void ofApp::doRandomInput()
 	ui.AddToLog("doRandomInput()", OF_LOG_WARNING);
 
 	//workflow
-	doClearList();
+	doClearSubsList();
 
 	size_t sz = 9;
 	float r = ofRandom(sz);
@@ -967,7 +1044,7 @@ void ofApp::doRandomInput()
 	editorInput.setText(s);
 	ui.AddToLog("editorInput.setText()");
 	ui.AddToLog(s, OF_LOG_NOTICE);
-	doGptSendMessage(editorInput.getText(), bConversation);
+	doGptSendMessage(editorInput.getText(), bModeConversation);
 #endif
 };
 
@@ -1061,39 +1138,17 @@ int ofApp::getErrorCodeByCode(ofxChatGPT::ErrorCode errorCode)
 
 	switch (errorCode)
 	{
-	case ofxChatGPT::Success:
-		i = 0;
-		break;
-	case ofxChatGPT::InvalidAPIKey:
-		i = 1;
-		break;
-	case ofxChatGPT::NetworkError:
-		i = 2;
-		break;
-	case ofxChatGPT::ServerError:
-		i = 3;
-		break;
-	case ofxChatGPT::RateLimitExceeded:
-		i = 4;
-		break;
-	case ofxChatGPT::TokenLimitExceeded:
-		i = 5;
-		break;
-	case ofxChatGPT::InvalidModel:
-		i = 6;
-		break;
-	case ofxChatGPT::BadRequest:
-		i = 7;
-		break;
-	case ofxChatGPT::Timeout:
-		i = 8;
-		break;
-	case ofxChatGPT::UnknownError:
-		i = 9;
-		break;
-	default:
-		i = 9;
-		break;
+	case ofxChatGPT::Success: i = 0; break;
+	case ofxChatGPT::InvalidAPIKey: i = 1; break;
+	case ofxChatGPT::NetworkError: i = 2; break;
+	case ofxChatGPT::ServerError: i = 3; break;
+	case ofxChatGPT::RateLimitExceeded: i = 4; break;
+	case ofxChatGPT::TokenLimitExceeded: i = 5; break;
+	case ofxChatGPT::InvalidModel: i = 6; break;
+	case ofxChatGPT::BadRequest: i = 7;		break;
+	case ofxChatGPT::Timeout: i = 8; break;
+	case ofxChatGPT::UnknownError: i = 9; break;
+	default:i = 9; break;
 	}
 
 	return i;
@@ -1104,10 +1159,13 @@ void ofApp::doAttendCallbackTextInput()
 {
 	//workflow
 	//clear
-	doClearList();
+	doClearSubsList();
+
+	if (!bModeConversation) {
 #ifdef USE_EDITOR_RESPONSE
-	editorResponse.clearText();
+		editorResponse.clearText();
 #endif
+	}
 
 	//// will be called when submitted text changed!
 	//text = bigTextInput.getText();
@@ -1120,4 +1178,80 @@ void ofApp::doAttendCallbackTextInput()
 
 	string s = textInput.get();
 	doGptSendMessage(s);
+}
+
+//--------------------------------------------------------------
+bool ofApp::doGptResetEndpointIP()
+{
+	CURL* curl;
+	CURLcode res;
+	struct curl_slist* headers = NULL;
+
+	const std::string api_key = apiKey;
+
+	// Set up the headers
+	std::string authorization_header = "Authorization: Bearer " + api_key;
+	headers = curl_slist_append(headers, authorization_header.c_str());
+
+	// Set up the URL and payload
+	std::string url = "https://api.pawan.krd/resetip";
+	std::string payload = "";
+
+	curl = curl_easy_init();
+	if (curl) {
+		// Set up the request
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_POST, 1L);
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, payload.c_str());
+
+		// Disable SSL certificate verification
+		curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+
+		// Send the request
+		res = curl_easy_perform(curl);
+		if (res != CURLE_OK) {
+			std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+
+			string s = "doGptResetEndpointIP() curl_easy_perform() failed: " + ofToString(curl_easy_strerror(res));
+			ui.AddToLog(s, OF_LOG_ERROR);
+
+			// Clean up
+			curl_slist_free_all(headers);
+			curl_easy_cleanup(curl);
+
+			return false;
+		}
+
+		// Clean up
+		curl_slist_free_all(headers);
+		curl_easy_cleanup(curl);
+
+		return true;
+	}
+
+	return false;
+}
+
+//--------------------------------------------------------------
+void ofApp::doClear()
+{
+	ui.AddToLog("Clear", OF_LOG_WARNING);
+
+	chatGpt.clear();
+
+	bGptError = 0;
+	gptErrorMessage = "";
+
+	message_history.clear();
+
+	doClearSubsList();
+
+	textLastResponse = "";
+
+	if (!bModeConversation) {
+#ifdef USE_EDITOR_RESPONSE
+		editorResponse.clearText();//workflow
+#endif
+	}
 }

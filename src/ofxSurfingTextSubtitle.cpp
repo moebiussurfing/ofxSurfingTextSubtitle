@@ -2794,7 +2794,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 			bool bModeNoTimeline = 0;
 			bModeNoTimeline += (indexModes == 2);
 			bModeNoTimeline += (indexModes == 3);
-			
+
 			if (!bModeNoTimeline) {
 				ui->BeginBlinkText();
 				ui->AddLabelBig("FILE NOT LOADED!");
@@ -3442,8 +3442,8 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			case 0: guit.getGroup(params_External.getName()).maximize(); break;
 			case 1: guit.getGroup(params_Standalone.getName()).maximize(); break;
 			case 2: guit.getGroup(params_Forced.getName()).maximize(); break;
-	}
-}
+			}
+		}
 #endif
 
 		//workflow
@@ -3464,7 +3464,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter& e)
 			break;
 		}
 		}
-}
+	}
 
 	//--
 
@@ -4240,6 +4240,35 @@ void ofxSurfingTextSubtitle::doBuildDataText(string s) {
 		ui->AddToLog(s);
 		//ofLogNotice("ofxSurfingTextSubtitle") << s;
 	}
+
+	if (dataTextBlocks.size() > 0) bModeTextBlocks = true;
+	else ofLogError("ofxSurfingTextSubtitle") << "blocks are empty";
+
+	currentDialog.setMax(dataTextBlocks.size() - 1);
+
+	//workflow
+	currentDialog = 0;
+	//bPlayStandalone = true;
+	bPlayForced = true;
+
+	bLoadedFileText = true;
+	bModeTextBlocks = true;
+}
+
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::doBuildDataTextOneSlideOnly(string s) {
+	ofLogNotice("ofxSurfingTextSubtitle") << "doBuildDataTextOneSlideOnly()";
+	ofLogNotice("ofxSurfingTextSubtitle") << endl << s;
+
+	dataTextBlocks.clear();
+	dataTextBlocks.push_back(s);
+
+	ofLogNotice("ofxSurfingTextSubtitle") << "One Block";
+	ofLogNotice("ofxSurfingTextSubtitle") << "Print Block:";
+	ofLogNotice("ofxSurfingTextSubtitle") << s;
+
+	ui->AddToLog(s);
 
 	if (dataTextBlocks.size() > 0) bModeTextBlocks = true;
 	else ofLogError("ofxSurfingTextSubtitle") << "blocks are empty";
