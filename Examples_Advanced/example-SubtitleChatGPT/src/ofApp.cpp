@@ -34,6 +34,8 @@ void ofApp::setup()
 	// bigTextInput.setHint("Type search");
 	// Change the submit button text:
 	 //bigTextInput.setSubmit("Send");
+	callback_t myFunctionCallbackClear = std::bind(&ofApp::doAttendCallbackClear, this);
+	bigTextInput.setFunctionCallbackClear(myFunctionCallbackClear);
 
 	ui.setDisableStartupResetLayout();
 
@@ -96,7 +98,40 @@ void ofApp::setup()
 
 	//--
 
+	// Sounds
+	setupSounds();
+
+	//--
+
 	startup();
+}
+
+//--------------------------------------------------------------
+void ofApp::setupSounds()
+{
+	ofSoundPlayer s0;//intro
+	s0.load("assets/sounds/0.wav");
+	sounds.push_back(s0);
+
+	ofSoundPlayer s1;//send
+	s1.load("assets/sounds/1.wav");
+	sounds.push_back(s1);
+
+	ofSoundPlayer s2;//receive
+	s2.load("assets/sounds/2.wav");
+	sounds.push_back(s2);
+
+	ofSoundPlayer s3;//error
+	s2.load("assets/sounds/3.wav");
+	sounds.push_back(s3);
+
+	for (auto& s : sounds)
+	{
+		s.setVolume(1.f);
+		s.setMultiPlay(false);
+	}
+
+	sounds[0].play();
 }
 
 //--------------------------------------------------------------
@@ -143,8 +178,8 @@ void ofApp::setupGpt()
 			apiKey = "your-api-key";
 
 			// Model
-			model = "gpt-4";
-			//model = "gpt-3.5-turbo";
+			model = "gpt-3.5-turbo";
+			//model = "gpt-4";
 		}
 
 		//fix
@@ -206,7 +241,7 @@ void ofApp::setupGpt()
 	prompts.push_back(std::pair<std::string, std::string> { "10 Similar bands", GPT_Prompt_2() });
 	prompts.push_back(std::pair<std::string, std::string> { "Default", GPT_Prompt_3() });
 
-	setPrompt(0);
+	setPrompt(3);//default
 }
 
 //--------------------------------------------------------------
@@ -247,6 +282,8 @@ void ofApp::update()
 #ifdef USE_WHISPER
 	whisper.update();
 #endif
+
+	ofSoundUpdate();
 }
 
 //--------------------------------------------------------------
@@ -301,77 +338,6 @@ void ofApp::draw()
 	ofPopMatrix();
 #endif
 }
-
-////--------------------------------------------------------------
-//void ofApp::drawScene()
-//{
-//	// Bg: Blue when waiting. red if error. 
-//	{
-//		ofColor c;
-//		float v = glm::cos(10 * ofGetElapsedTimef());
-//		float a1 = ofMap(v, -1, 1, 100, 200, true);
-//		float a2 = ofMap(v, -1, 1, 8, 16, true);
-//		bool b = chatGpt.isWaiting();
-//		if (bError) c = ofColor(a1, 0, 0);
-//		else if (b) c = ofColor(0, 0, a1);
-//		else c = ofColor(a2);
-//		ofClear(c);
-//	}
-//
-//	/*
-//	// Display the conversation on the screen.
-//	stringstream conversationText;
-//	// Iterate through the conversation messages and build the display text.
-//	for (const ofJson &message : chatGpt.getConversation()) {
-//		conversationText << message["role"] << ": " << message["content"] << "\n";
-//	}
-//	// Draw the conversation text on the screen.
-//	ofDrawBitmapStringHighlight("conversation:\n" + conversationText.str(), 20, 70);
-//	 */
-//
-//	string s = "";
-//	int x, y, h, i;
-//	h = 20;
-//	x = 10;
-//	y = 20;
-//
-//	i = 0;
-//	ofDrawBitmapStringHighlight("QUESTION: \n", x, y + (i++ * h));
-//	s = ofToString(jQuestion["message"]["role"]);
-//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-//	s = ofToString(jQuestion["message"]["content"]);
-//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-//
-//	i = 0;
-//	y = ofGetHeight() / 2;
-//	ofDrawBitmapStringHighlight("RESPONSE: \n", x, y + (i++ * h));
-//	s = ofToString(jResponse["message"]["role"]);
-//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-//	s = ofToString(jResponse["message"]["content"]);
-//	ofDrawBitmapStringHighlight(s, x, y + (i++ * h));
-//
-//	s = "";
-//	s += "Press 1-9 to ask for a MUSIC BAND.\n";
-//	s += "1 Jane's Addiction\n";
-//	s += "2 Fugazi\n";
-//	s += "3 Joy Division\n";
-//	s += "4 The Smiths\n";
-//	s += "5 Radio Futura\n";
-//	s += "6 John Frusciante\n";
-//	s += "7 Primus\n";
-//	s += "8 Kraftwerk\n";
-//	s += "9 Portishead\n\n";
-//	s += "Press SPACE to swap prompt.\n";
-//	s += "PROMPT #" + ofToString(iPrompt) + "\n";
-//	s += namePrompt + "\n\n";
-//	s += "Press ENTER to regenerate.";
-//
-//	static ofBitmapFont f;
-//	auto bb = f.getBoundingBox(s, 0, 0);
-//	y = 20;
-//	x = ofGetWidth() / 2 - bb.getWidth() / 2;
-//	ofDrawBitmapStringHighlight(s, x, y);
-//}
 
 //--------------------------------------------------------------
 void ofApp::drawImGui()
@@ -624,6 +590,8 @@ void ofApp::drawImGuiReply(ofxSurfingGui& ui)
 //--------------------------------------------------------------
 void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 {
+	if (!bGui_GptConversation) return;
+
 	//static ofParameter<bool> bGui_Headers{ "Headers", 0 };
 	//static ofParameter<bool> bGui_Bg{ "Bg", 0 };
 	//static ofParameter<bool> bGui_ResizePin{ "Resizer", 0 };
@@ -647,17 +615,13 @@ void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 
 	//--
 
+	float scrollbarSize = ImGui::GetStyle().ScrollbarSize;
+	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbarSize * 1.5f); // Double the scrollbar size
+
 	if (ui.BeginWindow(bGui_GptConversation, window_flags))
 	{
 		if (ui.isDebug()) ui.AddComboFontsSelector(fontI);
 		ui.PushFont(SurfingFontTypes(fontI.get()));
-
-		//stringstream conversationText;
-		//for (const ofJson& message : chatGpt.getConversation()) {
-		//	conversationText << message["role"] << ": " << message["content"] << "\n";
-		//}
-		//string s = "conversation:\n" + conversationText.str();
-		//ImGui::TextWrapped(s.c_str());
 
 		//--
 
@@ -685,8 +649,16 @@ void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 
 		ui.PopFont();
 
+		if (bFlagGoBottom) {
+			bFlagGoBottom = 0;
+			// Scroll to the bottom of the window
+			ImGui::SetScrollHereY(1.0f);
+		}
+
 		ui.EndWindow();
 	}
+
+	ImGui::PopStyleVar();
 }
 
 //--------------------------------------------------------------
@@ -865,7 +837,7 @@ void ofApp::drawWidgets()
 		doGptSendMessage(s, bModeConversation);
 		editorInput.clearText();
 #endif
-	}
+}
 }
 
 //--------------------------------------------------------------
@@ -904,9 +876,14 @@ void ofApp::doGptSendMessage(string message) {
 	//--
 
 	// Submit
-
-	if (bModeConversation) chatGpt.chatWithHistoryAsync(message + "\n");
+	message = "\n" + message;
+	if (bModeConversation) chatGpt.chatWithHistoryAsync( message);
 	else chatGpt.chatAsync(message);
+
+	sounds[1].play();
+
+	// scroll conversation
+	bFlagGoBottom = 1;
 }
 
 //--------------------------------------------------------------
@@ -993,6 +970,7 @@ void ofApp::doGptGetMessage()
 		//editorResponse.clearText();//workflow
 		editorResponse.addText(textLastResponse + "\n");
 #endif
+		sounds[2].play();
 	}
 	else // error
 	{
@@ -1011,7 +989,17 @@ void ofApp::doGptGetMessage()
 		bool b = doGptResetEndpointIP();
 		if (b) ui.AddToLog("doGptResetEndpointIP() Success", OF_LOG_WARNING);
 		else ui.AddToLog("doGptResetEndpointIP() Error", OF_LOG_ERROR);
+
+		sounds[3].play();
 	}
+
+	// workflow
+
+	// scroll conversation
+	bFlagGoBottom = 1;
+
+	// focus in text input
+	bigTextInput.setFocus();
 }
 
 //--------------------------------------------------------------
@@ -1061,6 +1049,8 @@ void ofApp::doSwapPrompt() {
 void ofApp::exit()
 {
 	ofLogVerbose() << "exit()";
+	
+	sounds[0].play();
 
 	ofxSurfingHelpers::save(params);
 
@@ -1152,6 +1142,13 @@ int ofApp::getErrorCodeByCode(ofxChatGPT::ErrorCode errorCode)
 	}
 
 	return i;
+}
+
+//--------------------------------------------------------------
+void ofApp::doAttendCallbackClear()
+{
+	ofLogNotice(__FUNCTION__);
+	//doClear();/crash
 }
 
 //--------------------------------------------------------------

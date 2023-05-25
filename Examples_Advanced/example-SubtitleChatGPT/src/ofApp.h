@@ -69,11 +69,13 @@ public:
 	void exit();
 	void keyPressed(int key);
 	void startup();
+	void setupSounds();
 
 	//void drawScene();
 	void drawImGui();
 	void drawImGuiReply(ofxSurfingGui& ui);
 	void drawImGuiConversation(ofxSurfingGui& ui);
+	bool bFlagGoBottom = 0;
 
 	ofxSurfingGui ui;
 
@@ -135,6 +137,7 @@ public:
 	void doAttendCallbackTextInput();
 	ofEventListener eTextInput;
 	ofParameter<string> textInput{ "TextInput", "" };
+	void doAttendCallbackClear();
 
 #ifdef USE_EDITOR_INPUT
 	SurfingTextEditor editorInput;
@@ -251,4 +254,6 @@ But you must sort that bands, from older to newer.
 	bool doGptResetEndpointIP();
 
 	void doClear();
+
+	vector<ofSoundPlayer> sounds;
 };
