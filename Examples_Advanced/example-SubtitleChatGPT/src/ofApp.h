@@ -6,7 +6,12 @@
 
 	TODO
 
+	textInput bubble
+		fix clear. make button bigger
+		add wait spin
+
 	ui docking
+		add common menus to addon (exit, full screen, )
 		use modes like: conversation, prompt selector etc
 		for different layouts
 	gpt setup/restart, reconnect.
@@ -19,8 +24,6 @@
 		auto go to text input when get response
 		make bigger scroll
 
-	add wait spin
-		add beep sounds
 	fix < > slides
 		fix 1st/end slide.
 	add dual window 1: gui / 2: out
@@ -88,6 +91,7 @@ public:
 	ChatThread chatGpt;
 
 	void setupGpt();
+	string pathGptSettings= "GptChat_ConfigKey.json";
 	void doGptSendMessage(string message);
 	void doGptRegenerate();
 	void doGptGetMessage();
@@ -120,12 +124,7 @@ public:
 	ofParameter<bool> bModeOneSlide{ "OneSlide", false };
 	ofParameter<bool> bModeConversation{ "Conversation", false };
 
-	// Create an empty JSON array to store messages
-	//vector<ofJson> message_history;
-	ofJson message_history = ofJson();
-	//ofJson message_history = nlohmann::json::array();
-
-	//ofParameter<bool> bModeHistory{ "History",false };
+	ofJson jConversationHistory = ofJson();
 
 	ofParameter<bool> bGui_GptLastReply{ "GPT Last Reply",false };
 	ofParameter<bool> bGui_GptConversation{ "GPT Conversation",false };

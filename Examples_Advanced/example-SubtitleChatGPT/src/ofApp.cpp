@@ -83,16 +83,13 @@ void ofApp::setup()
 
 	//--
 
-	//params.add(bigTextInput.bGui);
-	//params.add(apiKey);
+	params.add(bGui);
+	params.add(bigTextInput.bGui);
+	params.add(subs.bGui);
 	params.add(bModeConversation);
 	params.add(bModeOneSlide);
-
-	params.add(subs.bGui);
 	params.add(fontI);
 	params.add(fontR);
-	//params.add(bModeHistory);
-
 	params.add(bGui_GptConversation);
 	params.add(bGui_GptLastReply);
 
@@ -166,8 +163,8 @@ void ofApp::setupGpt()
 		// Load file settings
 
 		ofFile f;
-		if (f.doesFileExist("GptChat_ConfigKey.json")) {
-			ofJson configJson = ofLoadJson("GptChat_ConfigKey.json");
+		if (f.doesFileExist(pathGptSettings)) {
+			ofJson configJson = ofLoadJson(pathGptSettings);
 			//will fail if file do not exist
 			if (configJson.find("apiKey") != configJson.end())
 				apiKey = configJson["apiKey"].get<string>();
@@ -616,7 +613,7 @@ void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 	//--
 
 	float scrollbarSize = ImGui::GetStyle().ScrollbarSize;
-	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbarSize * 1.5f); // Double the scrollbar size
+	ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, scrollbarSize * 1.25f); // scale the scrollbar size
 
 	if (ui.BeginWindow(bGui_GptConversation, window_flags))
 	{
@@ -632,7 +629,7 @@ void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 
 		//try 
 		{
-			for (auto& message : message_history) {
+			for (auto& message : jConversationHistory) {
 				string role = message["message"]["role"].get<std::string>();
 				string content = message["message"]["content"].get<std::string>();
 
@@ -644,7 +641,7 @@ void ofApp::drawImGuiConversation(ofxSurfingGui& ui)
 		}
 		//catch (const std::exception& e) {
 		//	ofLogError("Error reading message history JSON data: ") << e.what();
-		//	ofLogError("JSON data that caused the exception: ") << message_history.dump();
+		//	ofLogError("JSON data that caused the exception: ") << jConversationHistory.dump();
 		//}
 
 		ui.PopFont();
@@ -852,7 +849,7 @@ void ofApp::doGptSendMessage(string message) {
 	jMsg["message"]["role"] = "user";
 	jMsg["message"]["content"] = message;
 
-	message_history.push_back(jMsg);
+	jConversationHistory.push_back(jMsg);
 
 	ofLogVerbose("ofApp") << "User: " << message;
 
@@ -882,8 +879,13 @@ void ofApp::doGptSendMessage(string message) {
 
 	sounds[1].play();
 
+	// workflow
+
 	// scroll conversation
 	bFlagGoBottom = 1;
+
+	// focus in text input
+	bigTextInput.setFocus();
 }
 
 //--------------------------------------------------------------
@@ -922,7 +924,7 @@ void ofApp::doGptGetMessage()
 		jMsg["message"]["role"] = "assistant";
 		jMsg["message"]["content"] = strGptResponse;
 
-		message_history.push_back(jMsg);
+		jConversationHistory.push_back(jMsg);
 
 		ofLogNotice("ofApp") << "Assistant: " << strGptResponse;
 
@@ -1057,7 +1059,7 @@ void ofApp::exit()
 	ofJson configJson;
 	configJson["apiKey"] = apiKey;
 	configJson["model"] = model;
-	ofSavePrettyJson("GptChat_ConfigKey.json", configJson);
+	ofSavePrettyJson(pathGptSettings, configJson);
 }
 
 #ifdef USE_WHISPER
@@ -1240,7 +1242,7 @@ void ofApp::doClear()
 	bGptError = 0;
 	gptErrorMessage = "";
 
-	message_history.clear();
+	jConversationHistory.clear();
 
 	doClearSubsList();
 
