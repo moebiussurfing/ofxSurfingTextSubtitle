@@ -411,6 +411,8 @@ public:
 	}
 
 	ofParameter<bool> bGui;
+	ofParameter<bool> bGui_List;
+	ofParameter<bool> bGui_Paragraph;
 	ofParameter<bool> bDraw;
 	ofParameter<bool> bUseFbo;
 	ofParameter<int> durationPlayForced;
@@ -433,8 +435,6 @@ private:
 
 	ofParameter<void> bOpenSrt;
 	ofParameter<void> bOpenText;
-	ofParameter<bool> bGui_List;
-	ofParameter<bool> bGui_Paragraph;
 	ofParameter<bool> bEdit;
 	ofParameter<bool> bDebug;
 	ofParameter<bool> bLive; // hide all
