@@ -83,7 +83,7 @@ void ofApp::draw()
 - [ofxSufingImGui](https://github.com/moebiussurfing/ofxSurfingImGui)
 
 ### OPTIONAL
-- **ofxGui** / Optional (oF core)
+- **ofxGui** / Optional (OF core)
 - [ofxWhisper](https://github.com/moebiussurfing/ofxWhisper) / FORK (Only for the example)
 - [ofxChatGPT](https://github.com/moebiussurfing/ofxChatGPT) / FORK (Only for the example)
 
