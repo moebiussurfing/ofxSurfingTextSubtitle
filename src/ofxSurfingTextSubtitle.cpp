@@ -3052,7 +3052,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 						{
 							ui->AddSpacing();
 							ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
-							ui->Add(ui->bThemeUiAlt, OFX_IM_TOGGLE_ROUNDED_MINI);
+							ui->Add(ui->bThemeUIAlt, OFX_IM_TOGGLE_ROUNDED_MINI);
 							ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
 							s = "Debug HUD";
 							ui->AddLabel(s);
@@ -3068,7 +3068,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets()
 #endif
 							if (bDebug) {
 								ui->AddSpacing();
-								ui->Add(ui->bDebugDebugger, OFX_IM_TOGGLE_ROUNDED_MINI);
+								ui->Add(ui->bDebugDebuggerImGui, OFX_IM_TOGGLE_ROUNDED_MINI);
 								if (bModeTextBlocks) s = "MODE Text file";
 								else s = "MODE Srt file";
 								ui->AddLabel(s);
