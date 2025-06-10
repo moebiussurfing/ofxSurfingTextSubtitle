@@ -65,7 +65,7 @@
 // OPTIONAL
 
 // 1. GUI
-#define USE_IM_GUI__SUBTITLES 
+//#define USE_IM_GUI__SUBTITLES 
 // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
@@ -81,9 +81,12 @@
 // Then, you would use the class outside just by copying the
 // srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
 
-//#define USE_OFX_GUI__SUBTITLES // TODO:
-
 //----
+
+// At least one of both is mandatory
+#ifndef USE_IM_GUI__SUBTITLES
+#define USE_OFX_GUI__SUBTITLES
+#endif
 
 // Don't use both gui's
 #ifdef USE_IM_GUI__SUBTITLES 
@@ -346,9 +349,10 @@ private:
 
 	ofParameter<bool> bMinimize{ "Minimize", false };
 
-#ifdef USE_OFX_GUI__SUBTITLES
 	ofParameter<bool> bGui_Internal;
-	bool bGui_InternalAllowed = false;
+
+#ifdef USE_OFX_GUI__SUBTITLES
+	bool bGui_InternalAllowed = true;
 #endif
 
 	uint64_t tEndSubsFilm = 0;

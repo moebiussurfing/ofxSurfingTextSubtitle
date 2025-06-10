@@ -1128,6 +1128,10 @@ void ofxSurfingTextSubtitle::drawGui() {
 		T_GPU_END_PTR(3);
 		return;
 	}
+#else
+	if (!bGui) {
+		return;
+	}
 #endif
 
 	// info
@@ -1135,7 +1139,7 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (bDrawWidgetInfo) boxInfo.draw();
 #endif
 
-#ifndef USE_IM_GUI__SUBTITLES
+#ifdef USE_OFX_GUI__SUBTITLES
 	if (bGui_Internal && bGui_InternalAllowed) gui.draw();
 #endif
 
@@ -1702,9 +1706,11 @@ void ofxSurfingTextSubtitle::draw() {
 	//TODO: fix locking moving the box!
 	//it happens when moving floating preview window sometimes.
 	if (!bLive) box.draw();
+
 #ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
 	T_GPU_START_PTR(4, "DEBUG-draw");
 #endif
+
 	drawDebug();
 
 #ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
@@ -2923,9 +2929,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 							ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
 							ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
 
-	#ifndef USE_IM_GUI__SUBTITLES
+	//#ifndef USE_IM_GUI__SUBTITLES
 							if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-	#endif
+	//#endif
+
 	#ifdef USE_WIDGET__SUBTITLES
 							ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
 	#endif
@@ -3750,6 +3757,8 @@ void ofxSurfingTextSubtitle::keyPressed(ofKeyEventArgs & eventArgs) {
 void ofxSurfingTextSubtitle::keyPressed(int key) {
 	if (!bKeys) return;
 
+	ofLogNotice("ofxSurfingTextSubtitle") << "keyPressed:" << char(key);
+
 #ifdef USE_IM_GUI__SUBTITLES
 	if (ui->bOverInputText.get()) return;
 #endif
@@ -4010,8 +4019,14 @@ void ofxSurfingTextSubtitle::doBuildDataTextBlocks(string s, bool bNumbered) {
 	ofLogNotice("ofxSurfingTextSubtitle") << "Print Blocks";
 	for (size_t i = 0; i < dataTextBlocks.size(); i++) {
 		string s = "#" + ofToString(i) + ": " + dataTextBlocks[i];
+
+#ifdef USE_IM_GUI__SUBTITLES
 		ui->AddToLog(s);
-		//ofLogNotice("ofxSurfingTextSubtitle") << s;
+#else
+	#ifdef USE_OFX_GUI__SUBTITLES
+		ofLogNotice("ofxSurfingTextSubtitle") << s;
+	#endif
+#endif
 	}
 
 	if (dataTextBlocks.size() > 0)
