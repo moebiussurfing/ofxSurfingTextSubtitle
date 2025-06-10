@@ -3,13 +3,13 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofSetWindowPosition(-1920, 25);
+	//ofSetWindowPosition(-1920, 25);
 	ofSetLogLevel("ofxSurfingTextSubtitle", OF_LOG_SILENT);
 
 	ofSetFrameRate(60);
 	ofSetVerticalSync(true);
 
-	// Subs
+	// Subs file
 	path = "subs/Huxley.srt";
 	//path = "subs/Alphaville.srt";
 	//path = "subs/spanish.srt";
@@ -27,8 +27,6 @@ void ofApp::update()
 
 	// Start play 1 frame delayed vs setup to avoid crashes.
 	if (ofGetFrameNum() == 1) subs.play();
-	 
-	subs.update();
 }
 
 //--------------------------------------------------------------
