@@ -14,9 +14,10 @@
 	Manual mode is for passing text slides by code manually, 
 	so it can not be tested on this example as is!
 
-	Warning! You must enable
-	// DEBUG PROFILER ENGINE
-	#define SURFING_IMGUI__USE_PROFILE_DEBUGGER // comment to exclude some classes
+	Warning! You must enable ImGui mode in the top of ofxSurfingTextSubtitle.h.
+	If you comment that line you will use ofxGui instead.
+	Remember to adapt your project addons.make and your Project Generator for current project!
+	#define USE_IM_GUI__SUBTITLES 
 */
 
 #pragma once

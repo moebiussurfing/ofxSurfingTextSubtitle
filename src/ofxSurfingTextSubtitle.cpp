@@ -2929,9 +2929,9 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 							ui->Add(bTop, OFX_IM_TOGGLE_ROUNDED_MINI);
 							ui->Add(bLeft, OFX_IM_TOGGLE_ROUNDED_MINI);
 
-	//#ifndef USE_IM_GUI__SUBTITLES
+	#ifndef USE_IM_GUI__SUBTITLES
 							if (bEdit && bGui_InternalAllowed) ui->Add(bGui_Internal, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
-	//#endif
+	#endif
 
 	#ifdef USE_WIDGET__SUBTITLES
 							ui->Add(bDrawWidgetInfo, OFX_IM_TOGGLE_BUTTON_ROUNDED_MINI);
