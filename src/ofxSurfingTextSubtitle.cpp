@@ -14,6 +14,7 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 
 	ofAddListener(ofEvents().update, this, &ofxSurfingTextSubtitle::update);
 	ofAddListener(ofEvents().keyPressed, this, &ofxSurfingTextSubtitle::keyPressed);
+	ofAddListener(ofEvents().windowResized, this, &ofxSurfingTextSubtitle::windowResized);
 };
 
 //--------------------------------------------------------------
@@ -22,9 +23,17 @@ ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 
 	ofRemoveListener(ofEvents().update, this, &ofxSurfingTextSubtitle::update);
 	ofRemoveListener(ofEvents().keyPressed, this, &ofxSurfingTextSubtitle::keyPressed);
+	ofRemoveListener(ofEvents().windowResized, this, &ofxSurfingTextSubtitle::windowResized);
 
 	exit();
 };
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::windowResized(ofResizeEventArgs & args) {
+	int w = args.width;
+	int h = args.height;
+	initFbo(w,h);
+}
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setup() {
@@ -566,18 +575,40 @@ void ofxSurfingTextSubtitle::buildDataSubs() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::initFbo() {
+	int w = ofGetWidth();
+	int h = ofGetHeight();
+	ofLogNotice(__FUNCTION__)<<w<<","<<h;
+
+	ofFboSettings fboSettings; // Declare an instance of FBO settings
+	fboSettings.width = w;
+	fboSettings.height = h;
+	fboSettings.internalformat = GL_RGBA;
+	fboSettings.useDepth = true;
+	fboSettings.useStencil = true;
+	fbo.allocate(fboSettings);
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::initFbo(int w, int h) {
+	ofLogNotice(__FUNCTION__)<<w<<","<<h;
+
+	ofFboSettings fboSettings; // Declare an instance of FBO settings
+	fboSettings.width = w;
+	fboSettings.height = h;
+	fboSettings.internalformat = GL_RGBA;
+	fboSettings.useDepth = true;
+	fboSettings.useStencil = true;
+	fbo.allocate(fboSettings);
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::startup() {
 	ofLogNotice(__FUNCTION__);
 
 	//--
 
-	ofFboSettings fboSettings; // Declare an instance of FBO settings
-	fboSettings.width = ofGetWidth();
-	fboSettings.height = ofGetHeight();
-	fboSettings.internalformat = GL_RGBA;
-	fboSettings.useDepth = true;
-	fboSettings.useStencil = true;
-	fbo.allocate(fboSettings);
+	initFbo();
 
 	//--
 
@@ -869,7 +900,7 @@ void ofxSurfingTextSubtitle::updateEngine() {
 
 	if (box.isChanged()) {
 		ofLogNotice("ofxSurfingTextSubtitle") << "Box container changed";
-
+		initFbo();
 		doRefreshDraw();
 	}
 

@@ -65,7 +65,7 @@
 // OPTIONAL
 
 // 1. GUI
-#define USE_IM_GUI__SUBTITLES 
+//#define USE_IM_GUI__SUBTITLES 
 // -> Pick your GUI! ImGui / ofxGui
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
@@ -211,6 +211,7 @@ public:
 
 	ofxSurfingTextSubtitle();
 	~ofxSurfingTextSubtitle();
+	void windowResized(ofResizeEventArgs & args);
 
 private:
 
@@ -237,6 +238,9 @@ private:
 	void updateFades();
 	void updateEngine();
 	void updateDebug();
+
+	void initFbo();
+	void initFbo(int , int h);
 
 public:
 	void draw();
