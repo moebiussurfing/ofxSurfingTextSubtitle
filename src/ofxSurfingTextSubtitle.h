@@ -103,7 +103,7 @@
 #define USE_TIME_CODE__SUBTITLES
 // Only to help in some time conversions. Can be removed.
 
-#define USE_PRESETS__SUBTITLES
+//#define USE_PRESETS__SUBTITLES // -> TODO. to use many presets that it's no useful here
 
 //TODO: WIP: should use an fbo bc fonts drawing twice its slow!
 //#define USE_SHADOW

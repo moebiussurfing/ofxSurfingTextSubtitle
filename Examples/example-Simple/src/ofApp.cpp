@@ -3,7 +3,8 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofxSurfingHelpers::moveWindowToMyLeftMonitor();
+	//ofxSurfingHelpers::moveWindowToMyLeftMonitor();
+	ofxSurfingHelpers::moveWindowToMyRightMonitor();
 
 	// Set the initial SRT file path. 
 	// But you can load other SRT or TXT files on runtime.

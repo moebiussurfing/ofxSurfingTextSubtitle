@@ -32,7 +32,7 @@ ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 void ofxSurfingTextSubtitle::windowResized(ofResizeEventArgs & args) {
 	int w = args.width;
 	int h = args.height;
-	initFbo(w,h);
+	initFbo(w, h);
 }
 
 //--------------------------------------------------------------
@@ -578,7 +578,7 @@ void ofxSurfingTextSubtitle::buildDataSubs() {
 void ofxSurfingTextSubtitle::initFbo() {
 	int w = ofGetWidth();
 	int h = ofGetHeight();
-	ofLogNotice(__FUNCTION__)<<w<<","<<h;
+	ofLogNotice(__FUNCTION__) << w << "," << h;
 
 	ofFboSettings fboSettings; // Declare an instance of FBO settings
 	fboSettings.width = w;
@@ -591,7 +591,7 @@ void ofxSurfingTextSubtitle::initFbo() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::initFbo(int w, int h) {
-	ofLogNotice(__FUNCTION__)<<w<<","<<h;
+	ofLogNotice(__FUNCTION__) << w << "," << h;
 
 	ofFboSettings fboSettings; // Declare an instance of FBO settings
 	fboSettings.width = w;
@@ -2262,7 +2262,6 @@ void ofxSurfingTextSubtitle::drawImGui() {
 	if (ui->isMouseOverGui() && box.isMouseOver()) {
 		if (box.isEditing()) box.setToggleEdit();
 	} else {
-
 	}
 
 	#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
@@ -2293,19 +2292,21 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 	//--
 
-	if (bGui)
-	drawImGuiWindowParagraph();
+	if (bGui) {
 
-	//--
+		drawImGuiWindowParagraph();
 
-	if (bLoadedFileSubs || bLoadedFileText) {
-		if (bGui_List) {
-			if (bGui_Paragraph)
-				ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
-			else
-				ui->setNextWindowAfterWindowNamed(bGui);
+		//--
 
-			drawImGuiWindowList();
+		if (bLoadedFileSubs || bLoadedFileText) {
+			if (bGui_List) {
+				if (bGui_Paragraph)
+					ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+				else
+					ui->setNextWindowAfterWindowNamed(bGui);
+
+				drawImGuiWindowList();
+			}
 		}
 	}
 
@@ -2326,6 +2327,7 @@ void ofxSurfingTextSubtitle::drawImGui() {
 		presets.drawImGui(true, false, false, false);
 	}
 	#endif
+
 	//--
 
 	#ifdef USE_WIDGET__VIDEO_PLAYER
