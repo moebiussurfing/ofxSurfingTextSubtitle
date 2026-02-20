@@ -2258,6 +2258,13 @@ void ofxSurfingTextSubtitle::drawInsertionPoint(float _x, float _y, float _w, fl
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGui() {
+	//Fix ugly workaround to avoid dragging box together with ui
+	if (ui->isMouseOverGui() && box.isMouseOver()) {
+		if (box.isEditing()) box.setToggleEdit();
+	} else {
+
+	}
+
 	#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
 	T_GPU_START_PTR(4, "ImGui");
 
@@ -2286,6 +2293,7 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 	//--
 
+	if (bGui)
 	drawImGuiWindowParagraph();
 
 	//--

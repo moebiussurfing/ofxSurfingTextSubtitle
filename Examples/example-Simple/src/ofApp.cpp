@@ -3,7 +3,7 @@
 //--------------------------------------------------------------
 void ofApp::setup()
 {
-	ofxSurfingHelpers::setMonitorsLayout(-1, true, true);
+	ofxSurfingHelpers::moveWindowToMyLeftMonitor();
 
 	// Set the initial SRT file path. 
 	// But you can load other SRT or TXT files on runtime.
@@ -32,6 +32,7 @@ void ofApp::drawGui()
 		if (ui.BeginWindow("ofApp"))
 		{
 			ui.Add(subs.bGui, OFX_IM_TOGGLE_BUTTON_ROUNDED_MEDIUM);
+			ui.DrawWidgetsGlobalScaleMini();
 			ui.EndWindow();
 		}
 

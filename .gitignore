@@ -581,3 +581,4 @@ Examples_Advanced/example-SubtitleWhisper/bin/data/models/ggml-base.bin
 Examples_Advanced/example-SubtitleWhisper/bin/data/models/ggml-base.en.bin
 Examples_Advanced/example-SubtitleWhisper/bin/data/models/ggml-medium.bin
 Examples_Advanced/example-SubtitleWhisper/bin/data/models/ggml-medium.en.bin
+Examples/example-Simple/enc_temp_folder/be1955c4ead4d7946aa91374117cc19f/ofxSurfingTextSubtitle.cpp
