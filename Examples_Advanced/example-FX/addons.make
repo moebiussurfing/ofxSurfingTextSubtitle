@@ -1,6 +1,10 @@
 ofxFontStash
+ofxGui
 ofxImGui
 ofxSurfingBox
+ofxSurfingFxPro
 ofxSurfingHelpers
 ofxSurfingImGui
+ofxSurfingPresets
+ofxSurfingPresetsLite
 ofxSurfingTextSubtitle
