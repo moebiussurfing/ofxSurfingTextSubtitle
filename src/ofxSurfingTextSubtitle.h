@@ -159,10 +159,15 @@
 //#define DT_RATIO_MAX 7.0f
 
 //----
+struct ofxSurfingTextSubtitleEventArgs {
+	int index = -1;
+	std::string text;
+	bool isTextBlocks = false;
+};
+//----
 
 class ofxSurfingTextSubtitle
 {
-	//--
 
 #ifdef USE_IM_GUI__SUBTITLES
 
@@ -252,6 +257,9 @@ private:
 	void drawDebug();
 	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
+
+	void startingSlide();
+	void endingSlide();
 
 	string sEngine;
 	int diff;
@@ -641,6 +649,19 @@ private:
 	// String blocks processors:
 
 	//TODO:
-	std::vector<std::string>* dataTextPtr = new std::vector<std::string>();
+	std::vector<std::string> * dataTextPtr = new std::vector<std::string>();
 
+	//---
+
+public:
+	// Events
+	ofEvent<ofxSurfingTextSubtitleEventArgs> onSlideStartingFadein;
+	ofEvent<ofxSurfingTextSubtitleEventArgs> onSlideStartingFadeOut;
+
+private:
+	void notifySlideStartingFadeIn();
+	void notifySlideStartingFadeOut();
+	bool bStartingFadeOutNotified = false;
+
+	//--
 };

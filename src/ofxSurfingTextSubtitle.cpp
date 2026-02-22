@@ -285,11 +285,11 @@ void ofxSurfingTextSubtitle::setupParams() {
 	bAutoScroll.set("Auto Scroll", true); //for ImGui only
 
 	// Fade
-	bAnimatedFades.set("Fades", false);
-	bAnimatedIn.set("In", false);
-	bAnimatedOut.set("Out", false);
-	durationIn.set("Duration In", 1000, 1, 1000);
-	durationOut.set("Duration Out", 1000, 1, 1000);
+	bAnimatedFades.set("Fades", true);
+	bAnimatedIn.set("In", true);
+	bAnimatedOut.set("Out", true);
+	durationIn.set("Duration In", 1000, 1, 2000);
+	durationOut.set("Duration Out", 1000, 1, 2000);
 	progressIn.set("% In", 0, 0, 1);
 	progressOut.set("% Out", 0, 0, 1);
 	bResetFades.set("Reset Fades");
@@ -318,7 +318,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	resizeResponsive.set("Resize", 0, 0, 1);
 	yOffset.set("y Offset", 0, -1, 1);
 
-	indexModes.set("Modes", 0, 0, 3);
+	indexModes.set("Modes", 2, 0, 3);
 
 	indexModes_Name.set("Name", "");
 	indexModes_Name.setSerializable(false);
@@ -790,11 +790,19 @@ void ofxSurfingTextSubtitle::updateFades() {
 				if (bPlayForced) {
 					if (tSlide > durationPlayForced - durationOut) {
 						isAnimOut = true;
+						if (!bStartingFadeOutNotified) {
+							bStartingFadeOutNotified = true;
+							notifySlideStartingFadeOut();
+						}
 						isSlidePlaying = true;
 					}
 				} else if (bPlayStandalone || bPlayExternal || bPlayManual) {
 					if (tSlide > durationPlaySlide - durationOut) {
 						isAnimOut = true;
+						if (!bStartingFadeOutNotified) {
+							bStartingFadeOutNotified = true;
+							notifySlideStartingFadeOut();
+						}
 						isSlidePlaying = true;
 					}
 				}
@@ -1694,6 +1702,7 @@ void ofxSurfingTextSubtitle::draw() {
 		return;
 	}
 #endif
+	//---
 
 	bool b = (bUseFbo && fbo.isAllocated());
 	if (b) {
@@ -1715,6 +1724,8 @@ void ofxSurfingTextSubtitle::draw() {
 			a *= alpha;
 		}
 
+		//---
+
 #ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
 		T_GPU_START_PTR(1, "TXT_DRAW");
 #endif
@@ -1722,16 +1733,18 @@ void ofxSurfingTextSubtitle::draw() {
 		ofSetColor(255, a);
 		fbo.draw(0, 0);
 
+		//---
+
 #ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
 		T_GPU_END_PTR(1);
 
 		T_GPU_START_PTR(2, "TXT_NO-DRAW");
 		T_GPU_END_PTR(2);
 #endif
-	} else
+	} else {
 		drawRaw();
-
-	//--
+	}
+	//----
 
 	if (!bGui) return;
 
@@ -3479,10 +3492,12 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 		// start
 		if (bAnimatedIn && bAnimatedOut) {
 			isAnimIn = true;
+			notifySlideStartingFadeIn();
 			alpha = 0.f;
 			if (isAnimOut) isAnimOut = false;
 		} else if (bAnimatedIn && !bAnimatedOut) {
 			isAnimIn = true;
+			notifySlideStartingFadeIn();
 			alpha = 0.f;
 			//if (bPlayStandalone || bPlayForced) alpha = 1.f;//should force play
 		} else if (!bAnimatedIn && bAnimatedOut) {
@@ -3835,6 +3850,9 @@ void ofxSurfingTextSubtitle::keyPressed(int key) {
 		setSubtitleRandomIndex();
 	};
 
+	//if (key == 'A' || key == 'a') doStartAnimStarting();
+	//if (key == 'A' || key == 'a') doStartAnimEnding();
+
 	// Play both!
 	//if (key == OF_KEY_RETURN) { setTogglePlayForced(); }
 	if (key == ' ') {
@@ -4132,10 +4150,12 @@ void ofxSurfingTextSubtitle::doSetTextSlideStart(string s) {
 
 		if (bAnimatedIn && bAnimatedOut) {
 			isAnimIn = true;
+			notifySlideStartingFadeIn();
 			alpha = 0.f;
 			if (isAnimOut) isAnimOut = false;
 		} else if (bAnimatedIn && !bAnimatedOut) {
 			isAnimIn = true;
+			notifySlideStartingFadeIn();
 			alpha = 0.f;
 			//if (bPlayStandalone || bPlayForced) alpha = 1.f;//should force play
 		} else if (!bAnimatedIn && bAnimatedOut) {
@@ -4154,4 +4174,29 @@ void ofxSurfingTextSubtitle::doSetTextSlideStart(string s) {
 	//else {
 	//	ofLogWarning("ofxSurfingTextSubtitle") << "Ignoring doSetTextSlideStart bc not in MANUAL mode";
 	//}
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::notifySlideStartingFadeIn() {
+	ofLogNotice("ofxSurfingTextSubtitle") << "notifySlideStartingFadeIn()";
+	bStartingFadeOutNotified = false;
+
+	ofxSurfingTextSubtitleEventArgs args;
+	args.index = currentDialog.get();
+	args.text = textCurrent;
+	args.isTextBlocks = bModeTextBlocks;
+
+	ofNotifyEvent(onSlideStartingFadein, args, this);
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::notifySlideStartingFadeOut() {
+	ofLogNotice("ofxSurfingTextSubtitle") << "notifySlideStartingFadeOut()";
+
+	ofxSurfingTextSubtitleEventArgs args;
+	args.index = currentDialog.get();
+	args.text = textCurrent;
+	args.isTextBlocks = bModeTextBlocks;
+
+	ofNotifyEvent(onSlideStartingFadeOut, args, this);
 }
