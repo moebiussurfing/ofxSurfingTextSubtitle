@@ -459,6 +459,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params.add(params_Transport);
 	params.add(params_Fade);
 	params.add(params_Style);
+	params.add(bGui);
 
 	ofAddListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
 
