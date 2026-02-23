@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "${workspaceRoot}/../../../../libs/openFrameworks"
+		},
+		{
+			"path": "${workspaceRoot}/../../../../ofxFontStash"
+		},
+		{
+			"path": "${workspaceRoot}/../../../../ofxImGui"
+		},
+		{
+			"path": "${workspaceRoot}/../../../../ofxSurfingBox"
+		},
+		{
+			"path": "${workspaceRoot}/../../../../ofxSurfingHelpers"
+		},
+		{
+			"path": "${workspaceRoot}/../../../../ofxSurfingImGui"
+		},
+		{
+			"path": "${workspaceRoot}/../../.."
+		}
+	],
+	"openFrameworksProjectGeneratorVersion": "0.104.0",
+	"settings": {}
+}
