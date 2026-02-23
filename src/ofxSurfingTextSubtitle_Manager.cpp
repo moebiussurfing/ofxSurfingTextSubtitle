@@ -238,3 +238,13 @@ void ofxSurfingTextSubtitle::notifySlideStartingFadeOut() {
 
 	ofNotifyEvent(onSlideStartingFadeOut, args, this);
 }
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::startingSlide() {
+	notifySlideStartingFadeIn();
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::endingSlide() {
+	notifySlideStartingFadeOut();
+}
