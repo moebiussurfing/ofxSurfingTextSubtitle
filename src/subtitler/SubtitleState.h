@@ -26,7 +26,15 @@ struct FadeState {
   float deltaIn = 1.0f;
   float deltaOut = 1.0f;
 
-  void resetRuntime();
+  void resetRuntime() {
+    animatingIn = false;
+    animatingOut = false;
+    fadeOutNotified = false;
+
+    alpha = 1.0f;
+    progressIn = 1.0f;
+    progressOut = 1.0f;
+  }
 };
 
 struct PlaybackState {
@@ -49,7 +57,16 @@ struct PlaybackState {
   float progressFilm = 0.0f;
   float progressSlide = 0.0f;
 
-  void resetRuntime();
+  void resetRuntime() {
+    slidePlaying = false;
+    tPlay = 0;
+    tPlayStartSlide = 0;
+    tPlayForce = 0;
+    tPlayForceFilm = 0;
+
+    progressFilm = 0.0f;
+    progressSlide = 0.0f;
+  }
 };
 
 struct TextState {
@@ -67,7 +84,14 @@ struct SubtitleState {
   PlaybackState playback;
   TextState text;
 
-  void resetRuntime();
+  void resetRuntime() {
+    fade.resetRuntime();
+    playback.resetRuntime();
+
+    text.currentText.clear();
+    text.lastTextRaw.clear();
+    text.preCountingStart = false;
+  }
 };
 
 } // namespace ofxSurfingSubtitle
