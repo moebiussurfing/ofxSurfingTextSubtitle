@@ -64,7 +64,7 @@ void ofxSurfingTextSubtitle::setTogglePlay() {
 	bool playForced = bPlayForced.get();
 	bool playManual = bPlayManual.get();
 
-	auto mode = static_cast<ofxSurfingSubtitle::PlaybackMode>(indexModes.get());
+	auto mode = apiManager.fromIndex(indexModes.get());
 	apiManager.togglePlay(mode, playStandalone, playForced, playManual);
 
 	bPlayStandalone = playStandalone;

@@ -314,6 +314,15 @@ public:
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return colorBgFloat.get(); };
 	ofColor getColorText() const { return colorTextFloat.get(); };
+	bool loadSrtFile(const std::string& path);
+	bool loadTextFile(const std::string& path);
+	void setPlaybackMode(ofxSurfingSubtitle::PlaybackMode mode);
+	ofxSurfingSubtitle::PlaybackMode getPlaybackMode() const;
+	const char* getPlaybackModeName() const;
+	void setPlaybackEnabled(bool bEnabled);
+	void setTextSlide(const std::string& text);
+	void setStyleSimple(float sizePercent, float lineHeight = 0.75f, float spacing = 0.0f, int alignIndex = 0);
+	void setColorsSimple(const ofColor& textColor, const ofColor& backgroundColor);
 
 	int getModePlayer() const { return indexModes.get(); }
 
@@ -322,7 +331,7 @@ public:
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
 	void loadFileSubs(string path) {
-		setupSubs(path);
+		loadSrtFile(path);
 
 		//TODO:
 		//indexModes = indexModes.get();
