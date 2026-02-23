@@ -133,6 +133,9 @@
 #include "ofxFontStash.h"
 #include "ofxSurfingBoxInteractive.h"
 #include "ofxAutosaveGroupTimer.h"
+#include "subtitler/SubtitleApiManager.h"
+#include "subtitler/SubtitleSettingsStore.h"
+#include "subtitler/SubtitleState.h"
 
 // easily to remove. used to convert time formatting only. ex: ms to hh::mm::ss
 #ifdef USE_TIME_CODE__SUBTITLES
@@ -400,6 +403,9 @@ private:
 
 	string path_SubtitlerSettings = "ofxSurfingTextSubtitle_Settings.json";
 	string path_Global = "ofxSurfingTextSubtitle";
+	ofxSurfingSubtitle::SubtitleSettingsStore settingsStore;
+	ofxSurfingSubtitle::SubtitleApiManager apiManager;
+	ofxSurfingSubtitle::SubtitleState subtitleState;
 
 	SubtitleParserFactory* subParserFactory;
 	SubtitleParser* parser;

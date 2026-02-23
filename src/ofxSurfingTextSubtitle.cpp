@@ -8,6 +8,8 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 
 	bUseFbo.set("Fbo", true);
 
+	settingsStore.setPaths(path_Global, path_SubtitlerSettings);
+
 #ifndef USE_IM_GUI__SUBTITLES
 	bGui_Internal.set("Gui Internal", true);
 #endif
@@ -487,7 +489,8 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//--
 
 	//TODO:	gt.setPathGlobal(path_Global);
-	gt.addGroup(params_AppSettings, path_Global + "/" + path_SubtitlerSettings);
+	settingsStore.setPaths(path_Global, path_SubtitlerSettings);
+	gt.addGroup(params_AppSettings, settingsStore.getSettingsPath());
 }
 
 //--------------------------------------------------------------
@@ -628,7 +631,7 @@ void ofxSurfingTextSubtitle::startup() {
 #ifdef USE_PRESETS__SUBTITLES
 	//ofxSurfingHelpers::loadGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
 #else
-	ofxSurfingHelpers::loadGroup(params, path_Global + "/" + path_SubtitlerSettings);
+	ofxSurfingHelpers::loadGroup(params, settingsStore.getSettingsPath());
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -654,7 +657,7 @@ void ofxSurfingTextSubtitle::exit() {
 #ifdef USE_PRESETS__SUBTITLES
 	//ofxSurfingHelpers::saveGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
 #else
-	ofxSurfingHelpers::saveGroup(params, path_Global + "/" + path_SubtitlerSettings);
+	ofxSurfingHelpers::saveGroup(params, settingsStore.getSettingsPath());
 #endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
@@ -4023,15 +4026,16 @@ bool ofxSurfingTextSubtitle::isPlaying() const {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setTogglePlay() {
-	if (indexModes == 0) {
-		// external
-	} else if (indexModes == 1) {
-		bPlayStandalone = !bPlayStandalone;
-	} else if (indexModes == 2) {
-		bPlayForced = !bPlayForced;
-	} else if (indexModes == 3) {
-		bPlayManual = !bPlayManual;
-	}
+	bool playStandalone = bPlayStandalone.get();
+	bool playForced = bPlayForced.get();
+	bool playManual = bPlayManual.get();
+
+	auto mode = static_cast<ofxSurfingSubtitle::PlaybackMode>(indexModes.get());
+	apiManager.togglePlay(mode, playStandalone, playForced, playManual);
+
+	bPlayStandalone = playStandalone;
+	bPlayForced = playForced;
+	bPlayManual = playManual;
 
 	//#ifdef USE_WIDGET__VIDEO_PLAYER
 	//	if (bPlayStandalone) player.play();
