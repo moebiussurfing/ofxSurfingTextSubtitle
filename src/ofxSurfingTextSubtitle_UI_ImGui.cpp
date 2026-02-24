@@ -10,22 +10,6 @@ void ofxSurfingTextSubtitle::drawImGui() {
 	} else {
 	}
 
-	#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_START_PTR(4, "ImGui");
-
-	if (!bGui) {
-		T_GPU_END_PTR(4);
-		return;
-	}
-
-	if (ui == NULL) {
-		ofLogError("ofxSurfingTextSubtitle") << " ofxImGui is not instantiated. You should set the parent ui instance as reference!";
-		ofLogError("ofxSurfingTextSubtitle") << " Usually: subs.setUiPtr(&ui);";
-		T_GPU_END_PTR(4);
-		return;
-	}
-	#endif
-
 	//--
 
 	drawImGuiWindowMain();
@@ -97,10 +81,6 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 		ui->EndWindow();
 	}
-	#endif
-
-	#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_END_PTR(4);
 	#endif
 }
 

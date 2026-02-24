@@ -6,7 +6,7 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 	bGui_List.set("LIST", false);
 	bGui_Paragraph.set("PARAGRAPH", true);
 
-	bUseFbo.set("Fbo", true);
+	bUseFbo.set("Fbo", false);
 
 	settingsStore.setPaths(path_Global, path_SubtitlerSettings);
 
@@ -181,12 +181,6 @@ void ofxSurfingTextSubtitle::setUiPtr(ofxSurfingGui * _ui) {
 
 	ui = _ui;
 
-	// Debugger
-	#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_SETUP_PTR(3);
-	T_GPU_SETUP_PTR(5);
-	#endif
-
 	#ifdef USE_PRESETS__SUBTITLES
 	//startup
 	presets.bGui = false;
@@ -280,9 +274,6 @@ void ofxSurfingTextSubtitle::update(ofEventArgs & args) {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::update() {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_START_PTR(0, "update");
-#endif
 
 	if (!bDoneSetup) {
 		bDoneSetup = true;
@@ -322,12 +313,6 @@ void ofxSurfingTextSubtitle::update() {
 	updateEngine();
 
 	updateDebug();
-
-	//--
-
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_END_PTR(0);
-#endif
 }
 
 //--------------------------------------------------------------

@@ -23,8 +23,26 @@
 		},
 		{
 			"path": "${workspaceRoot}/../../.."
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\..\\ofxFontStash"
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\..\\ofxImGui"
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\..\\ofxSurfingBox"
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\..\\ofxSurfingHelpers"
+		},
+		{
+			"path": "${workspaceRoot}/../..\\..\\..\\ofxSurfingImGui"
+		},
+		{
+			"path": "${workspaceRoot}/../..\\.."
 		}
 	],
-	"openFrameworksProjectGeneratorVersion": "0.104.0",
+	"openFrameworksProjectGeneratorVersion": "0.103.0",
 	"settings": {}
 }
