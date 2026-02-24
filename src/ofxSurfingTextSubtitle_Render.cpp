@@ -166,7 +166,7 @@ void ofxSurfingTextSubtitle::draw() {
 
 	//---
 
-	ofPushStyle();
+	ofPopStyle();
 }
 
 //--

@@ -480,16 +480,16 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 	else if (name == bResetAll.getName()) {
 		doResetAll();
 	}
-	else if (name == vSave.getName()) {
-		ofLogNotice("ofxSurfingTextSubtitle") << "save";
-		ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
-
-#ifdef USE_PRESETS__SUBTITLES
-		//ofxSurfingHelpers::saveGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
-#else
-		ofxSurfingHelpers::saveGroup(params, settingsStore.getSettingsPath());
-#endif
-	}
+//	else if (name == vSave.getName()) {
+//		ofLogNotice("ofxSurfingTextSubtitle") << "save";
+//		ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
+//
+//#ifdef USE_PRESETS__SUBTITLES
+//		//ofxSurfingHelpers::saveGroup(params_AppSettings, path_Global+path_SubtitlerSettings);
+//#else
+//		ofxSurfingHelpers::saveGroup(params, settingsStore.getSettingsPath());
+//#endif
+//	}
 	// reset style
 	else if (name == bReset.getName()) {
 		doReset();

@@ -63,7 +63,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset");
 	bResetAll.set("Reset All");
-	vSave.set("Save");
+	//vSave.set("Save");
 
 	bCenteredV.set("y Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
@@ -137,7 +137,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//params_Control.add(box.bEdit);
 
 	params_Control.add(bResetAll);
-	params_Control.add(vSave);
+	//params_Control.add(vSave);
 
 	params_Transport.setName("Transport");
 	params_Transport.add(bStop);

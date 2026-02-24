@@ -508,7 +508,7 @@ private:
 	ofParameter<bool> bCapitalize;
 	ofParameter<void> bReset;
 	ofParameter<void> bResetAll;
-	ofParameter<void> vSave;
+	//ofParameter<void> vSave;
 
 private:
 

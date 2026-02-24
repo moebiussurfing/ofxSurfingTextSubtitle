@@ -701,7 +701,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 		ui->AddSpacingSeparated();
 		ui->AddSpacing();
 		ui->Add(bResetAll, OFX_IM_BUTTON_SMALL);
-		ui->Add(vSave, OFX_IM_BUTTON_SMALL);
+		//ui->Add(vSave, OFX_IM_BUTTON_SMALL);
 
 		//--
 
