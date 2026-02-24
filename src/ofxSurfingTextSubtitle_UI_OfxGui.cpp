@@ -15,9 +15,6 @@ void ofxSurfingTextSubtitle::drawGui() {
 	if (bGui_Internal && bGui_InternalAllowed) gui.draw();
 #endif
 
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.drawGui();
-#endif
-
+	drawDebug();
 }
 

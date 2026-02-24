@@ -70,11 +70,6 @@ void ofxSurfingTextSubtitle::setTogglePlay() {
 	bPlayStandalone = playStandalone;
 	bPlayForced = playForced;
 	bPlayManual = playManual;
-
-	//#ifdef USE_WIDGET__VIDEO_PLAYER
-	//	if (bPlayStandalone) player.play();
-	//	else player.stop();
-	//#endif
 }
 
 //--------------------------------------------------------------

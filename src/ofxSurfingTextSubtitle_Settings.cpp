@@ -28,10 +28,6 @@ void ofxSurfingTextSubtitle::startup() {
 	ofxSurfingHelpers::loadGroup(params, settingsStore.getSettingsPath());
 #endif
 
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.startup();
-#endif
-
 	//--
 
 	//TODO: do once
@@ -53,10 +49,4 @@ void ofxSurfingTextSubtitle::exit() {
 #else
 	ofxSurfingHelpers::saveGroup(params, settingsStore.getSettingsPath());
 #endif
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.exit();
-#endif
 }
-
-//--------------------------------------------------------------

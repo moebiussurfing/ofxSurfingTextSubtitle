@@ -70,17 +70,6 @@
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
-// 2. VIDEO PLAYER (ofxGui)
-//#define USE_WIDGET__VIDEO_PLAYER 
-// -> Could be disable to use your own video player or to use the subtitler as standalone.
-// A simple video player is bundled for commodity, 
-// then can be removed just by commenting here.
-// (Probably you would want to use your own external video player) 
-// If not using the video player we can remove:
-// the libs/ofxPlaybackGui folder and the ofxSurfingVideoPlayer.h and ofxSurfingVideoPlayer.cpp files.
-// Then, you would use the class outside just by copying the
-// srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
-
 //----
 
 // At least one of both is mandatory
@@ -122,10 +111,6 @@
 #ifdef USE_PRESETS__SUBTITLES
 #include "ofxSurfingPresetsLite.h"
 #endif
-#endif
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-#include "ofxSurfingVideoPlayer.h"
 #endif
 
 #include "srtparser.h"
@@ -255,9 +240,9 @@ public:
 	void draw(ofRectangle view);
 	void drawRaw();
 
-private:
-
 	void drawDebug();
+
+private:
 	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
@@ -635,12 +620,6 @@ private:
 	//--
 
 private:
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	ofxSurfingVideoPlayer player;
-	ofParameter<bool> bLoadBothVideoAndSubs{ "Link2Files" ,true };
-	ofEventListeners listeners;
-#endif
 
 	// Extra debug info
 	bool bDebug2 = false;

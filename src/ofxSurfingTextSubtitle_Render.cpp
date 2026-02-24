@@ -122,10 +122,6 @@ void ofxSurfingTextSubtitle::drawRaw() {
 
 void ofxSurfingTextSubtitle::draw() {
 
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.drawVideo();
-#endif
-
 	//---
 
 	bool b = (bUseFbo && fbo.isAllocated());
@@ -165,7 +161,7 @@ void ofxSurfingTextSubtitle::draw() {
 	//it happens when moving floating preview window sometimes.
 	if (!bLive) box.draw();
 
-	drawDebug();
+	//drawDebug();
 }
 
 //--
