@@ -121,6 +121,7 @@ void ofxSurfingTextSubtitle::drawRaw() {
 }
 
 void ofxSurfingTextSubtitle::draw() {
+	ofPushStyle();
 
 	//---
 
@@ -162,6 +163,10 @@ void ofxSurfingTextSubtitle::draw() {
 	if (!bLive) box.draw();
 
 	//drawDebug();
+
+	//---
+
+	ofPushStyle();
 }
 
 //--
