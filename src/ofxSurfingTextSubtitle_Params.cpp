@@ -125,11 +125,6 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.add(bDrawWidgetInfo);
 #endif
 
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	params_Control.add(player.bGui_VideoPlayer);
-	params_Control.add(bLoadBothVideoAndSubs);
-#endif
-
 #ifdef USE_IM_GUI__SUBTITLES
 	params_Control.add(bGui_List);
 	params_Control.add(bGui_Paragraph);

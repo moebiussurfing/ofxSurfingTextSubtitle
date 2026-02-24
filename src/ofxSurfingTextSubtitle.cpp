@@ -104,44 +104,6 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 
 	//--
 
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.setup();
-
-	// link both players
-
-	listeners.push(player.bLoaded.newListener([&](bool & b) {
-		if (b && bLoadBothVideoAndSubs) {
-			string s = player.path_Video.get();
-			auto ss = ofSplitString(s, ".");
-			string strunk = ss[0];
-			string path = strunk + ".srt";
-			if (ofFile::doesFileExist(path)) {
-				ofLogNotice("ofxSurfingTextSubtitle") << path << " found. Trying to load it.";
-				setupSubs(path);
-			} else {
-				ofLogError("ofxSurfingTextSubtitle") << "Not found an .srt file with same name that " << s;
-			}
-		}
-	}));
-
-	// create listeners for the buttons
-
-	listeners.push(player.playback.play.newListener([&](bool & b) {
-		ofLogNotice("ofxSurfingTextSubtitle") << "Play Paused pressed. Playing " << std::boolalpha << b << "\n";
-		if (b)
-			play();
-		else
-			stop();
-	}));
-
-	listeners.push(player.playback.stop.newListener([&]() {
-		ofLogNotice("ofxSurfingTextSubtitle") << "Stop pressed\n";
-		stop();
-	}));
-#endif
-
-	//--
-
 	//	//crash
 	//#ifdef USE_IM_GUI__SUBTITLES
 	//	bMinimize.makeReferenceTo(ui->bMinimize);
@@ -289,10 +251,6 @@ void ofxSurfingTextSubtitle::update() {
 	//if (ofGetFrameNum() == 1) startup();
 
 	//--
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	player.update();
-#endif
 
 	//	//TODO:
 	//	//trick improve to example-SubtitleWhisper app

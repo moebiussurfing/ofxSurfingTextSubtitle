@@ -56,29 +56,13 @@ void ofxSurfingTextSubtitle::updateDebug() {
 			//--
 
 			else if (indexModes == 1 && bPlayStandalone) {
-	#ifdef USE_WIDGET__VIDEO_PLAYER
-				if (player.playback.play) {
-					t = ofGetElapsedTimeMillis() - tPlay;
-				} else { //stopped
-					t = tPlay;
-				}
-	#else
 				t = ofGetElapsedTimeMillis() - tPlay;
-	#endif
 			}
 
 			//--
 
 			else if (indexModes == 2 && bPlayForced) {
-	#ifdef USE_WIDGET__VIDEO_PLAYER
-				if (player.playback.play) {
-					t = ofGetElapsedTimeMillis() - tPlayForceFilm;
-				} else { //stopped
-					t = tPlayForceFilm;
-				}
-	#else
 				t = ofGetElapsedTimeMillis() - tPlayForceFilm;
-	#endif
 			}
 
 			//--

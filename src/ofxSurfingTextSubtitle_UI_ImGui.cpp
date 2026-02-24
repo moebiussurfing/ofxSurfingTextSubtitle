@@ -57,31 +57,6 @@ void ofxSurfingTextSubtitle::drawImGui() {
 		presets.drawImGui(true, false, false, false);
 	}
 	#endif
-
-	//--
-
-	#ifdef USE_WIDGET__VIDEO_PLAYER
-	if (ui->BeginWindow(player.bGui)) {
-		ui->AddLabelBig("VIDEO PLAYER");
-		ui->Add(player.bOpenVideo, OFX_IM_BUTTON_SMALL);
-		ui->Add(player.path_Video, OFX_IM_TEXT_DISPLAY);
-		//ui->Add(player.bGui_VideoPlayer, OFX_IM_TOGGLE_ROUNDED_SMALL);
-		ui->AddSpacingSeparated();
-
-		ui->Add(player.bDraw_Video, OFX_IM_TOGGLE_ROUNDED_SMALL);
-		ui->Add(player.volume, OFX_IM_HSLIDER_MINI);
-		ui->Add(player.position, OFX_IM_HSLIDER_MINI);
-		ui->AddSpacingSeparated();
-
-		ofxImGuiSurfing::AddToggleNamed(player.playback.play, "Playing", "Play");
-		//ui->Add(player.playback.play, OFX_IM_TOGGLE_SMALL);
-		ui->Add(player.playback.stop, OFX_IM_BUTTON_SMALL);
-		ui->Add(player.playback.backwards, OFX_IM_BUTTON_SMALL, 2, true);
-		ui->Add(player.playback.forwards, OFX_IM_BUTTON_SMALL, 2);
-
-		ui->EndWindow();
-	}
-	#endif
 }
 
 //--------------------------------------------------------------
@@ -366,7 +341,10 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 	//----
 
 	ui->Add(bMinimize, OFX_IM_TOGGLE_ROUNDED_SMALL);
-	if (!bMinimize) ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
+	if (!bMinimize) {
+		ui->Add(bKeys, OFX_IM_TOGGLE_ROUNDED_MINI);
+		ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
+	}
 
 	//--
 
@@ -395,11 +373,6 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					ui->AddLabel(name_Text + ".txt");
 					ui->AddTooltip(path_Text);
 				}
-
-	#ifdef USE_WIDGET__VIDEO_PLAYER
-				ui->AddSpacingSeparated();
-				ui->Add(player.bGui, OFX_IM_TOGGLE_ROUNDED);
-	#endif
 				ui->EndTree(false);
 			}
 		}
