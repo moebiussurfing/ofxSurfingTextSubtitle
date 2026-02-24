@@ -627,6 +627,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					ui->PopWidth();
 
 					ui->Add(colorTextFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
+					ui->Add(bEnableColorBg);
 					ui->Add(colorBgFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
 
 					if (ui->AddButton("Swap")) {
@@ -641,6 +642,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 				}
 			} else {
 				ui->Add(colorTextFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
+				ui->Add(bEnableColorBg);
 				ui->Add(colorBgFloat, OFX_IM_COLOR_BOX_FULL_WIDTH_NO_ALPHA);
 			}
 
@@ -699,6 +701,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 		ui->AddSpacingSeparated();
 		ui->AddSpacing();
 		ui->Add(bResetAll, OFX_IM_BUTTON_SMALL);
+		ui->Add(vSave, OFX_IM_BUTTON_SMALL);
 
 		//--
 

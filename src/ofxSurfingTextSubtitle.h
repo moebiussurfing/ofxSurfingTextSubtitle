@@ -496,6 +496,10 @@ private:
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
 	ofParameter<ofFloatColor> colorBgFloat;
+
+public:
+	ofParameter<bool> bEnableColorBg;
+private:
 	ofParameter<ofFloatColor> colorTextFloat;
 	//ofParameter<ofFloatColor> colorTextShadow;
 	//ofParameter<glm::vec2> offsetShadow;
@@ -504,6 +508,7 @@ private:
 	ofParameter<bool> bCapitalize;
 	ofParameter<void> bReset;
 	ofParameter<void> bResetAll;
+	ofParameter<void> vSave;
 
 private:
 

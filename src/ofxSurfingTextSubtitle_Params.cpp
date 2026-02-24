@@ -58,10 +58,12 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//colorTextShadow.set("ColorSw", ofFloatColor::black, ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
 	//offsetShadow.set("Offset", glm::vec2(0, 0), glm::vec2(-100, -100), glm::vec2(100, 100));
 	colorBgFloat.set("ColorBg", ofFloatColor(50 / 255.f), ofFloatColor(0.f, 0.f), ofFloatColor(1.f, 1.f));
+	bEnableColorBg.set("Enable Bg", true);
 	fAlign.set("Align", 0, 0, 2);
 	fAlign_str.set("Align ", "-1");
 	bReset.set("Reset");
 	bResetAll.set("Reset All");
+	vSave.set("Save");
 
 	bCenteredV.set("y Centered", true);
 	amountLinesTarget.set("Lines", 6, 1, 10);
@@ -135,6 +137,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//params_Control.add(box.bEdit);
 
 	params_Control.add(bResetAll);
+	params_Control.add(vSave);
 
 	params_Transport.setName("Transport");
 	params_Transport.add(bStop);
@@ -186,6 +189,7 @@ void ofxSurfingTextSubtitle::setupParams() {
 	//	params_Style.add(colorTextShadow);
 	//	params_Style.add(offsetShadow);
 	//#endif
+	params_Style.add(bEnableColorBg);
 	params_Style.add(colorBgFloat);
 	params_Style.add(bCapitalize);
 	params_Style.add(fSizePrc);
@@ -247,6 +251,7 @@ void ofxSurfingTextSubtitle::doResetAll() {
 
 	colorTextFloat.set(ofFloatColor::white);
 	colorBgFloat.set(ofFloatColor(50 / 255.f));
+	bEnableColorBg = true;
 
 	currentDialog = 0;
 	bDraw.set(true);

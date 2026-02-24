@@ -132,7 +132,7 @@ void ofxSurfingTextSubtitle::draw() {
 			fbo.begin();
 
 			//draw into fbo with full alpha
-			ofClear(colorBgFloat.get());
+			if (bEnableColorBg) ofClear(colorBgFloat.get());
 			ofSetColor(colorTextFloat.get());
 			drawRaw();
 
