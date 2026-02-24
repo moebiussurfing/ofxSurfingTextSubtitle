@@ -60,10 +60,6 @@ void ofxSurfingTextSubtitle::drawRaw() {
 		//boxDrawnEstimated will not be refreshed until next slide or box container changes!
 	} else {
 		//workaround to refresh. will be auto set last frozen value if not..
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-		T_GPU_START_PTR(2, "TXT_NO-DRAW");
-		T_GPU_END_PTR(2);
-#endif
 	}
 
 	//--
@@ -125,20 +121,11 @@ void ofxSurfingTextSubtitle::drawRaw() {
 }
 
 void ofxSurfingTextSubtitle::draw() {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_START_PTR(0, "draw");
-#endif
 
 #ifdef USE_WIDGET__VIDEO_PLAYER
 	player.drawVideo();
 #endif
 
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	if (!bDraw) {
-		T_GPU_END_PTR(0);
-		return;
-	}
-#endif
 	//---
 
 	bool b = (bUseFbo && fbo.isAllocated());
@@ -163,21 +150,10 @@ void ofxSurfingTextSubtitle::draw() {
 
 		//---
 
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-		T_GPU_START_PTR(1, "TXT_DRAW");
-#endif
 		// draw fbo with alpha
 		ofSetColor(255, a);
 		fbo.draw(0, 0);
 
-		//---
-
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-		T_GPU_END_PTR(1);
-
-		T_GPU_START_PTR(2, "TXT_NO-DRAW");
-		T_GPU_END_PTR(2);
-#endif
 	} else {
 		drawRaw();
 	}
@@ -189,30 +165,13 @@ void ofxSurfingTextSubtitle::draw() {
 	//it happens when moving floating preview window sometimes.
 	if (!bLive) box.draw();
 
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_START_PTR(4, "DEBUG-draw");
-#endif
-
 	drawDebug();
-
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_END_PTR(4);
-
-	T_GPU_END_PTR(0);
-#endif
 }
 
 //--
 
 //--------------------------------------------------------------
 ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r, bool bNoDraw) {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	if (!bNoDraw) {
-		T_GPU_START_PTR(1, "TXT_DRAW");
-	} else {
-		if (bDoRefreshNoDraw) T_GPU_START_PTR(2, "TXT_NO-DRAW");
-	}
-#endif
 
 	//--
 
@@ -437,16 +396,6 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 	if (!bNoDraw) ofPopStyle();
 
 	//--
-
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	if (bDebug) {
-		if (!bNoDraw) {
-			T_GPU_END_PTR(1);
-		} else {
-			if (bDoRefreshNoDraw) T_GPU_END_PTR(2);
-		}
-	}
-#endif
 
 	return boxDrawnEstimated;
 }

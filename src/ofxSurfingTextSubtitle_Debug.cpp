@@ -2,11 +2,6 @@
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updateDebug() {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_START_PTR(2, "Debug");
-#endif
-
-	//--
 
 	// Calculate progress
 
@@ -124,10 +119,6 @@ void ofxSurfingTextSubtitle::updateDebug() {
 		}
 #endif
 	}
-
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_END_PTR(2);
-#endif
 }
 
 //--------------------------------------------------------------

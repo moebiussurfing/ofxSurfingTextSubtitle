@@ -131,9 +131,6 @@ void ofxSurfingTextSubtitle::updateFades() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::updateEngine() {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_START_PTR(1, "Engine");
-#endif
 
 	//--
 
@@ -254,9 +251,6 @@ void ofxSurfingTextSubtitle::updateEngine() {
 			}
 		}
 	}
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_CPU_END_PTR(1);
-#endif
 }
 
 void ofxSurfingTextSubtitle::doSetSrtSlideStart(SubtitleItem * element) {

@@ -2,18 +2,9 @@
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawGui() {
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_START_PTR(3, "Gui");
-
-	if (!bGui) {
-		T_GPU_END_PTR(3);
-		return;
-	}
-#else
 	if (!bGui) {
 		return;
 	}
-#endif
 
 	// info
 #ifdef USE_WIDGET__SUBTITLES
@@ -28,8 +19,5 @@ void ofxSurfingTextSubtitle::drawGui() {
 	player.drawGui();
 #endif
 
-#ifdef SURFING_IMGUI__USE_PROFILE_DEBUGGER
-	T_GPU_END_PTR(3);
-#endif
 }
 
