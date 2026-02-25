@@ -114,7 +114,7 @@ void ofxSurfingTextSubtitle::doBuildDataTextBlocks(string s, bool bNumbered) {
 		string s = "#" + ofToString(i) + ": " + dataTextBlocks[i];
 
 #ifdef USE_IM_GUI__SUBTITLES
-		ui->AddToLog(s);
+		// ui->AddToLog(s);//->TODO: to be called during gui drawing?
 #else
 	#ifdef USE_OFX_GUI__SUBTITLES
 		ofLogNotice("ofxSurfingTextSubtitle") << s;
