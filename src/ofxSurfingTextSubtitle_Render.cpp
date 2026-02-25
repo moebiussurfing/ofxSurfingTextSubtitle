@@ -154,6 +154,11 @@ void ofxSurfingTextSubtitle::draw() {
 	} else {
 		drawRaw();
 	}
+
+	//---
+
+	ofPopStyle();
+
 	//----
 
 	if (!bGui) return;
@@ -163,10 +168,6 @@ void ofxSurfingTextSubtitle::draw() {
 	if (!bLive) box.draw();
 
 	//drawDebug();
-
-	//---
-
-	ofPopStyle();
 }
 
 //--

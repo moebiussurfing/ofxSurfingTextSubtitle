@@ -309,9 +309,9 @@ std::string ofxSurfingTextSubtitle::getAlignNameFromIndex(int index) const {
 void ofxSurfingTextSubtitle::doResetFades() {
 	//bAnimatedIn = true;
 	//bAnimatedOut = true;
-	durationPlayForced = 2000;
-	durationOut = 250;
-	durationIn = 250;
+	durationPlayForced = 4000;
+	durationOut = 1000;
+	durationIn = 1000;
 
 	doRefreshDraw();
 }

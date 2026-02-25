@@ -64,31 +64,31 @@ void ofxSurfingTextSubtitle::setup(string _pathSrt) {
 	//TODO: fix text file format txt
 	else if (ext == "txt") {
 		ofLogNotice(__FUNCTION__) << " Extension is " << _pathSrt;
-		////setupTextBlocks(_pathSrt);
-		////processOpenFileTextSelection(file);
-		//if (file.exists()) {
-		//	ofLogNotice("ofxSurfingTextSubtitle") << "The file exists - now checking the type via file extension";
-		//	string fileExtension = ofToUpper(file.getExtension());
+		//setupTextBlocks(_pathSrt);
+		//processOpenFileTextSelection(file);
+		if (file.exists()) {
+			ofLogNotice("ofxSurfingTextSubtitle") << "The file exists - now checking the type via file extension";
+			string fileExtension = ofToUpper(file.getExtension());
 
-		//	//We only want
-		//	if (fileExtension == "TXT") {
-		//		//load text
-		//		string s = ofxSurfingHelpers::loadFileText(_pathSrt);
-		//		doBuildDataTextBlocks(s);
+			////We only want
+			//if (fileExtension == "TXT") {
+			//	//load text
+			//	string s = ofxSurfingHelpers::loadFileText(_pathSrt);
+			//	doBuildDataTextBlocks(s);
 
-		//		//workflow
-		//		//bPlayStandalone = true;
-		//		//bPlayForced = true;
+			//	//workflow
+			//	//bPlayStandalone = true;
+			//	//bPlayForced = true;
 
-		//		path_Text = _pathSrt;
-		//		ofFile file(ofToDataPath(_pathSrt));
-		//		name_Text = file.getBaseName();
+			//	path_Text = _pathSrt;
+			//	ofFile file(ofToDataPath(_pathSrt));
+			//	name_Text = file.getBaseName();
 
-		//		bLoadedFileText = true;
-		//		path_Srt = "";
-		//		name_Srt = "";
-		//	}
-		//}
+			//	bLoadedFileText = true;
+			//	path_Srt = "";
+			//	name_Srt = "";
+			//}
+		}
 	} else {
 		ofLogWarning(__FUNCTION__) << " Extension is unknown. Requires .srt or .txt: " << _pathSrt;
 	}
