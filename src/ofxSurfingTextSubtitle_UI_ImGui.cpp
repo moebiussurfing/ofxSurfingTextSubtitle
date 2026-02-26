@@ -622,7 +622,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 						ofFloatColor c = colorTextFloat.get();
 						colorTextFloat.set(ofFloatColor(c.r, c.g, c.b, _alpha));
 
-						doRefreshDraw();
+						//doRefreshDraw();
 					}
 					ui->PopWidth();
 
@@ -635,7 +635,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 						colorTextFloat = colorBgFloat;
 						colorBgFloat = c;
 
-						doRefreshDraw();
+						//doRefreshDraw();
 					}
 
 					ui->EndTree(false);
@@ -664,7 +664,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 							ui->AddSpacing();
 							ui->Add(bDebug, OFX_IM_TOGGLE_ROUNDED_MINI);
 							ui->Add(ui->bThemeUIAlt, OFX_IM_TOGGLE_ROUNDED_MINI);
-							ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
+							//ui->Add(bUseFbo, OFX_IM_TOGGLE_ROUNDED_MINI);
 							s = "Debug HUD";
 							ui->AddLabel(s);
 							ui->Add(bTheme, OFX_IM_TOGGLE_ROUNDED_MINI);

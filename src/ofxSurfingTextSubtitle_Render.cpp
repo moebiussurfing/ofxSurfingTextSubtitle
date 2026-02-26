@@ -125,35 +125,7 @@ void ofxSurfingTextSubtitle::draw() {
 
 	//---
 
-	bool b = (bUseFbo && fbo.isAllocated());
-	if (b) {
-		if (bDoRefreshFboCapture) {
-			bDoRefreshFboCapture = false;
-
-			fbo.begin();
-
-			//draw into fbo with full alpha
-			if (bEnableColorBg) ofClear(colorBgFloat.get());
-			ofSetColor(colorTextFloat.get());
-			drawRaw();
-
-			fbo.end();
-		}
-
-		int a = 255;
-		if (bAnimatedFades && (bAnimatedIn || bAnimatedOut)) {
-			a *= alpha;
-		}
-
-		//---
-
-		// draw fbo with alpha
-		ofSetColor(255, a);
-		fbo.draw(0, 0);
-
-	} else {
-		drawRaw();
-	}
+	drawRaw();
 
 	//---
 
@@ -294,8 +266,9 @@ ofRectangle ofxSurfingTextSubtitle::drawTextBox(std::string _str, ofRectangle r,
 		}
 	}
 	if (!bNoDraw) {
-		if (bUseFbo) {
-		} else {
+		//if (bUseFbo) {
+		//} else
+		{
 			if (bAnimatedFades && (bAnimatedIn || bAnimatedOut)) {
 				_colorText = ofColor(_colorText, alpha * _colorText.a);
 				//_colorTextShadow = ofColor(_colorTextShadow, alpha * _colorTextShadow.a);

@@ -6,7 +6,7 @@ void ofxSurfingTextSubtitle::startup() {
 
 	//--
 
-	initFbo();
+	//initFbo();
 
 	//--
 

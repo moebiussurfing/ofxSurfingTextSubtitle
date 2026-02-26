@@ -118,7 +118,6 @@ void ofxSurfingTextSubtitle::setupParams() {
 	params_Control.add(bEdit);
 	params_Control.add(bExtra);
 	params_Control.add(bDebug);
-	params_Control.add(bUseFbo);
 	params_Control.add(bTheme);
 	params_Control.add(bTop);
 	params_Control.add(bLeft);
@@ -313,7 +312,7 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	durationOut = 1000;
 	durationIn = 1000;
 
-	doRefreshDraw();
+	//doRefreshDraw();
 }
 
 //--------------------------------------------------------------

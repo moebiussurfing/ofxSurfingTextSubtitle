@@ -134,11 +134,11 @@ void ofxSurfingTextSubtitle::updateEngine() {
 
 	//--
 
-	if (box.isChanged()) {
-		ofLogNotice("ofxSurfingTextSubtitle") << "Box container changed";
-		initFbo();
-		doRefreshDraw();
-	}
+	//if (box.isChanged()) {
+	//	ofLogNotice("ofxSurfingTextSubtitle") << "Box container changed";
+	//	initFbo();
+	//	//doRefreshDraw();
+	//}
 
 	//--
 
@@ -261,5 +261,5 @@ void ofxSurfingTextSubtitle::doSetSrtSlideStart(SubtitleItem * element) {
 	auto te = element->getEndTime();
 	durationPlaySlide = te - ts;
 
-	doRefreshDraw();
+	//doRefreshDraw();
 }

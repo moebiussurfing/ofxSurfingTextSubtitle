@@ -201,7 +201,7 @@ void ofxSurfingTextSubtitle::doSetTextSlideStart(string s) {
 		isSlidePlaying = true;
 		durationPlaySlide = durationPlayForced;
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 	// workflow
 	//else {

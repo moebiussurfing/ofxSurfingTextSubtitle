@@ -217,7 +217,7 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 				}
 				*/
 
-				doRefreshDraw();
+				//doRefreshDraw();
 			}
 		}
 
@@ -372,13 +372,13 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 		float _margin = 1.f; // fade in increment per frame. from 0 to 1 or vice versa.
 		dtAnimIn = _margin / (float)_numframes;
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	} else if (name == durationOut.getName()) {
 		auto _numframes = durationOut / (float)(dt * 1000);
 		float _margin = 1.f; // fade out increment per frame. from 0 to 1 or vice versa.
 		dtAnimOut = _margin / (float)_numframes;
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 
 	else if (name == bAnimatedIn.getName()) {
@@ -448,32 +448,32 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 		else
 			textCurrent = lastTextSlideRaw;
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 
 	else if (name == fSizePrc.getName()) {
 		fSize = fSizePrc * fSize.getMax();
 		//fSize = fSizePrc * box.getWidth() / 5;
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 	// spacing
 	else if (name == fSpacing.getName()) {
 		font.setCharacterSpacing(fSpacing);
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 	// height
 	else if (name == fLineHeight.getName()) {
 		font.setLineHeight(fLineHeight);
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 	// alignment
 	else if (name == fAlign.getName()) {
 		fAlign_str = getAlignNameFromIndex(fAlign.get());
 
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 
 	// reset all
@@ -522,9 +522,9 @@ void ofxSurfingTextSubtitle::Changed(ofAbstractParameter & e) {
 
 	// Fbo/redraw engine
 	else if (name == colorTextFloat.getName()) {
-		doRefreshDraw();
+		//doRefreshDraw();
 	} else if (name == colorBgFloat.getName()) {
-		doRefreshDraw();
+		//doRefreshDraw();
 	}
 
 	else if (name == bLive.getName()) {

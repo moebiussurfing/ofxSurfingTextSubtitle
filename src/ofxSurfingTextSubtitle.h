@@ -188,15 +188,15 @@ private:
 
 	bool bDoRefreshNoDraw = false; // To checking expected text formating determined by the box container.
 
-private:
-
-	ofFbo fbo; // Declare an instance of FBO
-	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
-	// Note that it will not draws explicitly and immediately. However it will flag to do it on next frame/update/draw!
-	void doRefreshDraw() {
-		bDoRefreshNoDraw = true;
-		if (bUseFbo) bDoRefreshFboCapture = true;
-	}
+//private:
+//
+//	ofFbo fbo; // Declare an instance of FBO
+//	bool bDoRefreshFboCapture = true; // Flag to keep track of changes in image content
+//	// Note that it will not draws explicitly and immediately. However it will flag to do it on next frame/update/draw!
+//	void doRefreshDraw() {
+//		bDoRefreshNoDraw = true;
+//		if (bUseFbo) bDoRefreshFboCapture = true;
+//	}
 
 	//--
 
@@ -232,8 +232,8 @@ private:
 	void updateEngine();
 	void updateDebug();
 
-	void initFbo();
-	void initFbo(int , int h);
+	//void initFbo();
+	//void initFbo(int , int h);
 
 public:
 	void draw();
@@ -427,7 +427,6 @@ public:
 
 	ofParameter<bool> bGui;
 	ofParameter<bool> bDraw;
-	ofParameter<bool> bUseFbo;
 	ofParameter<int> durationPlayForced;
 	ofParameterGroup params_Preset; // re collect params for preset/settings
 	ofParameter<int> currentDialog; // dialog index. current loaded subtitle slide.  

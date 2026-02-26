@@ -6,8 +6,6 @@ ofxSurfingTextSubtitle::ofxSurfingTextSubtitle() {
 	bGui_List.set("LIST", false);
 	bGui_Paragraph.set("PARAGRAPH", true);
 
-	bUseFbo.set("Fbo", false);
-
 	settingsStore.setPaths(path_Global, path_SubtitlerSettings);
 
 #ifndef USE_IM_GUI__SUBTITLES
@@ -34,7 +32,7 @@ ofxSurfingTextSubtitle::~ofxSurfingTextSubtitle() {
 void ofxSurfingTextSubtitle::windowResized(ofResizeEventArgs & args) {
 	int w = args.width;
 	int h = args.height;
-	initFbo(w, h);
+	//initFbo(w, h);
 }
 
 //--------------------------------------------------------------
@@ -242,32 +240,32 @@ void ofxSurfingTextSubtitle::setupFont() {
 	//}
 }
 
-void ofxSurfingTextSubtitle::initFbo() {
-	int w = ofGetWidth();
-	int h = ofGetHeight();
-	ofLogNotice(__FUNCTION__) << w << "," << h;
-
-	ofFboSettings fboSettings; // Declare an instance of FBO settings
-	fboSettings.width = w;
-	fboSettings.height = h;
-	fboSettings.internalformat = GL_RGBA;
-	fboSettings.useDepth = true;
-	fboSettings.useStencil = true;
-	fbo.allocate(fboSettings);
-}
-
-//--------------------------------------------------------------
-void ofxSurfingTextSubtitle::initFbo(int w, int h) {
-	ofLogNotice(__FUNCTION__) << w << "," << h;
-
-	ofFboSettings fboSettings; // Declare an instance of FBO settings
-	fboSettings.width = w;
-	fboSettings.height = h;
-	fboSettings.internalformat = GL_RGBA;
-	fboSettings.useDepth = true;
-	fboSettings.useStencil = true;
-	fbo.allocate(fboSettings);
-}
+//void ofxSurfingTextSubtitle::initFbo() {
+//	int w = ofGetWidth();
+//	int h = ofGetHeight();
+//	ofLogNotice(__FUNCTION__) << w << "," << h;
+//
+//	ofFboSettings fboSettings; // Declare an instance of FBO settings
+//	fboSettings.width = w;
+//	fboSettings.height = h;
+//	fboSettings.internalformat = GL_RGBA;
+//	fboSettings.useDepth = true;
+//	fboSettings.useStencil = true;
+//	fbo.allocate(fboSettings);
+//}
+//
+////--------------------------------------------------------------
+//void ofxSurfingTextSubtitle::initFbo(int w, int h) {
+//	ofLogNotice(__FUNCTION__) << w << "," << h;
+//
+//	ofFboSettings fboSettings; // Declare an instance of FBO settings
+//	fboSettings.width = w;
+//	fboSettings.height = h;
+//	fboSettings.internalformat = GL_RGBA;
+//	fboSettings.useDepth = true;
+//	fboSettings.useStencil = true;
+//	fbo.allocate(fboSettings);
+//}
 
 void ofxSurfingTextSubtitle::update(ofEventArgs & args) {
 	update();
