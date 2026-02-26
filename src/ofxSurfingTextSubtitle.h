@@ -70,17 +70,6 @@
 // Requires ofxSurfingImGui and an ofxImGui fork
 // Can be commented to use ofxGui only!
 
-// 2. VIDEO PLAYER (ofxGui)
-//#define USE_WIDGET__VIDEO_PLAYER 
-// -> Could be disable to use your own video player or to use the subtitler as standalone.
-// A simple video player is bundled for commodity, 
-// then can be removed just by commenting here.
-// (Probably you would want to use your own external video player) 
-// If not using the video player we can remove:
-// the libs/ofxPlaybackGui folder and the ofxSurfingVideoPlayer.h and ofxSurfingVideoPlayer.cpp files.
-// Then, you would use the class outside just by copying the
-// srtparser.h, ofxSurfingTextSubtitle.h and ofxSurfingTextSubtitle.cpp files.
-
 //----
 
 // At least one of both is mandatory
@@ -122,10 +111,6 @@
 #ifdef USE_PRESETS__SUBTITLES
 #include "ofxSurfingPresetsLite.h"
 #endif
-#endif
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-#include "ofxSurfingVideoPlayer.h"
 #endif
 
 #include "srtparser.h"
@@ -255,9 +240,9 @@ public:
 	void draw(ofRectangle view);
 	void drawRaw();
 
-private:
-
 	void drawDebug();
+
+private:
 	// letters only. without boxes, interaction nor gui
 	//void drawRaw(ofRectangle view);
 
@@ -314,6 +299,15 @@ public:
 	int getNumSubtitles() const { return (currentDialog.getMax() + 1); }
 	ofColor getColorBg() const { return colorBgFloat.get(); };
 	ofColor getColorText() const { return colorTextFloat.get(); };
+	bool loadSrtFile(const std::string& path);
+	bool loadTextFile(const std::string& path);
+	void setPlaybackMode(ofxSurfingSubtitle::PlaybackMode mode);
+	ofxSurfingSubtitle::PlaybackMode getPlaybackMode() const;
+	const char* getPlaybackModeName() const;
+	void setPlaybackEnabled(bool bEnabled);
+	void setTextSlide(const std::string& text);
+	void setStyleSimple(float sizePercent, float lineHeight = 0.75f, float spacing = 0.0f, int alignIndex = 0);
+	void setColorsSimple(const ofColor& textColor, const ofColor& backgroundColor);
 
 	int getModePlayer() const { return indexModes.get(); }
 
@@ -322,7 +316,7 @@ public:
 	void setDuration(float duration) { tEndSubsFilm = 1000 * duration; }
 
 	void loadFileSubs(string path) {
-		setupSubs(path);
+		loadSrtFile(path);
 
 		//TODO:
 		//indexModes = indexModes.get();
@@ -502,6 +496,10 @@ private:
 	ofParameter<float> fSpacing;
 	ofParameter<float> fLineHeight;
 	ofParameter<ofFloatColor> colorBgFloat;
+
+public:
+	ofParameter<bool> bEnableColorBg;
+private:
 	ofParameter<ofFloatColor> colorTextFloat;
 	//ofParameter<ofFloatColor> colorTextShadow;
 	//ofParameter<glm::vec2> offsetShadow;
@@ -510,6 +508,7 @@ private:
 	ofParameter<bool> bCapitalize;
 	ofParameter<void> bReset;
 	ofParameter<void> bResetAll;
+	//ofParameter<void> vSave;
 
 private:
 
@@ -626,12 +625,6 @@ private:
 	//--
 
 private:
-
-#ifdef USE_WIDGET__VIDEO_PLAYER
-	ofxSurfingVideoPlayer player;
-	ofParameter<bool> bLoadBothVideoAndSubs{ "Link2Files" ,true };
-	ofEventListeners listeners;
-#endif
 
 	// Extra debug info
 	bool bDebug2 = false;

@@ -8,7 +8,8 @@ void ofApp::setup()
 
 	// Set the initial SRT file path. 
 	// But you can load other SRT or TXT files on runtime.
-	string path = "files/srt/Huxley.srt";
+	// string path = "files/srt/Huxley.srt";
+	string path = "files/txt/text1.txt";
 	subs.setup(path);
 
 	subs.setUiPtr(&ui); // ui must be instantiated in ofApp. 
