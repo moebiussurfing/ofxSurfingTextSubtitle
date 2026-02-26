@@ -502,7 +502,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					ui->AddTooltip(s);
 					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
 					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
-					s = "Dialog \n#" + ofToString(currentDialog.get());
+					s = "Dialog \n" + ofToString(currentDialog.get()) + "/" + ofToString(currentDialog.getMax());
 				} else if (indexModes == 2) // FORCED
 				{
 					ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
@@ -514,7 +514,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					//ui->Add(durationPlayForced, OFX_IM_HSLIDER);
 					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
-					s = "Dialog \n#" + ofToString(currentDialog.get());
+					s = "Dialog \n" + ofToString(currentDialog.get()) + "/" + ofToString(currentDialog.getMax());
 					ui->AddTooltip(s);
 					//ui->AddTooltip(currentDialog);
 
