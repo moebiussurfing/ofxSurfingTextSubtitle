@@ -30,10 +30,10 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 		if (bLoadedFileSubs || bLoadedFileText) {
 			if (bGui_List) {
-				if (bGui_Paragraph)
-					ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
-				else
-					ui->setNextWindowAfterWindowNamed(bGui);
+				//if (bGui_Paragraph)
+				//	ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+				//else
+				//	ui->setNextWindowAfterWindowNamed(bGui);
 
 				drawImGuiWindowList();
 			}
@@ -46,13 +46,13 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 	#ifdef USE_PRESETS__SUBTITLES
 	if (presets.bGui) {
-		if (bGui_List)
-			ui->setNextWindowAfterWindowNamed(bGui_List);
-		else if (bGui_Paragraph)
-			ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
-		//else if (bGui) ui->setNextWindowAfterWindowNamed(bGui);
-		else
-			ui->setNextWindowAfterWindowNamed(bGui);
+		//if (bGui_List)
+		//	ui->setNextWindowAfterWindowNamed(bGui_List);
+		//else if (bGui_Paragraph)
+		//	ui->setNextWindowAfterWindowNamed(bGui_Paragraph);
+		////else if (bGui) ui->setNextWindowAfterWindowNamed(bGui);
+		//else
+		//	ui->setNextWindowAfterWindowNamed(bGui);
 
 		presets.drawImGui(true, false, false, false);
 	}
@@ -61,7 +61,7 @@ void ofxSurfingTextSubtitle::drawImGui() {
 
 //--------------------------------------------------------------
 void ofxSurfingTextSubtitle::drawImGuiWindowParagraph() {
-	if (bGui && bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui);
+	//if (bGui && bGui_Paragraph) ui->setNextWindowAfterWindowNamed(bGui);
 
 	//if (ui->BeginTree("PARAGRAPH", false, false))
 	if (ui->BeginWindow(bGui_Paragraph)) {

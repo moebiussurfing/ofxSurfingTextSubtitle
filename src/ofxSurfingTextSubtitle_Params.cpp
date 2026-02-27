@@ -309,8 +309,8 @@ void ofxSurfingTextSubtitle::doResetFades() {
 	//bAnimatedIn = true;
 	//bAnimatedOut = true;
 	durationPlayForced = 4000;
-	durationOut = 1000;
 	durationIn = 1000;
+	durationOut = 500;
 
 	//doRefreshDraw();
 }
