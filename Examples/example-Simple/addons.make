@@ -1,5 +1,6 @@
 ofxFontStash
 ofxImGui
+ofxSurfingAnimators
 ofxSurfingBox
 ofxSurfingHelpers
 ofxSurfingImGui
