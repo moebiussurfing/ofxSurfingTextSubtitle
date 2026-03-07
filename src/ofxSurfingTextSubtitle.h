@@ -388,6 +388,8 @@ private:
 public:
 
 	void setupTextBlocks(string path);
+	void save();
+	void load();
 
 private:
 

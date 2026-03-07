@@ -40,6 +40,18 @@ void ofxSurfingTextSubtitle::startup() {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::load() {
+	ofLogNotice("ofxSurfingTextSubtitle") << "load";
+	ofxSurfingHelpers::loadGroup(params, settingsStore.getSettingsPath());
+}
+
+//--------------------------------------------------------------
+void ofxSurfingTextSubtitle::save() {
+	ofLogNotice("ofxSurfingTextSubtitle") << "save";
+	ofxSurfingHelpers::saveGroup(params, settingsStore.getSettingsPath());
+}
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::exit() {
 	ofLogNotice("ofxSurfingTextSubtitle") << "exit";
 	ofRemoveListener(params.parameterChangedE(), this, &ofxSurfingTextSubtitle::Changed);
