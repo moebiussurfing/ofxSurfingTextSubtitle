@@ -497,18 +497,18 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 				} else if (indexModes == 1) // STANDALONE
 				{
-					ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					ui->Add(bPlayStandalone, OFX_IM_TOGGLE_BIG_XXL_BORDER_BLINK);
 					s = "Time linked to .srt file times.";
 					ui->AddTooltip(s);
-					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+					ui->Add(bStop, OFX_IM_BUTTON_MEDIUM);
 					ui->Add(currentDialog, OFX_IM_HSLIDER_MINI_NO_NAME);
 					s = "Dialog \n" + ofToString(currentDialog.get()) + "/" + ofToString(currentDialog.getMax());
 				} else if (indexModes == 2) // FORCED
 				{
-					ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					ui->Add(bPlayForced, OFX_IM_TOGGLE_BIG_XXL_BORDER_BLINK);
 					s = "Local time linked to his timer.";
 					ui->AddTooltip(s);
-					ui->Add(bStop, OFX_IM_BUTTON_SMALL);
+					ui->Add(bStop, OFX_IM_BUTTON_MEDIUM);
 					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 					//ui->Add(durationPlayForced);
 					//ui->Add(durationPlayForced, OFX_IM_HSLIDER);
@@ -524,7 +524,7 @@ void ofxSurfingTextSubtitle::drawImGuiWidgets() {
 					ui->PopButtonRepeat();
 				} else if (indexModes == 3) // MANUAL
 				{
-					ui->Add(bPlayManual, OFX_IM_TOGGLE_BIG_BORDER_BLINK);
+					ui->Add(bPlayManual, OFX_IM_TOGGLE_BIG_XXL_BORDER_BLINK);
 					ui->Add(durationPlayForced, OFX_IM_HSLIDER_MINI);
 					ui->AddTooltip(ofToString(durationPlayForced.get()) + "\nms");
 				}

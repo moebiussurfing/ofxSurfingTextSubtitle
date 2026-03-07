@@ -605,6 +605,7 @@ private:
 public:
 
 	void setTogglePlayForced();
+	void setPlayForced(bool b);
 	bool isPlaying() const;
 	void setTogglePlay();
 	void play();

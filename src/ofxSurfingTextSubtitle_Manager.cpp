@@ -51,6 +51,10 @@ void ofxSurfingTextSubtitle::updateFrame(uint64_t frame) {
 }
 
 //--------------------------------------------------------------
+void ofxSurfingTextSubtitle::setPlayForced(bool b) { bPlayForced = b; }
+
+
+//--------------------------------------------------------------
 void ofxSurfingTextSubtitle::setTogglePlayForced() { bPlayForced = !bPlayForced; }
 
 //--------------------------------------------------------------
